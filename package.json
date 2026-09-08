@@ -1,0 +1,54 @@
+{
+  "name": "@nexis/design",
+  "version": "0.1.0",
+  "description": "The design system shared across the Nexis desktop apps: OKLCH tokens, runtime theme engine, borderless window chrome, and the bespoke cursor set.",
+  "license": "Apache-2.0",
+  "author": "Ryan Wetzstein",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rwetz/nexis-design.git"
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./theme": "./src/theme/index.ts",
+    "./tokens": "./src/styles/tokens.ts",
+    "./styles/globals.css": "./src/styles/globals.css",
+    "./styles/globals.ide.css": "./src/styles/globals.ide.css",
+    "./styles/fonts.css": "./src/styles/fonts.css",
+    "./styles/code-highlight.css": "./src/styles/code-highlight.css",
+    "./assets/*": "./assets/*",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "nexis-design-assets": "./bin/sync-assets.mjs"
+  },
+  "files": [
+    "src",
+    "assets",
+    "bin",
+    "docs"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "@hugeicons/core-free-icons": "^1.0.13",
+    "@hugeicons/react": "^1.0.5",
+    "@tauri-apps/api": "^2.6.0",
+    "@tauri-apps/plugin-os": "^2.3.0",
+    "clsx": "^2.1.1",
+    "motion": "^12.19.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "typescript": "^5.8.3"
+  }
+}
