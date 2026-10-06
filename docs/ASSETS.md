@@ -1,25 +1,21 @@
 # Asset Manifest
 
-Everything in `assets/` and how it's wired up. Paths on the right are where the
-file lives in a running app.
-
-## Brand
-
-| Asset | Ships to | Used by / how |
-|---|---|---|
-| `assets/logo.png` (512×512 RGBA) | `public/logo.png` | `<img src="/logo.png">` in Welcome screen, AI mini-window, About section. Also the **source for app icons** — feed to `pnpm tauri icon`. |
-| `assets/AppLogo.tsx` | `src/components/AppLogo.tsx` | Inline SVG mark. Fills with `currentColor` (`text-foreground`), so it recolors with theme/context. Prefer this in-chrome; use `logo.png` where a raster is needed. |
-| `assets/icons/icon-source.png` | — | Master 1024²-ish icon; regenerate the full platform set per app: `pnpm tauri icon assets/icons/icon-source.png`. |
-| `assets/icons/installer-logo.png` | `src-tauri/icons/installer-logo.png` | Windows NSIS installer header image (`bundle.windows.nsis.headerImage`). |
-
-> App icons are intentionally **not** shipped as a full set here — they're
-> derived per-app from a single source so the identifier/rounding stays
-> consistent. Only the source + installer header are kept.
+Everything in `assets/` and how it gets into a running app.
 
 ## Cursors — the "Tailless Smooth" set
 
-`assets/cursors/` → **copy wholesale to `public/cursors/`**. 32×32 PNGs, wired up
+`assets/cursors/` is the only asset this package ships. 32×32 PNGs, wired up
 purely in `globals.css` (§5 of DESIGN_SYSTEM.md). No JS.
+
+**Getting them into the app.** A CSS `cursor: url()` is resolved against the
+document, so it cannot reach into `node_modules`; the PNGs must land in the
+served static directory. The package's bin does that:
+
+```jsonc
+"scripts": { "postinstall": "nexis-design-assets" }   // -> public/cursors/
+```
+
+`nexis-design-assets <dir>` targets another directory. It is idempotent.
 
 - 29 cursor PNGs: `arrow, pointer, text, text_h, wait, progress, help,
   crosshair, all_scroll, not_allowed, no_drop, grab, grabbing, col_resize,
@@ -40,8 +36,18 @@ To add a cursor: drop `foo.png` (32×32) in the folder, add its hotspot to
 `hotspots.json`, and add a `.cursor-foo { cursor: url('/cursors/foo.png') x y, foo }`
 rule (plus any role selector) in `globals.css`.
 
-## Templates (not "assets" but shipped alongside)
+## Logos and app icons — per app, not here
 
-See `templates/frontend/` (styles, lib, theme, components) and
-`templates/config/` (vite, shadcn, tauri, html, main.tsx). SCAFFOLDING.md maps
-each to its destination.
+Each app owns its own mark. The old blueprint shipped a shared `logo.png`,
+`AppLogo.tsx` and installer header; they were Nexis's own and are not part of
+this package. For a new app:
+
+- **`src/components/AppLogo.tsx`** — an inline SVG in the family grammar:
+  48×48 viewBox, `rx=12` tile filled with `currentColor`, flat geometric marks
+  drawn in `var(--background)` so they punch through in both modes (see
+  PITFALLS.md §5).
+- **`public/logo.png`** (512×512) where a raster is needed.
+- **App icons** — generate the platform set from one 1024² source with
+  `pnpm tauri icon <source>.png`.
+- **Windows installer header** — supply your own image for
+  `bundle.windows.nsis.headerImage`, or drop the key.

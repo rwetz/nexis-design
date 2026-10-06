@@ -4,6 +4,14 @@
 > app. This is the canonical description of the visual system. Every value here is
 > lifted from the real codebase, not invented. Use it as the source of truth when
 > building any new Tauri app in this family.
+>
+> **Scope:** Tauri v2 webview apps built with React + Tailwind v4 only. Native
+> GPUI apps use the separate [Ferrite](https://github.com/rwetz/ferrite-design)
+> design language.
+>
+> **Package vs. Nexis:** some sections describe things only Nexis itself has
+> (the `SurfaceLayer`, the full theme catalogue, custom themes from disk). Those
+> are marked **Nexis-only**; everything else ships in `@nexis/design`.
 
 ---
 
@@ -262,6 +270,10 @@ and the close button gets a `hover:bg-destructive/15` danger treatment.
 
 ## 7. "Glass" surfaces & the SurfaceLayer
 
+> **Nexis-only.** `SurfaceLayer` and the WebGL backgrounds are not in this
+> package; the package's `ThemeProvider` renders no background layer. Port it
+> from Nexis if an app needs it.
+
 The app reads as layered glass:
 - Panels use `bg-card` / `bg-popover` with `border-border/60` hairlines and,
   where floating, `backdrop-blur` (used in ~17 components — AI panels, pickers,
@@ -301,7 +313,8 @@ Keep `SurfaceLayer` mounted once, high in the tree (it's rendered inside
 
 ## 9. Theme engine (runtime-swappable)
 
-Files: `modules/theme/{types,applyTheme,ThemeProvider,themes/*}.ts(x)`.
+Files: `src/theme/{types,applyTheme,ThemeProvider,themes/*}.ts(x)` in this
+package (`modules/theme/` in Nexis).
 
 - A **`Theme`** = `{ id, name, variants: { light?, dark? } }` where each variant
   is `{ colors?: ThemeColors, terminal?: TerminalPalette }` plus optional
@@ -311,18 +324,25 @@ Files: `modules/theme/{types,applyTheme,ThemeProvider,themes/*}.ts(x)`.
   variables (mapping camelCase → `--kebab`), sets `--brand` from `ring ?? primary`,
   and writes the 16 ANSI terminal vars. `clearTheme()` removes them so the
   default (globals.css) shows through.
-- **10 built-in themes**: `nexis-default`, `claude`, `tokyo-night`, `nord`,
-  `tide`, `sage`, `catppuccin`, `gruvbox`, `rose-pine`, `caffeine`. Plus
-  user **custom themes** loaded from disk (`customThemes.ts`).
+- **Built-in themes.** The package ships two: `nexis-default` (no overrides —
+  `globals.css` shows through) and `tokyo-night`, which doubles as the
+  copy-paste template for new themes. *Nexis-only:* Nexis carries ten
+  (`claude`, `nord`, `tide`, `sage`, `catppuccin`, `gruvbox`, `rose-pine`,
+  `caffeine`, …) plus user **custom themes** loaded from disk
+  (`customThemes.ts`).
 - `ThemeProvider`:
   - Mode = `light | dark | system`; resolves `system` via
     `matchMedia("(prefers-color-scheme: dark)")` with a live listener.
-  - **Fast-path**: mirrors mode + themeId into `localStorage`
-    (`nexis-ui-theme-shadow`, `nexis-ui-theme-id-shadow`) so `index.html` can
-    apply them before the bundle loads (no flash), then hydrates the real
-    persisted prefs from the Tauri store.
-  - All theme changes route through `withViewTransition` for the crossfade.
-- `example-theme.ts` (Tokyo Night) is included as a copy-paste starting point.
+  - **Persistence is `localStorage` only** in the package, under
+    `atlas-ui-theme-shadow` (mode) and `atlas-ui-theme-id-shadow` (theme id) —
+    the keys were inherited from nexis-atlas and are kept so existing apps'
+    `index.html` bootstraps keep working. Your `index.html` anti-flash script
+    must read these exact keys. *Nexis-only:* Nexis uses `nexis-ui-*` keys and
+    then hydrates from the Tauri store.
+  - All theme changes route through `withViewTransition` for the crossfade
+    (hard cut on Linux — see PITFALLS.md §3).
+  - Exposes `paletteEpoch`, bumped after a palette lands on the document;
+    key any `tokens.ts` probe reads off it rather than `resolvedMode`.
 
 ---
 
@@ -332,7 +352,7 @@ From `App.tsx`, top to bottom, the provider/layout stack is:
 
 ```
 <AiComposerProvider>            (app-specific; drop for non-AI apps)
-  <ThemeProvider>               (renders <SurfaceLayer/> + theme context)
+  <ThemeProvider>               (theme context; in Nexis also renders <SurfaceLayer/>)
     <MotionConfig reducedMotion="user">
       <TooltipProvider>
         <div class="…root…">
@@ -373,7 +393,8 @@ If a new app has these, it belongs to the family:
 5. Shared **motion vocabulary** + global reduced-motion + View-Transition theme
    crossfade.
 6. shadcn/Radix components via CVA + `cn()`, Hugeicons.
-7. A one-instance **SurfaceLayer** for optional glass/animated backgrounds.
+7. Glass surfaces (`bg-card` + hairlines + `backdrop-blur`); optionally a
+   one-instance **SurfaceLayer** for animated backgrounds (Nexis-only).
 8. Runtime theme engine writing CSS vars, with a localStorage fast-path.
 9. Killed native scrollbars; `<ScrollArea>` / `.nexis-scrollbar` for the rest.
 10. The signature `--brand` primitives: `.brand-glow`, `.pane-focus-ring`,

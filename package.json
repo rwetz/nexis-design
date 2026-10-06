@@ -1,7 +1,15 @@
 {
   "name": "@nexis/design",
   "version": "0.1.0",
-  "description": "The design system shared across the Nexis desktop apps: OKLCH tokens, runtime theme engine, borderless window chrome, and the bespoke cursor set.",
+  "description": "The design system for Nexis-family Tauri v2 webview apps built with React 19 + Tailwind v4: OKLCH tokens, runtime theme engine, borderless window chrome, and the bespoke cursor set.",
+  "keywords": [
+    "tauri",
+    "react",
+    "tailwindcss",
+    "design-system",
+    "oklch",
+    "nexis"
+  ],
   "license": "Apache-2.0",
   "author": "Ryan Wetzstein",
   "repository": {

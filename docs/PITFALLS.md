@@ -1,15 +1,18 @@
 # Pitfalls — field notes from real scaffolds
 
-> Every entry here bit for real while standing up an app from this blueprint
-> (first recorded casualty: `nexis-dev-dashboard`, 2026-07-13, CachyOS +
-> KDE Wayland + NVIDIA RTX 4070 SUPER, webkit2gtk 2.52). Read this **before**
-> SCAFFOLDING.md's step list; each entry says which step it amends.
+> Every entry here bit for real while standing up an app in this family
+> (first recorded casualty: `nexis-dev-dashboard`, since merged into
+> `nexis-atlas`, 2026-07-13, CachyOS + KDE Wayland + NVIDIA RTX 4070 SUPER,
+> webkit2gtk 2.52). Read this **before** SCAFFOLDING.md's step list.
+>
+> Entries marked **✅ handled in the package** are already fixed inside
+> `@nexis/design`; they stay here so nobody "simplifies" the fix away.
 
 ---
 
-## 1. Linux borderless chrome needs its own platform override (Step 5)
+## 1. Linux borderless chrome needs its own platform override (Step 7)
 
-The blueprint ships only `tauri.windows.conf.json`. On Linux the main window
+If an app ships only `tauri.windows.conf.json`, on Linux the main window
 therefore keeps `decorations: true` and is opaque — while `platform.ts` still
 reports `USE_CUSTOM_WINDOW_CONTROLS = true`, so you get **double chrome**
 (native titlebar + our controls) and no rounded corners.
@@ -20,7 +23,7 @@ override (`label: "main"`, `decorations: false`, `transparent: true`,
 the platform config's `windows` array *replaces* the base one wholesale, it is
 not deep-merged per-field.
 
-## 2. NVIDIA + Wayland: WebKitGTK's DMA-BUF renderer crashes the app (Step 5/10)
+## 2. NVIDIA + Wayland: WebKitGTK's DMA-BUF renderer crashes the app (Step 7)
 
 On NVIDIA under Wayland (seen: RTX 4070 SUPER, webkit2gtk 2.52, KDE), the app
 dies at first paint with:
@@ -68,19 +71,19 @@ dashboard-class UI; profile before shipping anything animation-heavy, and
 leave the `MYAPP_KEEP_HW_ACCEL` escape hatch so users can re-test as
 webkit/NVIDIA fix things.
 
-## 3. View Transitions crossfade wedges/crashes WebKitGTK (Step 7)
+## 3. View Transitions crossfade wedges/crashes WebKitGTK — ✅ handled in the package
 
 `ThemeProvider.withViewTransition` uses `document.startViewTransition` for the
 theme crossfade. WebKitGTK 2.52 **exposes the API but cannot survive it** on a
 full-window repaint: the web process crashes (user-visible: "app crashes when
 I change theme") or wedges into a blank white webview.
 
-**Fix:** gate the crossfade off on Linux — hard cut instead. The blueprint's
-`withViewTransition` already degrades when the API is missing; add `IS_LINUX`
-(from `lib/platform.ts`) to that early-out condition. macOS/Windows WebViews
+**Fix:** gate the crossfade off on Linux — hard cut instead. The package's
+`withViewTransition` (`src/theme/ThemeProvider.tsx`) includes `IS_LINUX` in its
+early-out condition. macOS/Windows WebViews
 keep the crossfade. Re-test on webkit2gtk upgrades.
 
-## 4. Borderless windows have no edge resize cursors (Step 8)
+## 4. Borderless windows have no edge resize cursors — ✅ handled in the package
 
 With `decorations: false` the webview owns every pixel, so hovering a window
 edge shows the default arrow — resize affordance is invisible (KWin still
@@ -91,14 +94,13 @@ strips (4 edges ~5px, 4 corners ~14px) inside a `pointer-events-none` fixed
 wrapper, each `pointer-events-auto` with the matching `.cursor-*-resize`
 utility (the custom cursor set already covers them) and
 `onMouseDown → getCurrentWindow().startResizeDragging(direction)`.
-Requires the `core:window:allow-start-resize-dragging` permission (not in the
-blueprint's capability template). Hide the overlay while maximized. See
-`nexis-dev-dashboard/src/components/ResizeHandles.tsx` for the reference
-implementation.
+Requires the `core:window:allow-start-resize-dragging` permission. Hide the
+overlay while maximized. This is the package's `<ResizeHandles />`
+(`src/components/ResizeHandles.tsx`) — mount it; don't rewrite it.
 
-## 5. `NexisLogo` is invisible in dark mode (Step 3)
+## 5. White-on-`currentColor` logos vanish in dark mode (Step 8)
 
-`AppLogo.tsx` fills its tile with `currentColor` (`text-foreground`) and draws
+The old blueprint's `AppLogo.tsx` filled its tile with `currentColor` (`text-foreground`) and drew
 the marks in **hardcoded white**. In dark mode the tile *is* near-white, so
 the mark renders as a blank square in the header.
 
@@ -121,12 +123,11 @@ allowBuilds:
   esbuild: true
 ```
 
-## 7. `tauri.conf.json` references you must prune (Step 5/6)
+## 7. `tauri.conf.json` references you must prune (Step 7/8)
 
-The template's `bundle.windows.nsis` block references
-`"installerHooks": "./installer-hooks.nsh"` — a Nexis file that is **not in
-this blueprint**. Windows builds will fail until you delete that line (keep
-`headerImage`, and copy `assets/icons/installer-logo.png` into
-`src-tauri/icons/`). Also remember `tauri icon` must run before the first
+Nexis's `bundle.windows.nsis` block references
+`"installerHooks": "./installer-hooks.nsh"` — a Nexis-only file. If you copy
+that block, Windows builds fail until you delete the line (and point
+`headerImage` at your own image, or drop it). Also remember `tauri icon` must run before the first
 `cargo check`: `generate_context!` fails if the icon files listed in
 `bundle.icon` don't exist yet (as does a missing `../dist` — `mkdir dist`).

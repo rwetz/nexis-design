@@ -4,6 +4,33 @@ The design layer shared across the Nexis desktop apps: OKLCH tokens, a runtime
 theme engine, borderless window chrome, the bespoke cursor set, and the motion
 and platform vocabulary that goes with them.
 
+## Scope: Tauri webview apps on React + Tailwind — nothing else
+
+This package is for one stack, and it does not try to be portable:
+
+| Layer | Required |
+|---|---|
+| Shell | **Tauri v2** — the UI runs in the OS webview (WebView2 / WKWebView / WebKitGTK) |
+| UI | **React 19** + TypeScript, bundled by **Vite** |
+| Styling | **Tailwind CSS v4** (CSS-first config) + shadcn/ui conventions |
+
+Everything in it leans on that stack: themes are CSS variables, the cursors are
+CSS `cursor: url()` rules, the window chrome is React calling `@tauri-apps/api`,
+and the components are Tailwind classes. None of it transfers to a native UI
+toolkit.
+
+**Not for:**
+
+- **Native GPU-rendered apps (GPUI / Rust UI).** Those belong to the separate
+  [Ferrite](https://github.com/rwetz/ferrite-design) family, which carries this
+  package's *rules* (one accent, a shared motion vocabulary, custom chrome,
+  no-flash startup) but has its own deliberately different visual language.
+- **Websites.** `nexis-website` and `nexis-wiki` share the brand, not this
+  package — they are not Tauri apps and have no window to paint.
+- **Non-React webview apps.** The theme engine and chrome are React components.
+
+## Background
+
 This replaces the `_design/` copy-paste blueprint that used to live in each app.
 That blueprint was explicit that it was "a snapshot + generalized guide, not a
 live fork" — and the snapshots drifted exactly as you would expect. By the time
