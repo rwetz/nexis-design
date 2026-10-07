@@ -1,6 +1,7 @@
 {
   "name": "@nexis/design",
   "version": "0.2.0",
+  "packageManager": "pnpm@11.22.0",
   "description": "The design system for Nexis-family Tauri v2 webview apps (React 19 + Tailwind v4): OKLCH tokens, 22 themes, a runtime theme engine, ~70 components, seven app templates, borderless window chrome and the bespoke cursor set.",
   "keywords": [
     "tauri",
@@ -120,10 +121,5 @@
     "@tauri-apps/plugin-os": {
       "optional": true
     }
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
   }
 }
