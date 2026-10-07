@@ -1,0 +1,16 @@
+/* Gallery stylesheet: the package's globals plus sources Tailwind would not
+ * otherwise scan. A real app's own src/ is scanned automatically; the
+ * package's components are covered by the @source inside globals.css. */
+@import "../src/styles/globals.css";
+
+@source "./";
+@source "../templates";
+
+/* ?still pins every animation at its end state, for screenshots. */
+html[data-still] *,
+html[data-still] *::before,
+html[data-still] *::after {
+  animation-delay: -10s !important;
+  animation-play-state: paused !important;
+  transition: none !important;
+}

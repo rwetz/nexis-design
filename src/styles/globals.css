@@ -1,26 +1,52 @@
 /* ══════════════════════════════════════════════════════════════════════════
- * Design-system core — for ANY Tauri + React app.
+ * @nexis/design — the core stylesheet for every Nexis-family app.
  *
- * Trimmed from the Nexis blueprint: terminal (xterm.js) and code-editor
- * (CodeMirror / LSP / debugger gutter / Lezer syntax) rules have been removed,
- * along with the terminal ANSI palette. If you embed a terminal or code editor,
- * use `globals.ide.css` instead — it's the full version with those added back.
- *
- * Kept: OKLCH token system, radius scale, dark mode, custom borderless window
- * chrome, the bespoke cursor set, scrollbar handling, app-zoom, collapsible
- * animation, the --brand primitives, and the View-Transition theme crossfade.
+ * Tracks Nexis's own src/styles/globals.css. What is *not* here is only what
+ * belongs to an embedded terminal or code editor (xterm, CodeMirror, LSP
+ * hover, debugger gutter) — those rules live in globals.ide.css, which
+ * imports this file and adds them.
  * ════════════════════════════════════════════════════════════════════════ */
 
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "./fonts.css";
+@import "./code-highlight.css";
+
+
+/* Tailwind v4 does not scan node_modules. This line makes it scan the
+ * package's own components, so a consumer never has to add an @source for
+ * them — the classes the components use are generated wherever this
+ * stylesheet is imported. Path is relative to this file. */
+@source "../";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Inter Variable', sans-serif;
+    /* Every bare `transition-*` utility inherits the house curve from here, so
+     * the motion system reaches the hundreds of call sites that never named a
+     * duration — not just the handful that did. Tailwind's own defaults are
+     * 150ms/`ease-in-out`, which is the generic feel this replaces. Call sites
+     * that pass an explicit `duration-*`/`ease-*` still win. */
+    --default-transition-duration: var(--dur-tap);
+    --default-transition-timing-function: var(--ease-enter);
+
+    /* The display face. Used only where Nexis speaks in its own voice —
+     * dialog and sheet titles, empty states, Atlas panel headers, the
+     * welcome wordmark, Settings section headers. Everything else stays on
+     * --font-sans, because this face is not legible at the 9-12px the rest
+     * of the UI lives at. */
+    --font-heading: 'Space Grotesk Variable', 'Geist Variable', sans-serif;
+    /* The UI face, paired with --font-mono below: Geist and Geist Mono are
+     * one designer's sans and mono, so the interface and the code share a
+     * skeleton instead of being two families that happen to co-exist. */
+    --font-sans: 'Geist Variable', 'Geist', 'Inter Variable', sans-serif;
+    /* Mirrors FALLBACK_CHAIN in src/lib/fonts.ts, which is what the terminal
+     * and CodeMirror resolve through. Kept in sync by hand on purpose: this
+     * one is a static CSS value, that one probes installed Nerd Fonts at
+     * runtime, and they cannot share a source without shipping the chain
+     * through a style property on every paint. */
+    --font-mono: 'Geist Mono Variable', 'Geist Mono', 'JetBrains Mono', SFMono-Regular, Menlo, monospace;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -54,6 +80,9 @@
     --color-background: var(--background);
     --color-brand: var(--brand);
     --color-brand-foreground: var(--brand-foreground);
+    --color-success: var(--success);
+    --color-warning: var(--warning);
+    --color-info: var(--info);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -66,7 +95,7 @@
 :root {
     --background: oklch(1 0 0);
     /* Brand accent — coral/salmon used for primary CTAs, active/selected states,
-       and the "alive" indicator. Not for links or decorative elements. */
+       and the AI agent indicator. Not for links or decorative elements. */
     --brand: oklch(0.72 0.15 35);
     --brand-foreground: oklch(1 0 0);
     --foreground: oklch(0.148 0.004 228.8);
@@ -155,40 +184,187 @@
     }
 }
 
-/* ── App-wide UI zoom (Ctrl±) ──────────────────────────────────────────────
- * Set --app-zoom from JS; regions that must stay at 1× (e.g. an overlay you
- * don't want scaled) get .zoom-exempt. */
 :root {
   --app-zoom: 1;
+
+  /* ── Motion system ────────────────────────────────────────────────────────
+   * Nexis's motion is derived from the thing it is: a terminal. Transitions are
+   * short and decisive, pending states blink at a caret's cadence rather than
+   * breathing, and indeterminate progress *ticks* in discrete steps instead of
+   * sweeping smoothly — because a character cell cannot sweep.
+   *
+   * These tokens exist because the alternative is what was here before: two
+   * ad-hoc `cubic-bezier()` values (one of them Material Design's stock curve),
+   * six unrelated `duration-*` utilities, and otherwise whatever Tailwind and
+   * tw-animate-css default to. That is not a motion design; it is the absence
+   * of one, and it is indistinguishable from every other shadcn/Radix app.
+   *
+   * Use these instead of raw values. If a new duration is genuinely needed, add
+   * a token rather than a one-off.
+   */
+
+  /* Leaving is faster than arriving and accelerates away; arriving decelerates
+   * hard into place. The asymmetry is what makes the UI feel responsive rather
+   * than floaty — an element gets out of the way immediately and settles
+   * precisely. Neither curve overshoots: nothing in a tool should bounce. */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-enter: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Scaled by how far the thing actually travels. */
+  --dur-tap: 90ms; /* toggles, chevrons, hovers — in-place state changes */
+  --dur-panel: 140ms; /* collapsibles, popovers, tooltips */
+  --dur-window: 200ms; /* dialogs, sheets, anything screen-scale */
+  --dur-scene: 420ms; /* data canvases and completed measurements arriving */
+  --live-cadence: 1600ms; /* the slow scan of an active long-running operation */
+
+  /* A DEC VT100 blinked its cursor at roughly this period. Pending and
+   * live-status indicators use it so they read as "a terminal is waiting"
+   * rather than as a generic pulsing dot. */
+  --blink-cadence: 1060ms;
+
+  /* Indeterminate progress advances in four discrete quarter-turns. */
+  --tick-cadence: 640ms;
+  --tick-steps: 4;
+
+  /* ── Terminal palette ──────────────────────────────────────────────────
+   * The Nexis Default theme's terminal colours, and the fallback for any theme
+   * that does not carry its own. Default is the one theme with no `colors` of
+   * its own — ThemeProvider calls `clearTheme()` for it and this file supplies
+   * the surfaces — so a palette put in `nexis-default.ts` would never be
+   * applied. It lives here instead, but it is *generated*, by the same
+   * `scripts/generate-theme-palettes.py` that cuts the other seventeen: same
+   * OKLCH ramp, same contrast floors, checked against these backgrounds. Run
+   * the script and paste both blocks; do not hand-tune a hex.
+   *
+   * What was here before was Tailwind's stock palette, which meant the single
+   * most-looked-at surface in a terminal app wore off-the-shelf colours on the
+   * flagship theme — and, because these were mode-blind, ANSI white was
+   * `#e4e4e7` on a white background in light mode. The file-tree icons retint
+   * onto these same variables, so the tree was stock-coloured too.
+   *
+   * The cursor is the brand coral in both modes rather than another shade of
+   * foreground. It is the default theme's one signature colour, and it makes
+   * the caret the unmistakably Nexis thing on screen. */
+  --terminal-background: var(--background);
+  --terminal-foreground: var(--foreground);
+  --terminal-cursor-accent: var(--background);
+  --terminal-cursor: #f37e61;
+  --terminal-selection: rgba(243,126,97,0.20);
+  --terminal-ansi-black: #2b2e30;
+  --terminal-ansi-red: #b94d45;
+  --terminal-ansi-green: #32893b;
+  --terminal-ansi-yellow: #936e00;
+  --terminal-ansi-blue: #3275c5;
+  --terminal-ansi-magenta: #9855a7;
+  --terminal-ansi-cyan: #008686;
+  --terminal-ansi-white: #6f7374;
+  --terminal-ansi-bright-black: #606465;
+  --terminal-ansi-bright-red: #a72b27;
+  --terminal-ansi-bright-green: #00741c;
+  --terminal-ansi-bright-yellow: #795a00;
+  --terminal-ansi-bright-blue: #005db6;
+  --terminal-ansi-bright-magenta: #853896;
+  --terminal-ansi-bright-cyan: #006d6d;
+  --terminal-ansi-bright-white: #292c2d;
 }
+.dark {
+  --terminal-cursor: #f37e61;
+  --terminal-selection: rgba(243,126,97,0.26);
+  --terminal-ansi-black: #232627;
+  --terminal-ansi-red: #eb7a6f;
+  --terminal-ansi-green: #61b766;
+  --terminal-ansi-yellow: #c8970e;
+  --terminal-ansi-blue: #5fa2f6;
+  --terminal-ansi-magenta: #c781d6;
+  --terminal-ansi-cyan: #00b7b7;
+  --terminal-ansi-white: #ccd0d1;
+  --terminal-ansi-bright-black: #585b5d;
+  --terminal-ansi-bright-red: #ffaba1;
+  --terminal-ansi-bright-green: #7adf80;
+  --terminal-ansi-bright-yellow: #f4ba20;
+  --terminal-ansi-bright-blue: #9cc7ff;
+  --terminal-ansi-bright-magenta: #eea4ff;
+  --terminal-ansi-bright-cyan: #00e0e0;
+  --terminal-ansi-bright-white: #eff2f4;
+}
+
+/* ── Status tones ─────────────────────────────────────────────────────────
+ * Success / warning / info are not new colours: they are the active theme's
+ * own ANSI green, yellow and blue, which every theme already generates
+ * against its backgrounds with contrast floors (see themes.contrast.test.ts).
+ * So a status pill re-tints with the theme instead of every app reaching for
+ * Tailwind's stock emerald-500/amber-500 — which ignore the theme entirely
+ * and were the commonest raw colours in Nexis itself. Error is
+ * `--destructive`, which already exists. These mark *state*; they are never
+ * the accent. */
+:root {
+  --success: var(--terminal-ansi-green);
+  --warning: var(--terminal-ansi-yellow);
+  --info: var(--terminal-ansi-blue);
+}
+
 .zoom-content {
   zoom: var(--app-zoom);
 }
 .zoom-exempt {
   zoom: calc(1 / var(--app-zoom));
 }
-
-/* ── Custom window chrome (Linux/Windows) ──────────────────────────────────
- * The OS gives us a transparent borderless window; we paint the rounded
- * corners + surface ourselves so the app doesn't look naked on
- * GNOME/KDE/Hyprland/Windows. Toggled by main.tsx setting
- * document.documentElement.dataset.chrome = "borderless" on non-macOS. */
+/* Custom window chrome (Linux/Windows): the OS gives us a transparent
+ * borderless window, and we paint the rounded corners + border + shadow
+ * ourselves so the app doesn't look naked on GNOME/KDE/Hyprland. */
 html[data-chrome="borderless"],
 html[data-chrome="borderless"] body {
   background: transparent !important;
 }
-html[data-chrome="borderless"] #root {
+html[data-chrome="borderless"] #root,
+html[data-chrome="borderless"] #settings-root {
   height: 100%;
   border-radius: 12px;
   overflow: hidden;
   background: var(--background);
 }
+html[data-chrome="borderless"] .nexis-bg-surface {
+  border-radius: 12px;
+}
+/* Radix portals every overlay to <body>, which is a SIBLING of #root — so
+ * the rounded-corner mask above, which lives on #root, does not clip them.
+ * A full-screen dim+blur therefore painted square corners over the window
+ * whenever a dialog was open, while an in-tree overlay (Spotlight, rendered
+ * inside #root) stayed correctly rounded. Giving the portal layers the same
+ * radius restores the window silhouette for both. */
+html[data-chrome="borderless"] [data-slot="dialog-overlay"],
+html[data-chrome="borderless"] [data-slot="alert-dialog-overlay"],
+html[data-chrome="borderless"] [data-slot="sheet-overlay"] {
+  border-radius: 12px;
+}
 
-/* ── Scrollbars ────────────────────────────────────────────────────────────
- * Kill native scrollbars app-wide (Linux/Windows ship chunky Chromium bars
- * that break the chrome; macOS WKWebView flashes its overlay during layout
- * transitions). Provide visible scroll affordances per-region via shadcn
- * <ScrollArea>, or opt in to the thin .nexis-scrollbar below. */
+.no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.no-scrollbar::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+.no-scrollbar-deep,
+.no-scrollbar-deep * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.no-scrollbar-deep::-webkit-scrollbar,
+.no-scrollbar-deep *::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+/* Kill native scrollbars everywhere by default — Linux/Windows ship chunky
+ * Chromium bars that break the chrome, and macOS WKWebView flashes its overlay
+ * scrollbar briefly during layout transitions (AI panel open, pane split,
+ * window resize) which looks like a glitch. Visible scroll affordances are
+ * provided per-region via shadcn <ScrollArea>. */
 html,
 html *,
 html *::before,
@@ -202,82 +378,322 @@ html *::-webkit-scrollbar {
   display: none;
 }
 
-/* Explicit opt-out helpers for individual containers. */
-.no-scrollbar {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
-.no-scrollbar::-webkit-scrollbar {
-  width: 0 !important;
-  height: 0 !important;
-  display: none !important;
-}
-.no-scrollbar-deep,
-.no-scrollbar-deep * {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
-.no-scrollbar-deep::-webkit-scrollbar,
-.no-scrollbar-deep *::-webkit-scrollbar {
-  width: 0 !important;
-  height: 0 !important;
-  display: none !important;
+/* The `motion` library was replaced with tw-animate-css entrances + CSS
+ * transitions (compositor-side frames on WebKitGTK, no per-frame JS). motion's
+ * MotionConfig honored the OS reduced-motion setting app-wide; this rule keeps
+ * that promise for every animate-in/animate-out utility. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in,
+  .animate-out {
+    animation-duration: 0s !important;
+  }
 }
 
-/* Thin custom scrollbar — apply .nexis-scrollbar to any overflow container
- * that should show a minimal 3px track instead of the global "none" default. */
-.nexis-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: oklch(1 0 0 / 12%) transparent;
+/* tw-animate-css ships a 150ms linear default for every entrance and exit.
+ * Pull those onto the house curves so overlays share the app's motion instead
+ * of the library's. Individual call sites can still override with a
+ * `duration-*` utility; this only moves the baseline. */
+.animate-in {
+  animation-duration: var(--dur-panel);
+  animation-timing-function: var(--ease-enter);
 }
-.nexis-scrollbar::-webkit-scrollbar {
-  width: 3px;
-  height: 3px;
-  display: block;
-}
-.nexis-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.nexis-scrollbar::-webkit-scrollbar-thumb {
-  background: oklch(1 0 0 / 12%);
-  border-radius: 99px;
-}
-.nexis-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: oklch(1 0 0 / 22%);
-}
-:root:not(.dark) .nexis-scrollbar {
-  scrollbar-color: oklch(0 0 0 / 12%) transparent;
-}
-:root:not(.dark) .nexis-scrollbar::-webkit-scrollbar-thumb {
-  background: oklch(0 0 0 / 12%);
-}
-:root:not(.dark) .nexis-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: oklch(0 0 0 / 22%);
+.animate-out {
+  animation-duration: var(--dur-tap);
+  animation-timing-function: var(--ease-exit);
 }
 
-/* ── Collapsible animation (Radix Collapsible / shadcn) ────────────────────── */
+/* ── Stepped spinner ────────────────────────────────────────────────────────
+ * Indeterminate progress ticks through four quarter-turns rather than sweeping.
+ * A terminal spinner has always been a character cycling in its cell — it can
+ * only ever be discrete — and `steps()` is how that reads in a GUI. This is
+ * also the single most-seen animation in the app, which is exactly why it
+ * should not be Tailwind's stock `animate-spin`.
+ *
+ * `.nexis-spin` replaces `animate-spin` on the Spinner component and on the
+ * refresh affordances that spin while a fetch is in flight. */
+@keyframes nexis-tick-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.nexis-spin {
+  animation: nexis-tick-spin var(--tick-cadence)
+    steps(var(--tick-steps), end) infinite;
+  transform-origin: 50% 50%;
+}
+
+/* ── Caret blink ────────────────────────────────────────────────────────────
+ * Live/pending status indicators. Tailwind's `animate-pulse` is a sine-eased
+ * opacity breathe — soft, organic, and the same one every shadcn app uses. A
+ * caret does not breathe: it is on, then it is off, with barely any transit
+ * between. The stops below are a near-square wave (~6% of the cycle spent in
+ * transition) — crisp enough to read as a cursor, soft enough that a dozen
+ * simultaneous indicators don't strobe. */
+@keyframes nexis-caret-blink {
+  0%,
+  44% {
+    opacity: 1;
+  }
+  50%,
+  94% {
+    opacity: 0.24;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.nexis-blink {
+  animation: nexis-caret-blink var(--blink-cadence) linear infinite;
+}
+
+/* The travelling head of <ThoughtLine>. Runs at the caret cadence so a
+ * thought in progress pulses at the same rhythm as the terminal cursor
+ * rather than introducing a fourth tempo. `translate` (not `left`) because
+ * this runs continuously and must stay off the layout path. */
+@keyframes nexis-thought-travel {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 300% 0;
+  }
+}
+
+.nexis-thought-head {
+  animation: nexis-thought-travel calc(var(--blink-cadence) * 1.6) var(--ease-enter)
+    infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Both indicators still have to signal "busy" without moving. The spinner
+   * holds a static glyph; the blink settles at a dimmed-but-visible opacity so
+   * a live indicator is still distinguishable from an idle one. */
+  .nexis-spin {
+    animation: none;
+  }
+  .nexis-blink {
+    animation: none;
+    opacity: 0.62;
+  }
+  /* Parked mid-track: the line still reads as active, it just stops
+   * travelling. */
+  .nexis-thought-head {
+    animation: none;
+    translate: 100% 0;
+  }
+}
+
+/* AI streaming-label shimmer (CSS port of the former motion variant in
+ * ai-elements/shimmer.tsx — sweeps background-position across bg-clip-text). */
+@keyframes nexis-shimmer {
+  from {
+    background-position: 100% center;
+  }
+  to {
+    background-position: 0% center;
+  }
+}
+
+.nexis-shimmer {
+  animation: nexis-shimmer var(--shimmer-duration, 2s) linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nexis-shimmer {
+    animation: none;
+  }
+}
+
 @keyframes nexis-collapsible-down {
-  from { height: 0; opacity: 0; }
-  to   { height: var(--radix-collapsible-content-height); opacity: 1; }
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
 }
+
 @keyframes nexis-collapsible-up {
-  from { height: var(--radix-collapsible-content-height); opacity: 1; }
-  to   { height: 0; opacity: 0; }
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
 }
+
+@keyframes nexis-slide-in-right {
+  from {
+    transform: translateX(2.5rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* A side panel arriving from the right edge. Nexis animates with CSS and the
+   house motion tokens rather than a JS animation library, so the Atlas detail
+   pane -- which arrived using `motion/react` and a spring from the standalone
+   app's design package -- uses this instead. Same shape of movement, one less
+   dependency, and it inherits the curve every other panel uses. */
+.nexis-slide-in-right {
+  animation: nexis-slide-in-right var(--dur-panel) var(--ease-enter);
+}
+
 .nexis-collapsible-content {
   overflow: hidden;
 }
 .nexis-collapsible-content[data-state="open"] {
-  animation: nexis-collapsible-down 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  animation: nexis-collapsible-down var(--dur-panel) var(--ease-enter);
 }
 .nexis-collapsible-content[data-state="closed"] {
-  animation: nexis-collapsible-up 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  animation: nexis-collapsible-up var(--dur-tap) var(--ease-exit);
 }
 
-/* ── Custom cursor set — "Tailless Smooth" ─────────────────────────────────
- * PNGs live in /public/cursors/ (32×32). The two numbers after each url() are
- * the hotspot (click point); catalogued in /public/cursors/hotspots.json.
- * Native fallbacks are preserved after the comma. */
+/* ── Data moments ──────────────────────────────────────────────────────────
+ * These effects are deliberately reserved for a scene arriving or a long-lived
+ * operation changing state. They are the places motion can carry information:
+ * an Atlas city assembles, a Benchmark cell lands, and the run plan is visibly
+ * alive. Ordinary buttons retain the compact transition budget above.
+ *
+ * The movement is all opacity/transform except the single run-plan glow. It
+ * stays on the compositor, never asks React to draw frames, and never bounces
+ * past its destination. */
+@keyframes nexis-scene-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes nexis-result-arrival {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+    box-shadow: 0 0 0 color-mix(in oklch, var(--brand) 0%, transparent);
+  }
+  52% {
+    opacity: 1;
+    box-shadow: 0 0 24px -10px color-mix(in oklch, var(--brand) 65%, transparent);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 0 0 color-mix(in oklch, var(--brand) 0%, transparent);
+  }
+}
+
+@keyframes nexis-run-live {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--brand) 16%, transparent);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklch, var(--brand) 42%, transparent),
+      0 0 22px -13px color-mix(in oklch, var(--brand) 85%, transparent);
+  }
+}
+
+.nexis-scene-enter {
+  animation: nexis-scene-enter var(--dur-scene) var(--ease-enter) both;
+}
+
+/* Tool windows (ToolWindowShell): the window settles into place, then its
+ * header drops in and the body rises behind it, so opening SVG Studio or
+ * Atlas reads as the window arriving rather than a blank frame filling in.
+ * The shell animates as a whole because tool windows are transparent on
+ * Windows and Linux, so its scale reads as the window itself growing. */
+@keyframes nexis-window-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.965) translateY(10px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+@keyframes nexis-window-header-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.nexis-window-enter {
+  animation: nexis-window-enter 460ms var(--ease-enter) both;
+  transform-origin: 50% 40%;
+}
+.nexis-window-header {
+  animation: nexis-window-header-enter 380ms var(--ease-enter) 90ms both;
+}
+.nexis-window-body {
+  animation: nexis-scene-enter var(--dur-scene) var(--ease-enter) 150ms both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nexis-window-enter,
+  .nexis-window-header,
+  .nexis-window-body {
+    animation: none;
+  }
+}
+
+.nexis-stagger > * {
+  animation: nexis-scene-enter var(--dur-scene) var(--ease-enter) both;
+}
+.nexis-stagger > :nth-child(2) {
+  animation-delay: 70ms;
+}
+.nexis-stagger > :nth-child(3) {
+  animation-delay: 140ms;
+}
+.nexis-stagger > :nth-child(4) {
+  animation-delay: 210ms;
+}
+.nexis-stagger > :nth-child(5) {
+  animation-delay: 280ms;
+}
+.nexis-stagger > :nth-child(n + 6) {
+  animation-delay: 350ms;
+}
+
+.nexis-result-arrival {
+  animation: nexis-result-arrival var(--dur-scene) var(--ease-enter) both;
+}
+
+.nexis-run-live {
+  animation: nexis-run-live var(--live-cadence) var(--ease-enter) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nexis-scene-enter,
+  .nexis-stagger > *,
+  .nexis-result-arrival,
+  .nexis-run-live {
+    animation: none;
+  }
+}
+
+/* ── Custom cursor set — Tailless Smooth ─────────────────────────────────────
+ * PNGs live in /public/cursors/. Hotspot coords read from original .cur file
+ * headers (xHotspot, yHotspot fields), all images are 32×32.                */
 
 /* Default arrow for the whole app */
 html {
@@ -316,9 +732,9 @@ textarea,
   cursor: url('/cursors/text.png') 10 14, text;
 }
 
-/* Tailwind cursor utility overrides — these appear after the Tailwind @import
- * so cascade order lets them win; className="cursor-col-resize" etc. use the
- * custom PNG transparently. */
+/* ── Tailwind cursor utility overrides ───────────────────────────────────── */
+/* These selectors match the Tailwind class names so they take precedence via
+ * cascade order (our rules appear after the Tailwind @import).               */
 .cursor-default      { cursor: url('/cursors/arrow.png') 5 5,       default;      }
 .cursor-pointer      { cursor: url('/cursors/pointer.png') 6 5,     pointer;      }
 .cursor-text         { cursor: url('/cursors/text.png') 10 14,      text;         }
@@ -341,19 +757,67 @@ textarea,
 .cursor-nwse-resize  { cursor: url('/cursors/nwse_resize.png') 16 13,nwse-resize; }
 .cursor-zoom-in      { cursor: url('/cursors/zoom_in.png') 9 9,     zoom-in;      }
 .cursor-zoom-out     { cursor: url('/cursors/zoom_out.png') 9 9,    zoom-out;     }
+
+/* Panel resize handles: react-resizable-panels' global cursor rule is
+ * disabled (see components/ui/resizable.tsx), so the handle element itself
+ * carries the resize cursor. A separator's aria-orientation is the inverse
+ * of its group's orientation: vertical separator = column resize. */
+[data-slot="resizable-handle"] {
+  cursor: url('/cursors/col_resize.png') 16 13, col-resize;
+}
+[data-slot="resizable-handle"][aria-orientation="horizontal"] {
+  cursor: url('/cursors/row_resize.png') 16 13, row-resize;
+}
 .cursor-copy         { cursor: url('/cursors/copy.png') 5 5,        copy;         }
 .cursor-alias        { cursor: url('/cursors/alias.png') 5 5,       alias;        }
 
-/* ── Brand primitives (keyed off --brand) ──────────────────────────────────── */
+/* ── Thin custom scrollbar ─────────────────────────────────────────────────── */
+/* Apply .nexis-scrollbar to any overflow-y-auto container that should show
+ * a minimal 3px track instead of the global "no scrollbar" default.          */
+.nexis-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(1 0 0 / 12%) transparent;
+}
+.nexis-scrollbar::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+  display: block;
+}
+.nexis-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.nexis-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(1 0 0 / 12%);
+  border-radius: 99px;
+}
+.nexis-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: oklch(1 0 0 / 22%);
+}
+/* Light mode variants */
+:root:not(.dark) .nexis-scrollbar {
+  scrollbar-color: oklch(0 0 0 / 12%) transparent;
+}
+:root:not(.dark) .nexis-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(0 0 0 / 12%);
+}
+:root:not(.dark) .nexis-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: oklch(0 0 0 / 22%);
+}
+
+/* ── Spice: brand glow / active-pane / aurora border ──────────────────────
+ * Reusable look-and-feel primitives keyed off the --brand token. */
 
 /* Soft brand-colored glow — focus rings, active chips, "alive" accents. */
 .brand-glow {
   box-shadow: 0 0 12px -2px color-mix(in oklch, var(--brand) 60%, transparent);
 }
 
-/* Inset brand ring + inner glow for a focused region. Render as a
- * pointer-events-none overlay drawn ON TOP of the region's content so opaque
- * children (a canvas, a media element) can't paint over the ring's edges. */
+/* The focused split pane gets a subtle inset brand ring + inner glow so it's
+ * always obvious which pane has focus. This is rendered as a pointer-events-none
+ * overlay drawn ON TOP of the pane content (not on the pane wrapper behind it):
+ * the terminal's opaque canvas would otherwise paint over three edges, and
+ * xterm's row-rounding gap at the bottom would leak the ring's bottom edge as a
+ * stray line. As a top layer the ring is crisp and symmetric on all four sides. */
 .pane-focus-ring {
   box-shadow:
     inset 0 0 0 1px color-mix(in oklch, var(--brand) 55%, transparent),
@@ -362,15 +826,18 @@ textarea,
 }
 
 /* Aurora border — a slow conic-gradient of --brand traced around an element's
- * 1px edge. Use to signal an element is "alive / working". The @property angle
- * is animatable; mask-composite shows only the border, not the fill. */
+ * edge. Used on the AI panel while the agent streams ("alive / thinking").
+ * The @property angle is animatable, and a mask-composite ring shows only the
+ * 1px border, not the fill. */
 @property --aurora-angle {
   syntax: "<angle>";
   inherits: false;
   initial-value: 0deg;
 }
 @keyframes aurora-spin {
-  to { --aurora-angle: 360deg; }
+  to {
+    --aurora-angle: 360deg;
+  }
 }
 .aurora-border {
   position: relative;
@@ -398,6 +865,7 @@ textarea,
   animation: aurora-spin 4s linear infinite;
   pointer-events: none;
 }
+
 @media (prefers-reduced-motion: reduce) {
   .aurora-border::before {
     animation: none;
@@ -410,8 +878,213 @@ textarea,
   }
 }
 
-/* ── Theme switch crossfade (View Transitions API — see ThemeProvider) ──────── */
+/* ── Rainbow hover accent (Nexis Default only) ────────────────────────
+ * The default theme is the one palette in the set with no signature hue — it is
+ * deliberately neutral glass, so its hover highlight was a flat step of grey.
+ * Here it lights up instead: the glyph takes one of four rainbows when a
+ * control has an icon; a text-only control's label does.
+ *
+ * This file paints; it does not decide. Which controls qualify, which of the
+ * four they get, and whether they light the glyph or text all come from
+ * `modules/theme/rainbowAccent.ts`, which stamps `data-rainbow` plus three
+ * custom properties onto the element on pointer-enter. The reason the choice
+ * cannot live here is that it *rotates*: a button shows a different gradient on
+ * every hover, and CSS cannot advance a counter on a pointer event.
+ *
+ * Gated on `html[data-rainbow-accent]`, which ThemeProvider sets only when the
+ * default theme is active *and* the preference is on — one flag for every
+ * rainbow rather than a theme test here and a preference test there. It belongs
+ * to the default theme alone because every other theme's accent is its own
+ * identity and must not be overpainted. Same mechanism as the
+ * `html[data-os="linux"]` rule below. Turning the preference off also skips
+ * installing the listener, so no element ever carries `data-rainbow` either.
+ *
+ * The gradient lives only inside a glyph or label, never behind one. Holding
+ * ONE lightness across all seven stops keeps the hue moving without producing
+ * a bright band that becomes illegible against the neutral hover surface. */
+/* Toned down from 0.20 / 0.22: at full chroma the hover read as a
+ * decoration competing with the content rather than a small signal. */
+:root {
+  --accent-rainbow-c: 0.14;
+  --accent-rainbow-glyph-l: 0.6;
+}
+.dark {
+  --accent-rainbow-c: 0.15;
+  --accent-rainbow-glyph-l: 0.76;
+}
+
+/* Text-only controls keep their normal hover surface. `background-clip: text`
+ * confines the spectrum to the label rather than making the button a colour
+ * field. Controls with an SVG use the glyph rule below instead. */
+html[data-rainbow-accent] [data-rainbow="text"]:is(:hover, :focus-visible) {
+  background-image: linear-gradient(
+    var(--rainbow-angle, 100deg),
+    oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(var(--rainbow-hue, 25) + 0)),
+    oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(var(--rainbow-hue, 25) + 50)),
+    oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(var(--rainbow-hue, 25) + 100)),
+    oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(var(--rainbow-hue, 25) + 150)),
+    oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(var(--rainbow-hue, 25) + 200)),
+    oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(var(--rainbow-hue, 25) + 250)),
+    oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(var(--rainbow-hue, 25) + 300))
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Icon-bearing controls keep their ordinary hover background and light the
+ * glyph instead. `--rainbow-paint` is a `url(#…) currentColor` pair, so a missing
+ * paint server degrades to the normal icon colour rather than to nothing. */
+html[data-rainbow-accent] [data-rainbow="glyph"]:is(:hover, :focus-visible) svg {
+  fill: var(--rainbow-paint, currentColor);
+}
+html[data-rainbow-accent]
+  [data-rainbow="glyph"]:is(:hover, :focus-visible)
+  svg
+  [stroke]:not([stroke="none"]) {
+  stroke: var(--rainbow-paint, currentColor);
+}
+
+/* On the default theme the aurora is the actual spectrum rather than one hue.
+ * It is the app's most alive moment — the ring traced around the AI panel while
+ * the agent streams — so it is where the theme's signature belongs, and the
+ * rotation the `--aurora-angle` machinery already provides reads as a slow hue
+ * drift for free. Gated on the preference (`html[data-rainbow-accent]`, set by
+ * ThemeProvider only when the default theme is active *and* the setting is on)
+ * rather than on the theme alone, so one switch governs every rainbow.
+ *
+ * Unlike the hover gradients this sweeps a full 360 and repeats its first stop:
+ * the two ends of a ring meet, so anything less than a full wrap shows a seam.
+ * Those deliberately stop at 300 for the opposite reason — a strip's ends are
+ * visible at once and should not be the same colour. */
+html[data-rainbow-accent] .aurora-border::before {
+  background: conic-gradient(
+    from var(--aurora-angle),
+      oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 0)),
+      oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 45)),
+      oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 90)),
+      oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 135)),
+      oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 180)),
+      oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 225)),
+      oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 270)),
+      oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 315)),
+      oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 360))
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-rainbow-accent] .aurora-border::before {
+    background: linear-gradient(
+      100deg,
+        oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 0)),
+        oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 45)),
+        oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 90)),
+        oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 135)),
+        oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 180)),
+        oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 225)),
+        oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 270)),
+        oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 315)),
+        oklch(var(--accent-rainbow-glyph-l) var(--accent-rainbow-c) calc(25 + 360))
+    );
+  }
+}
+
+/* Theme switch crossfade (View Transitions API — see ThemeProvider). */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 0.25s;
+}
+
+/* Linux: drop backdrop-filter. WebKitGTK re-composites the blurred backdrop
+ * region every frame, which is cheap on Mesa but very expensive on the NVIDIA
+ * proprietary driver — and worst on sticky headers and side panels, which
+ * repaint on every scroll. Every surface that opts into `backdrop-blur*`
+ * already carries an opacity-backed background color (bg-card/80, bg-popover/90,
+ * bg-black/30, …), so it stays legible without the frosted glass. Keyed off the
+ * data-os attribute set in main.tsx. Unlayered + !important so it wins over the
+ * Tailwind utility regardless of cascade layering. */
+html[data-os="linux"] [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ── Switch thumb squish ─────────────────────────────────────────────────────
+ * The thumb deforms while the control is held, then springs back as it
+ * travels. Written here rather than as utilities on the component because the
+ * CSS `scale` property composes with whatever `transform` the thumb's
+ * `translate-x-*` utility emits — they are separate properties, applied in a
+ * fixed order — so the squish and the travel do not have to know about each
+ * other. Doing both through `transform` would mean one class overwriting the
+ * other depending on source order.
+ *
+ * `--dur-tap` because this is an in-place state change on a control the user
+ * is physically holding; anything slower reads as lag rather than as give.
+ */
+[data-slot="switch-thumb"] {
+  transition-property: transform, translate, scale, background-color;
+  transition-duration: var(--dur-tap);
+  transition-timing-function: var(--ease-enter);
+}
+[data-slot="switch"]:active:not([data-disabled]) [data-slot="switch-thumb"] {
+  scale: 1.22 0.82;
+}
+/* Users who asked the OS for less motion get the state change without the
+ * deformation — the squish is decoration, the translate is the state. */
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="switch"]:active:not([data-disabled]) [data-slot="switch-thumb"] {
+    scale: 1 1;
+  }
+}
+
+/* ── High contrast ────────────────────────────────────────────────────────────
+ * On top of whatever theme is active, never instead of it. ThemeProvider sets
+ * `html[data-contrast="high"]` from the Contrast preference (or the OS, under
+ * "system": prefers-contrast: more / forced-colors: active).
+ *
+ * Declared on <body>, not :root, and that is load-bearing: `applyTheme` writes
+ * each palette as *inline* custom properties on <html>, which no stylesheet
+ * rule on :root can beat. Custom properties inherit, and every element —
+ * portals included — lives under <body>, so re-declaring the tokens there
+ * wins for the whole app. `@theme inline` above is what makes this reach the
+ * Tailwind utilities: they read `var(--border)` at the element, not a value
+ * frozen at :root.
+ *
+ * The tokens are derived from the theme's own foreground and background
+ * rather than fixed to black and white, so Aurelian stays warm and Halcyon
+ * stays violet — only the gaps between them close. Mixed at these ratios the
+ * muted text clears WCAG AAA against the background in every shipped theme,
+ * and even a `/50` border still clears the 3:1 non-text floor. */
+html[data-contrast="high"] body {
+  --muted-foreground: color-mix(in oklab, var(--foreground) 88%, var(--background));
+  --border: color-mix(in oklab, var(--foreground) 72%, var(--background));
+  --input: color-mix(in oklab, var(--foreground) 78%, var(--background));
+  --sidebar-border: var(--border);
+  --ring: var(--foreground);
+  --muted: color-mix(in oklab, var(--foreground) 12%, var(--background));
+  --accent: color-mix(in oklab, var(--foreground) 18%, var(--background));
+  --accent-foreground: var(--foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--foreground);
+}
+
+/* Focus is always visible, in the foreground colour, whatever the component
+ * asked for. Unlayered + !important so it beats `outline-none` utilities. */
+html[data-contrast="high"] :focus-visible {
+  outline: 2px solid var(--foreground) !important;
+  outline-offset: 2px;
+}
+
+/* Decoration goes: the animated/image background behind every pane and the
+ * frosted-glass blur both put moving or blurred colour under text. */
+html[data-contrast="high"] .nexis-bg-surface {
+  display: none !important;
+}
+html[data-contrast="high"] [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-contrast="high"] ::placeholder {
+  color: var(--muted-foreground);
+  opacity: 1;
 }

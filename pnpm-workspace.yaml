@@ -1,0 +1,7 @@
+# pnpm 11 ignores package.json's "pnpm" field; settings live here.
+allowBuilds:
+  esbuild: true
+
+# Refuse packages published less than 24h ago (supply-chain guard). Explicit
+# so every pnpm version enforces it, not only the ones that default to it.
+minimumReleaseAge: 1440

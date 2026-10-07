@@ -5,30 +5,61 @@
 // ╚══════════════════════════════════════╝
 
 /**
- * Shared motion vocabulary. A handful of spring/tween presets so every
- * animation in the app speaks the same language instead of each component
- * inventing its own stiffness/damping. Pair with `<MotionConfig
- * reducedMotion="user">` at the app root (App.tsx) so all of these are
- * automatically disabled for users who prefer reduced motion.
+ * The JS half of the motion system. The CSS half — the tokens every
+ * transition reads — lives in globals.css (`--ease-enter`, `--dur-tap`, …)
+ * and is what almost everything should use.
+ *
+ * `motion` (the library) is for the movement CSS cannot express: a rail that
+ * retargets mid-flight, a layout animating from wherever it currently is.
+ * Everything a CSS transition can do stays on CSS. See
+ * docs/DESIGN_LANGUAGE.md §5.
+ *
+ * Import `m`, never `motion`, from `motion/react`, and wrap the app in
+ * `<LazyMotion features={domAnimation} strict>` — a stray `motion.div` then
+ * throws in development instead of silently pulling the full renderer in.
  */
 import { useReducedMotion } from "motion/react";
-import type { Transition } from "motion/react";
 
-/** Springs — the default vocabulary for layout/position animations. */
-export const spring = {
-  /** Crisp UI feedback: active indicators, toggles, small moves. */
-  snappy: { type: "spring", stiffness: 480, damping: 36 } as const,
-  /** General-purpose panel/list motion. */
-  smooth: { type: "spring", stiffness: 220, damping: 30 } as const,
-  /** Large, soft entrances (panels docking, sheets). */
-  gentle: { type: "spring", stiffness: 140, damping: 24 } as const,
-} satisfies Record<string, Transition>;
+/** The house curves and durations, as numbers, for the rare JS consumer. */
+export const ease = {
+  /** Arriving: decelerates hard into place. */
+  enter: [0.2, 0, 0, 1] as const,
+  /** Leaving: accelerates away. Faster than arriving. */
+  exit: [0.4, 0, 1, 1] as const,
+};
 
-/** Tweens — for opacity/colour fades where a spring would feel wobbly. */
-export const tween = {
-  fast: { duration: 0.12, ease: "easeOut" } as const,
-  base: { duration: 0.2, ease: "easeOut" } as const,
-  slow: { duration: 0.34, ease: [0.22, 1, 0.36, 1] } as const,
-} satisfies Record<string, Transition>;
+export const dur = {
+  tap: 0.09,
+  panel: 0.14,
+  window: 0.2,
+  scene: 0.42,
+} as const;
+
+/** The one spring: a selection travelling along a rail. Never overshoots. */
+export const railSpring = { type: "spring", stiffness: 520, damping: 40 } as const;
+
+/** `railSpring`, collapsed to an instant move under reduced motion. */
+export function useRailTransition() {
+  const reduce = useReducedMotion();
+  return reduce ? { duration: 0 } : railSpring;
+}
 
 export { useReducedMotion };
+
+/**
+ * @deprecated 0.1.x's spring presets. Nexis moved to CSS motion tokens plus
+ * one rail spring (`railSpring`); these stay so 0.1 consumers keep building.
+ * New code: a CSS transition on the house tokens, or `railSpring`.
+ */
+export const spring = {
+  snappy: { type: "spring", stiffness: 480, damping: 36 } as const,
+  smooth: { type: "spring", stiffness: 220, damping: 30 } as const,
+  gentle: { type: "spring", stiffness: 140, damping: 24 } as const,
+};
+
+/** @deprecated See `spring`. Use `dur` + `ease`, or CSS tokens. */
+export const tween = {
+  fast: { duration: 0.12, ease: ease.enter },
+  base: { duration: dur.window, ease: ease.enter },
+  slow: { duration: 0.34, ease: ease.enter },
+};

@@ -1,146 +1,174 @@
-# @nexis/design
+# nexis-design
 
-The design layer shared across the Nexis desktop apps: OKLCH tokens, a runtime
-theme engine, borderless window chrome, the bespoke cursor set, and the motion
-and platform vocabulary that goes with them.
+```
+@nexis/design   coral on glass, one accent, a terminal's sense of time
+```
 
-## Scope: Tauri webview apps on React + Tailwind — nothing else
+The design system for the **Nexis** family of Tauri desktop apps: OKLCH
+tokens, 22 themes and the engine that swaps them at runtime, ~70 React
+components, the motion vocabulary, borderless window chrome, the cursor set,
+seven app templates — and the rules that hold them together. It is the same
+layer [Nexis](https://github.com/rwetz/Nexis) itself is built on.
 
-This package is for one stack, and it does not try to be portable:
+![Nexis Design — the gallery overview, Nexis Default, dark](docs/img/showcase-dark.png)
 
-| Layer | Required |
+| Halcyon, light | High contrast, on top of any theme |
 |---|---|
-| Shell | **Tauri v2** — the UI runs in the OS webview (WebView2 / WKWebView / WebKitGTK) |
-| UI | **React 19** + TypeScript, bundled by **Vite** |
-| Styling | **Tailwind CSS v4** (CSS-first config) + shadcn/ui conventions |
+| ![Overview — Halcyon light](docs/img/showcase-light.png) | ![Controls under high contrast](docs/img/high-contrast.png) |
 
-Everything in it leans on that stack: themes are CSS variables, the cursors are
-CSS `cursor: url()` rules, the window chrome is React calling `@tauri-apps/api`,
-and the components are Tailwind classes. None of it transfers to a native UI
-toolkit.
+**The gallery** (`pnpm dev`) — every component, every theme, every template,
+with the theme, mode and command palette in the title bar:
+
+| Controls — Nexis Default | Controls — Meridian, light |
+|---|---|
+| ![Controls — dark](docs/img/components-controls.png) | ![Controls — Meridian light](docs/img/components-controls-light.png) |
+
+| ![Menus with a cascading submenu](docs/img/components-menu.png) | ![Command palette — fuzzy ranked, grouped](docs/img/components-palette.png) |
+| --- | --- |
+| ![A destructive confirm dialog](docs/img/components-dialog.png) | ![Details sheet — Cinder, light](docs/img/components-sheet.png) |
+
+![Forms — field, select, number input, date picker, calendar, accordion (Thicket)](docs/img/components-forms.png)
+
+![Data — sortable table, property list, tree, a 10,000-row virtual list, timeline, avatars](docs/img/components-data.png)
+
+| ![Charts — stats, line with comparison, bars, sparklines, heatmap](docs/img/components-charts.png) | ![Navigation — sidebar, tabs, gliding sub-tabs, toolbar, pagination, steps](docs/img/components-navigation.png) |
+| --- | --- |
+| ![Toasts on the house surfaces](docs/img/components-toasts.png) | ![Layout — resizable splits, scroll area, card (Tokyo Night)](docs/img/components-layout.png) |
+
+![Motion, caught mid-frame: a stagger arriving, a result landing, the aurora around the composer](docs/img/motion-midframe.png)
+
+**Twenty-two themes** — seventeen Nexis palettes generated from one OKLCH
+ramp, five credited community ones, each light and dark, every one held to
+the same contrast floors by the tests
+([DESIGN_LANGUAGE §2.4](docs/DESIGN_LANGUAGE.md#24-themes)):
+
+| Dark | Light (Aurelian applied) |
+|---|---|
+| ![Themes — dark](docs/img/themes-dark.png) | ![Themes — light](docs/img/themes-light.png) |
+
+| ![Foundations — surfaces, signals, type, radius, motion tokens, cursors](docs/img/foundations.png) | ![Icons — one choke point, five sizes, weight as state](docs/img/icons.png) |
+| --- | --- |
+
+![Window chrome — title bar, sidebar, status bar; Windows/Linux and macOS](docs/img/chrome.png)
+
+**App templates** — whole apps to start from (`scripts/new-app.sh`):
+
+| ![Dashboard](docs/img/app-dashboard.png) | ![Workbench — Halcyon](docs/img/app-workbench.png) |
+| --- | --- |
+| ![Settings — Aurelian, light](docs/img/app-settings.png) | ![Explorer — light](docs/img/app-explorer.png) |
+| ![Console — Cinder](docs/img/app-console.png) | ![Wizard — Ultramarine](docs/img/app-wizard.png) |
+
+## Scope
+
+**For:** Tauri v2 desktop apps on React 19 + TypeScript + Tailwind v4
+(Vite). Themes are CSS variables, the chrome is React calling
+`@tauri-apps/api`, the cursors are CSS — none of it transfers to a native
+toolkit, and it does not try to.
 
 **Not for:**
 
-- **Native GPU-rendered apps (GPUI / Rust UI).** Those belong to the separate
-  [Ferrite](https://github.com/rwetz/ferrite-design) family, which carries this
-  package's *rules* (one accent, a shared motion vocabulary, custom chrome,
-  no-flash startup) but has its own deliberately different visual language.
-- **Websites.** `nexis-website` and `nexis-wiki` share the brand, not this
-  package — they are not Tauri apps and have no window to paint.
-- **Non-React webview apps.** The theme engine and chrome are React components.
-
-## Background
-
-This replaces the `_design/` copy-paste blueprint that used to live in each app.
-That blueprint was explicit that it was "a snapshot + generalized guide, not a
-live fork" — and the snapshots drifted exactly as you would expect. By the time
-this package was extracted, four apps carried four different `globals.css`, four
-different `button.tsx`, and four different `platform.ts`, and the blueprint's own
-`ThemeProvider` template had stopped working at all: it imported
-`@/modules/settings/store`, `./customThemes` and `./SurfaceLayer` from Nexis, so
-no other app could actually use it.
-
-A dependency cannot drift. That is the whole point.
+- **Native GPU-rendered apps** — that is the
+  [Ferrite](https://github.com/rwetz/ferrite-design) family, which keeps
+  this package's *rules* (one accent, tokens with one source of truth, a
+  shared motion vocabulary, self-drawn chrome, no flash, tripwire tests) and
+  replaces its *look* with amber on iron, 0px corners and dither. The
+  side-by-side is
+  [DESIGN_LANGUAGE.md §1](docs/DESIGN_LANGUAGE.md#1-nexis-and-ferrite-the-same-rules-two-looks).
+- **Websites** — `nexis-website` and `nexis-wiki` share the brand, not this
+  package.
 
 ## What's in it
 
 | | |
 |---|---|
-| `theme/` | `applyTheme` / `clearTheme`, `ThemeProvider` + `useTheme`, the built-in themes, and the `Theme` types. Themes are applied by writing CSS variables and crossfading the window through the View Transitions API. |
-| `components/` | `WindowControls` and `ResizeHandles` — the borderless chrome the apps paint themselves on Windows and Linux. |
-| `lib/` | `cn`, platform facts (`IS_MAC`, `USE_CUSTOM_WINDOW_CONTROLS`), the keyboard-label vocabulary (`MOD_KEY`, `fmtShortcut`, …), and the shared motion springs. |
-| `styles/` | `globals.css`, the `globals.ide.css` variant, `fonts.css`, `code-highlight.css`, and `tokens.ts` for reading resolved token values back out at runtime. |
-| `assets/cursors/` | The "Tailless Smooth" cursor set — 29 PNGs plus `hotspots.json`. |
-| `docs/` | The design language, the scaffolding guide, the pitfalls, and the asset manifest. |
-
-## Install
-
-It is consumed straight from git — there is no npm publish step:
-
-```jsonc
-// package.json
-"dependencies": {
-  "@nexis/design": "github:rwetz/nexis-design"
-}
-```
-
-Then three wiring steps, all of which the apps in this family already do:
-
-**1. Import a stylesheet.** Pick one variant — they share an identical core; the
-IDE one adds rules for xterm and CodeMirror:
-
-```ts
-import "@nexis/design/styles/fonts.css";
-import "@nexis/design/styles/globals.css";      // any app
-// import "@nexis/design/styles/globals.ide.css";  // if you embed a terminal or editor
-```
-
-**2. Copy the cursors into your public dir.** A CSS `cursor: url()` is resolved
-by the browser against the document, so it cannot reach into `node_modules` —
-the PNGs have to physically land in the served static directory:
-
-```jsonc
-"scripts": {
-  "postinstall": "nexis-design-assets"   // -> public/cursors/
-}
-```
-
-**3. Point Tailwind at the package.** Tailwind v4 only generates classes it can
-see, and it does not scan dependencies by default. Without this the window
-controls and resize handles render unstyled:
-
-```css
-@import "tailwindcss";
-@source "../node_modules/@nexis/design/src";
-```
+| `theme/` | 22 themes (17 generated Nexis palettes + 5 community), `applyTheme`, and `ThemeProvider` / `useTheme`: light/dark/system, high contrast on top of any theme, the default theme's rainbow hover, the palette epoch, a View Transition crossfade (hard cut on Linux). |
+| `styles/` | `globals.css` — OKLCH tokens, status tones that follow the theme, the motion tokens and classes, chrome, scrollbars, cursors, high contrast; `globals.ide.css` adds xterm/CodeMirror; `fonts.css` (Geist, Geist Mono, Space Grotesk); `tokens.ts` to read colours back for canvas/WebGL. |
+| `components/ui/` | ~70 components: controls, forms, overlays, command palette, navigation, data (table, tree, virtual list), charts, feedback, layout ([COMPONENTS.md](docs/COMPONENTS.md)). |
+| `components/` | Chrome — `TitleBar`, `StatusBar`, `WindowControls`, `WindowResizeEdges` — and the motion moments (`SceneEnter`, `ResultArrival`, `AuroraBorder`, …). |
+| `icon/` | `<Icon name="…" />`: 172 semantic names over Phosphor, five sizes, weight as state. The only module allowed to import an icon vendor. |
+| `lib/` | Platform facts and key labels, the motion constants, fuzzy matching, sorting, calendar dates, formatting. |
+| `assets/cursors/` | The "Tailless Smooth" cursor set, 29 PNGs. |
+| `templates/` | Dashboard, workbench, settings, explorer, console, wizard, minimal. |
+| `gallery/` | The interactive gallery (`pnpm dev`). |
 
 ## Use
 
-```tsx
-import { ThemeProvider, useTheme, WindowControls, ResizeHandles, IS_MAC, cn } from "@nexis/design";
-
-export default function App() {
-  return (
-    <ThemeProvider>
-      <header className={cn("flex h-10 items-center", IS_MAC ? "pl-20" : "pl-3")}>
-        <WindowControls />
-      </header>
-      <ResizeHandles />
-    </ThemeProvider>
-  );
-}
+```bash
+scripts/new-app.sh nexis-pulse dashboard     # a complete Tauri app from a template
 ```
 
-## Why it ships TypeScript source
+Or add it to an existing app — from git, pinned (there is no npm publish):
 
-Every consumer is Vite + TypeScript, so a build step buys nothing their own
-bundler does not already do — and it would add a compile-and-publish pipeline to
-a dependency that is otherwise resolved directly from git. The cost is that
-consumers must be able to compile TS from a dependency, which all of them can.
-Revisit this if something outside the family ever needs it.
+```jsonc
+"dependencies": { "@nexis/design": "github:rwetz/nexis-design#<rev>" /* + its peers */ },
+"scripts": { "postinstall": "nexis-design-assets" }      // cursors -> public/cursors/
+```
 
-## What is deliberately *not* here
+```css
+@import "@nexis/design/styles/globals.css";     /* scans its own components; nothing else to configure */
+```
 
-**The shadcn/ui components** (`button`, `dropdown-menu`, `tooltip`, `sonner`).
-shadcn's model is that you copy a component into your app and own it, so
-centralizing them fights the tool: an app could no longer edit a variant without
-editing every app. They stay per-app, as the original blueprint had them.
+```tsx
+import { ThemeProvider, TooltipProvider, Toaster, TitleBar, StatusBar, Button, Icon } from "@nexis/design";
 
-**Nexis's icon layer.** Nexis routes every icon through its own `icon.tsx` choke
-point over Phosphor, with a semantic name per idea; the smaller apps use
-Hugeicons directly. Unifying those is a real decision about the icon vocabulary,
-not a packaging one, and it belongs in its own change.
+<LazyMotion features={domAnimation} strict>
+  <ThemeProvider storageKey="my-app">
+    <TooltipProvider>
+      <TitleBar title="My App" />
+      <Button variant="brand"><Icon name="play" /> Run</Button>
+      <StatusBar left="Ready" />
+    </TooltipProvider>
+    <Toaster />
+  </ThemeProvider>
+</LazyMotion>
+```
 
-## Relationship to Nexis
+Full walkthrough: [docs/SCAFFOLDING.md](docs/SCAFFOLDING.md). For coding
+agents: [AGENTS.md](AGENTS.md) — templates by app type, the rules, an exact
+(compiled) API cheat sheet. Claude Code gets a `nexis-scaffold` skill.
 
-Nexis remains the reference implementation and the source the design language is
-extracted *from* — it is not currently a consumer. It carries a substantially
-larger surface (a 743-line `globals.css` against this package's 417, a hardened
-icon system, terminal and editor theming) plus tripwire tests that enforce its
-own invariants. Migrating it is worth doing file by file, starting with
-`applyTheme.ts`, which is already byte-identical to the copy here — not as a
-single sweep.
+```bash
+pnpm install
+pnpm dev                       # the gallery; ?theme=aurelian&mode=light&contrast=high pins the look
+pnpm test                      # contrast floors × 22 themes, design-rule tripwires, logic, every template mounts
+pnpm typecheck
+pnpm screenshots               # regenerate every image in this README from the live gallery
+```
+
+## Docs
+
+- [DESIGN_LANGUAGE.md](docs/DESIGN_LANGUAGE.md) — the language: colour, type,
+  icons, space, motion, chrome, surfaces, the theme engine, the checklist.
+- [COMPONENTS.md](docs/COMPONENTS.md) — every component by family, where it
+  came from, and the rules for writing one.
+- [SCAFFOLDING.md](docs/SCAFFOLDING.md) — a new app, step by step.
+- [PITFALLS.md](docs/PITFALLS.md) — field notes; read before scaffolding.
+- [ASSETS.md](docs/ASSETS.md) — cursors, and why logos are per app.
+- [ROADMAP.md](docs/ROADMAP.md) — what "one design layer for the family"
+  still needs.
+
+## Upgrading from 0.1
+
+0.2 brings the package back in step with Nexis 1.31 and adds the components,
+so it is a breaking upgrade for 0.1 apps (`nexis-atlas` is one):
+
+- **New peers.** Install `@phosphor-icons/react`, `cmdk`,
+  `react-resizable-panels`, `@tanstack/react-virtual`,
+  `@fontsource-variable/geist`, `@fontsource-variable/geist-mono` and
+  `@fontsource-variable/space-grotesk`; `@hugeicons/*` and
+  `@fontsource-variable/inter` are no longer used. `fonts.css` now loads
+  Geist, so a missing font package is a build error, not a fallback.
+- **Theme storage keys** are now `<storageKey>:mode` / `:theme`. 0.1's
+  `atlas-ui-theme-*` keys are still *read*, so users keep their theme — but
+  update `index.html`'s bootstrap to the new key.
+- `ResizeHandles` is now `WindowResizeEdges` and Linux-only (the old name
+  still works). `spring`, `tween` and `BUILTIN_THEMES` still export, marked
+  deprecated.
+- The `@source "…/node_modules/@nexis/design/src"` line is no longer needed
+  (harmless if left).
 
 ## License
 
-[Apache-2.0](LICENSE), matching the rest of the family.
+[Apache-2.0](LICENSE), matching the rest of the family. Fonts are loaded from
+Fontsource under their own licenses (Geist and Geist Mono: OFL-1.1; Space
+Grotesk: OFL-1.1). Icons: Phosphor (MIT).
