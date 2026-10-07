@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="./brand/nexis-logo.png" />
+    <title>Nexis Design</title>
+    <!-- No-flash bootstrap: paint the right background before React mounts
+         (docs/SCAFFOLDING.md step 5). Reads the same keys ThemeProvider uses. -->
+    <script>
+      (function () {
+        try {
+          var q = new URLSearchParams(location.search);
+          var m = q.get("mode") || localStorage.getItem("nexis-gallery:mode") || "dark";
+          var dark = m === "dark" || (m === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.add(dark ? "dark" : "light");
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>

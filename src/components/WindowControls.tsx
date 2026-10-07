@@ -4,24 +4,23 @@
 // ║  2026                                ║
 // ╚══════════════════════════════════════╝
 
+import { Icon } from "../icon/icon";
 import { USE_CUSTOM_WINDOW_CONTROLS } from "../lib/platform";
 import { cn } from "../lib/utils";
-import {
-  Cancel01Icon,
-  Copy01Icon,
-  MinusSignIcon,
-  SquareIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useState } from "react";
 
 type Props = {
   /** Render only the close button (used by the settings window). */
   closeOnly?: boolean;
+  /**
+   * Draw the controls even outside Tauri, inert. For the gallery and for
+   * screenshots of the Windows/Linux chrome; never in a shipped window.
+   */
+  preview?: boolean;
 };
 
-export function WindowControls({ closeOnly = false }: Props) {
+export function WindowControls({ closeOnly = false, preview = false }: Props) {
   const [maximized, setMaximized] = useState(false);
 
   useEffect(() => {
@@ -39,6 +38,27 @@ export function WindowControls({ closeOnly = false }: Props) {
     return () => unlisten?.();
   }, [closeOnly]);
 
+  if (preview && !USE_CUSTOM_WINDOW_CONTROLS) {
+    const noop = () => {};
+    return (
+      <div className="flex h-full shrink-0 items-center gap-0.5 pr-1">
+        {!closeOnly && (
+          <>
+            <CtlButton ariaLabel="Minimize" onClick={noop}>
+              <Icon name="minus" />
+            </CtlButton>
+            <CtlButton ariaLabel="Maximize" onClick={noop}>
+              <Icon name="square" />
+            </CtlButton>
+          </>
+        )}
+        <CtlButton ariaLabel="Close" onClick={noop} danger>
+          <Icon name="close" size="md" />
+        </CtlButton>
+      </div>
+    );
+  }
+
   if (!USE_CUSTOM_WINDOW_CONTROLS) return null;
 
   const w = getCurrentWindow();
@@ -48,22 +68,18 @@ export function WindowControls({ closeOnly = false }: Props) {
       {!closeOnly && (
         <>
           <CtlButton ariaLabel="Minimize" onClick={() => void w.minimize()}>
-            <HugeiconsIcon icon={MinusSignIcon} size={12} strokeWidth={2} />
+            <Icon name="minus" />
           </CtlButton>
           <CtlButton
             ariaLabel={maximized ? "Restore" : "Maximize"}
             onClick={() => void w.toggleMaximize()}
           >
-            <HugeiconsIcon
-              icon={maximized ? Copy01Icon : SquareIcon}
-              size={12}
-              strokeWidth={2}
-            />
+            <Icon name={maximized ? "copy" : "square"} />
           </CtlButton>
         </>
       )}
       <CtlButton ariaLabel="Close" onClick={() => void w.close()} danger>
-        <HugeiconsIcon icon={Cancel01Icon} size={14} strokeWidth={2} />
+        <Icon name="close" size="md" />
       </CtlButton>
     </div>
   );
