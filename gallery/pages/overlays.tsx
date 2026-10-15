@@ -78,7 +78,7 @@ export function OverlaysPage() {
   return (
     <Page
       title="Overlays"
-      lede="Menus, popovers, dialogs and sheets. Radix underneath for focus, dismissal and keyboard; the house surfaces on top — rounded-3xl popover glass, a hairline ring, enter on the house curve and leave faster than they arrive."
+      lede="Menus, popovers, dialogs and sheets. Radix underneath for focus, dismissal and keyboard; the house surfaces on top: rounded-3xl popover glass, a hairline ring, enter on the house curve and leave faster than they arrive."
     >
       <Grid cols={2}>
         <Demo title="Dropdown menu" meta="groups · submenus · checks · radios · shortcuts">

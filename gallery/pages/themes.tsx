@@ -102,7 +102,7 @@ export function ThemesPage() {
   return (
     <Page
       title="Themes"
-      lede="Twenty-two themes, each a light and a dark variant. The seventeen Nexis themes are generated from one OKLCH lightness ramp, so they share a contrast profile and the test suite holds every one to the same floors. The five community palettes are kept as their authors made them. A theme is data — applyTheme writes it as CSS variables — so everything on this page re-tints when you pick one."
+      lede="Twenty-two themes, each a light and a dark variant. The seventeen Nexis themes are generated from one OKLCH lightness ramp, so they share a contrast profile and the test suite holds every one to the same floors. The five community palettes are kept as their authors made them. A theme is data, applyTheme writes it as CSS variables, so everything on this page re-tints when you pick one."
     >
       <Demo title="Appearance" meta="applies to the whole gallery" bodyClassName="flex-row flex-wrap items-center gap-6">
         <Segmented
@@ -117,7 +117,7 @@ export function ThemesPage() {
         />
         <div className="flex items-center gap-2">
           <Switch id="hc" checked={t.highContrast} onCheckedChange={(on) => t.setContrast(on ? "high" : "standard")} />
-          <Label htmlFor="hc">High contrast — on top of any theme</Label>
+          <Label htmlFor="hc">High contrast: on top of any theme</Label>
         </div>
         <div className="flex items-center gap-2">
           <Switch id="rb" checked={t.rainbowAccent} onCheckedChange={t.setRainbowAccent} />

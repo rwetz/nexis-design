@@ -97,7 +97,7 @@ export function FormsPage() {
             <Calendar selected={cal} onSelect={setCal} today={TODAY} />
             <div className="flex flex-col gap-1 text-sm">
               <span className="text-muted-foreground">Selected</span>
-              <span className="font-mono">{cal ? dates.iso(cal) : "—"}</span>
+              <span className="font-mono">{cal ? dates.iso(cal) : "–"}</span>
               <span className="mt-3 text-muted-foreground">Today</span>
               <span className="font-mono">{dates.iso(TODAY)}</span>
             </div>

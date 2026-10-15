@@ -26,7 +26,7 @@ const MOTION = [
   ["--dur-panel", "140ms", "popovers, tooltips, collapsibles"],
   ["--dur-window", "200ms", "dialogs, sheets"],
   ["--dur-scene", "420ms", "a data scene arriving"],
-  ["--blink-cadence", "1060ms", "a VT100 caret — live indicators"],
+  ["--blink-cadence", "1060ms", "a VT100 caret: live indicators"],
   ["--tick-cadence", "640ms × 4 steps", "indeterminate progress"],
   ["--live-cadence", "1600ms", "a long run's slow scan"],
 ] as const;
@@ -95,20 +95,20 @@ export function FoundationsPage() {
       <Demo title="Type" meta="Geist · Geist Mono · Space Grotesk">
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="flex flex-col gap-2">
-            <span className="text-caption tracking-wide text-muted-foreground uppercase">Display — font-heading</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">Display: font-heading</span>
             <span className="font-heading text-4xl font-medium tracking-tight">Nexis 1.31</span>
             <span className="font-heading text-xl font-medium">Panel titles, dialogs, empty states</span>
             <span className="text-xs text-muted-foreground">Space Grotesk. Only where the app speaks in its own voice; illegible below ~13px.</span>
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-caption tracking-wide text-muted-foreground uppercase">Interface — font-sans</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">Interface: font-sans</span>
             <span className="text-base">The quick brown fox jumps over the lazy dog.</span>
             <span className="text-sm">Body 14 · labels, menus, inputs</span>
             <span className="text-body">Dense 13 · trees, tables, sidebars</span>
             <span className="text-xs text-muted-foreground">Meta 12 · hints, captions, the status bar at 11</span>
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-caption tracking-wide text-muted-foreground uppercase">Code & figures — font-mono</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">Code & figures: font-mono</span>
             <span className="font-mono text-sm">const p95 = 54; // ms</span>
             <span className="font-mono text-sm tabular-nums">0123456789 · 1,204.50</span>
             <span className="text-xs text-muted-foreground">Geist Mono. Same skeleton as Geist, so code and chrome agree. Tabular figures in every table.</span>
@@ -143,12 +143,12 @@ export function FoundationsPage() {
             </tbody>
           </table>
           <p className="text-xs text-muted-foreground">
-            Arrive on <span className="font-mono">--ease-enter</span> (decelerate hard), leave on <span className="font-mono">--ease-exit</span> (accelerate away, faster). Nothing overshoots — nothing in a tool should bounce.
+            Arrive on <span className="font-mono">--ease-enter</span> (decelerate hard), leave on <span className="font-mono">--ease-exit</span> (accelerate away, faster). Nothing overshoots: nothing in a tool should bounce.
           </p>
         </Demo>
       </Grid>
 
-      <Demo title="Cursors" meta="the Tailless Smooth set — hover a tile">
+      <Demo title="Cursors" meta="the Tailless Smooth set: hover a tile">
         <div className="grid grid-cols-4 gap-2 md:grid-cols-8">
           {CURSORS.map(([css, file]) => (
             <div

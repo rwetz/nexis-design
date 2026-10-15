@@ -24,13 +24,13 @@ pnpm tauri dev
 ```
 
 Templates: `dashboard`, `workbench`, `settings`, `explorer`, `console`,
-`wizard`, `minimal` — see them all with `pnpm dev` in this repo, and pick by
+`wizard`, `minimal`: see them all with `pnpm dev` in this repo, and pick by
 the shape of the app ([AGENTS.md §1](../AGENTS.md#1-start-an-app)).
 
 The script pins `@nexis/design` to the commit your checkout is on
-(`github:rwetz/nexis-design#<rev>`) — the rev must be pushed for the install
+(`github:rwetz/nexis-design#<rev>`), the rev must be pushed for the install
 to resolve. `NEXIS_PATH=$(pwd)` installs from the local checkout instead
-(as a copy — PITFALLS §10).
+(as a copy: PITFALLS §10).
 
 What you get:
 
@@ -41,11 +41,11 @@ nexis-<thing>/
 ├─ pnpm-workspace.yaml         # pnpm 11 build approval (PITFALLS §6)
 ├─ vite.config.ts              # react + tailwind; Tauri's fixed port
 ├─ AGENTS.md                   # points coding agents at this package's rules
-├─ public/cursors/             # synced by postinstall — gitignored
+├─ public/cursors/             # synced by postinstall, gitignored
 ├─ src/
 │  ├─ main.tsx                 # providers, borderless flag, show-after-paint
 │  ├─ App.tsx                  # the template
-│  ├─ AppLogo.tsx              # your mark — make it yours
+│  ├─ AppLogo.tsx              # your mark, make it yours
 │  └─ styles.css               # @import "@nexis/design/styles/globals.css"
 └─ src-tauri/
    ├─ tauri.conf.json          # overlay title bar (macOS), hidden window
@@ -58,7 +58,7 @@ nexis-<thing>/
 
 ---
 
-## Step 0 — Prerequisites
+## Step 0: Prerequisites
 
 ```bash
 rustup update stable
@@ -68,12 +68,12 @@ corepack enable && corepack prepare pnpm@latest --activate
 Plus the [Tauri platform prerequisites](https://tauri.app/start/prerequisites/)
 (WebKitGTK on Linux, WebView2 on Windows).
 
-## Step 1 — The project
+## Step 1: The project
 
 `pnpm create tauri-app@latest myapp --template react-ts --manager pnpm` gives
 you a working Tauri app to wire by hand, or start from `new-app.sh`.
 
-## Step 2 — Dependencies ⚠
+## Step 2: Dependencies ⚠
 
 ```bash
 pnpm add github:rwetz/nexis-design#<rev>
@@ -90,10 +90,10 @@ pnpm add -D @tailwindcss/vite @vitejs/plugin-react
 ```
 
 ⚠ pnpm ≥ 11 needs `allowBuilds: { esbuild: true }` in `pnpm-workspace.yaml`
-(PITFALLS §6). **Pin a rev** — an unpinned `github:` dependency moves when
+(PITFALLS §6). **Pin a rev**, an unpinned `github:` dependency moves when
 this repo's `main` does.
 
-## Step 3 — Stylesheet
+## Step 3: Stylesheet
 
 ```css
 /* src/styles.css */
@@ -103,7 +103,7 @@ this repo's `main` does.
 That is all. The package's stylesheet scans its own components (PITFALLS §8)
 and loads the fonts; Tailwind scans your `src/` itself.
 
-## Step 4 — Vite
+## Step 4: Vite
 
 ```ts
 import tailwindcss from "@tailwindcss/vite";
@@ -115,7 +115,7 @@ export default defineConfig({
 });
 ```
 
-## Step 5 — `index.html` no-flash bootstrap
+## Step 5: `index.html` no-flash bootstrap
 
 Before the bundle loads, put the right mode class on `<html>`. The key is
 `ThemeProvider`'s `storageKey` + `":mode"`:
@@ -132,7 +132,7 @@ Before the bundle loads, put the right mode class on `<html>`. The key is
 </script>
 ```
 
-## Step 6 — `main.tsx`
+## Step 6: `main.tsx`
 
 ```tsx
 import "./styles.css";
@@ -155,7 +155,7 @@ createRoot(document.getElementById("root")!).render(
   </LazyMotion>,
 );
 
-// Hidden until painted. setTimeout, not rAF — rAF does not fire while hidden.
+// Hidden until painted. setTimeout, not rAF: rAF does not fire while hidden.
 if (IN_TAURI) {
   const show = () => getCurrentWindow().show().catch(console.error);
   setTimeout(show, 50);
@@ -166,9 +166,9 @@ if (IN_TAURI) {
 `LazyMotion strict` makes a stray `motion.div` throw in development; the
 package uses `m` only.
 
-## Step 7 — Tauri window & chrome ⚠
+## Step 7: Tauri window & chrome ⚠
 
-`tauri.conf.json` — the base (macOS) window:
+`tauri.conf.json`, the base (macOS) window:
 
 ```jsonc
 "windows": [{ "label": "main", "title": "My App", "width": 1280, "height": 820,
@@ -176,16 +176,16 @@ package uses `m` only.
   "titleBarStyle": "Overlay", "hiddenTitle": true }]
 ```
 
-`tauri.windows.conf.json` **and** `tauri.linux.conf.json` — each a full copy
+`tauri.windows.conf.json` **and** `tauri.linux.conf.json`: each a full copy
 of the window entry plus `"decorations": false, "transparent": true,
 "shadow": false`. ⚠ The platform `windows` array *replaces* the base one; repeat
 the sizes. Without the Linux file you get double chrome (PITFALLS §1).
 
-⚠ NVIDIA + Wayland crashes at first paint unless Mesa's EGL is forced —
+⚠ NVIDIA + Wayland crashes at first paint unless Mesa's EGL is forced:
 the `lib.rs` from `new-app.sh` does it (PITFALLS §2). It also sets `GTK_CSD=1`
 so KWin does not draw a second title bar.
 
-Capabilities — what the chrome needs:
+Capabilities, what the chrome needs:
 
 ```
 core:default
@@ -197,10 +197,10 @@ core:window:allow-close                 core:window:allow-show
 core:window:allow-set-focus             os:default
 ```
 
-Register `tauri_plugin_os::init()` — `IN_TAURI`, `IS_MAC` and
+Register `tauri_plugin_os::init()`, `IN_TAURI`, `IS_MAC` and
 `USE_CUSTOM_WINDOW_CONTROLS` come from it.
 
-## Step 8 — Icons and logo ⚠
+## Step 8: Icons and logo ⚠
 
 ```bash
 pnpm tauri icon path/to/your-1024.png
@@ -208,10 +208,10 @@ pnpm tauri icon path/to/your-1024.png
 
 ⚠ Before the first `cargo check`: `generate_context!` fails if the files in
 `bundle.icon` (or `../dist`) do not exist (PITFALLS §7). Draw `AppLogo.tsx` in
-the family grammar — 48×48, `rx=12` tile in `currentColor`, the mark in
+the family grammar: 48×48, `rx=12` tile in `currentColor`, the mark in
 `var(--background)` (PITFALLS §5).
 
-## Step 9 — Compose the root
+## Step 9: Compose the root
 
 ```tsx
 import { CommandPalette, SidebarNav, StatusBar, StatusItem, TitleBar,
@@ -236,15 +236,15 @@ export default function App() {
 }
 ```
 
-## Step 10 — Components
+## Step 10: Components
 
 Import them from the package. Since 0.2 the shared components live here, so
 a fix lands in every app at once (the 0.1 reasoning, "shadcn wants you to own
 the copy", lost to four apps drifting four ways). When an app genuinely needs
-a variant nobody else does, wrap the package component in the app — do not
+a variant nobody else does, wrap the package component in the app: do not
 copy it. If two apps need it, it belongs upstream.
 
-## Step 11 — Run it
+## Step 11: Run it
 
 ```bash
 pnpm tauri dev

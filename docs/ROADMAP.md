@@ -14,10 +14,10 @@ about what is not done.
   tones that follow the theme, seven app templates, a gallery, a scaffold
   script, and tripwire tests for the design rules.
 - **Not yet consumed by Nexis.** Nexis still carries its own copies. Until it
-  imports from here, "in step" is a promise kept by hand — the drift this
+  imports from here, "in step" is a promise kept by hand: the drift this
   package was extracted to end can start again in the other direction.
 
-## Phase 1 — make it the one copy (next)
+## Phase 1: make it the one copy (next)
 
 1. **Nexis consumes the package**, file by file: `applyTheme.ts` and the
    theme files first (byte-identical today), then `globals.css`, `icon.tsx`,
@@ -31,7 +31,7 @@ about what is not done.
    live dot and the success toast border used stock `emerald-500` (now
    `success`).
 
-## Phase 2 — close the component gaps
+## Phase 2: close the component gaps
 
 - Combobox (typeahead select), multi-select in `DataTable` and `Tree`, date
   *range* picker, a virtualised table, chart legend and time axis.
@@ -40,7 +40,7 @@ about what is not done.
 - The terminal and editor theming (`terminalTheme.ts`, the CodeMirror theme
   bridge) as an optional `@nexis/design/ide` entry.
 
-## Phase 3 — quality and trust
+## Phase 3: quality and trust
 
 - Visual regression: diff `pnpm screenshots` against the committed images in
   CI, so a change that moves pixels says so.
@@ -51,9 +51,9 @@ about what is not done.
 - Bundle size: the root barrel pulls every component; measure tree-shaking in
   a scaffolded app and split heavy entries (charts, virtual list) if needed.
 
-## Phase 4 — tooling
+## Phase 4: tooling
 
-- `nexis-design theme new` — wrap Nexis's palette generator so a new theme is
+- `nexis-design theme new`: wrap Nexis's palette generator so a new theme is
   one command and passes the floors by construction.
 - A Lumen-style theme exchange round-trip test.
 
@@ -63,4 +63,4 @@ about what is not done.
   without consuming this package is a week of drift to reconcile.
 - **Unpinned consumers** break on every breaking release (0.2 is one).
 - **The barrel export** means an app that imports one component still asks
-  its bundler to resolve every peer — install all of them.
+  its bundler to resolve every peer: install all of them.

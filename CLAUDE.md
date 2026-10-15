@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Read [AGENTS.md](AGENTS.md) — it is the single source of instructions for
+Read [AGENTS.md](AGENTS.md): it is the single source of instructions for
 this repo, both for building apps with @nexis/design and for working on the
 package itself.
 

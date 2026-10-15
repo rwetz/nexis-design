@@ -24,7 +24,7 @@ export function ChartsPage() {
   return (
     <Page
       title="Charts"
-      lede="Plain SVG from the theme tokens, so every chart re-tints with the theme and high contrast. The series that matters is the accent; a comparison is muted and dashed; gridlines are the hairline. Charts do not tween on live updates — a tweening line shows values that never existed."
+      lede="Plain SVG from the theme tokens, so every chart re-tints with the theme and high contrast. The series that matters is the accent; a comparison is muted and dashed; gridlines are the hairline. Charts do not tween on live updates: a tweening line shows values that never existed."
     >
       <Grid cols={4}>
         <Stat label="Requests / s" value={formatCompact(3852)} delta={3.4} trend={wave(20, 1)} caption="vs last week" />

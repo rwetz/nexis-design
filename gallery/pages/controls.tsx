@@ -43,7 +43,7 @@ export function ControlsPage() {
   return (
     <Page
       title="Controls"
-      lede="Buttons, toggles, levels and status marks. One accent: brand marks the one action a surface exists to perform, the active item and live progress — never decoration."
+      lede="Buttons, toggles, levels and status marks. One accent: brand marks the one action a surface exists to perform, the active item and live progress, never decoration."
     >
       <Demo title="Button" meta="variant × size">
         <Row label="Variants">
@@ -167,7 +167,7 @@ export function ControlsPage() {
         </Demo>
 
         <Demo title="Selection" meta="segmented · toggle group · slider">
-          <Row label="Segmented — the pill travels">
+          <Row label="Segmented: the pill travels">
             <Segmented
               label="Range"
               value={range}
@@ -204,7 +204,7 @@ export function ControlsPage() {
               <Icon name="pin" /> Pinned
             </Toggle>
           </Row>
-          <Row label={`Slider — ${vol[0]}%`}>
+          <Row label={`Slider: ${vol[0]}%`}>
             <Slider value={vol} onValueChange={setVol} max={100} step={1} className="w-72" />
           </Row>
           <Row label="Range slider">
@@ -215,7 +215,7 @@ export function ControlsPage() {
 
       <Grid cols={2}>
         <Demo title="Status" meta="badge · dot · kbd">
-          <Row label="Badge tones — theme ANSI, not stock Tailwind">
+          <Row label="Badge tones: theme ANSI, not stock Tailwind">
             <Badge variant="brand">live</Badge>
             <Badge variant="secondary">idle</Badge>
             <Badge variant="success">ok</Badge>

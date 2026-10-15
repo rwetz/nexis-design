@@ -3,6 +3,7 @@
 // AGENTS.md for the incident behind each.
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 const ROOT = resolve(__dirname, "..");
@@ -13,6 +14,18 @@ function walk(dir: string, exts = [".ts", ".tsx", ".css"]): [string, string][] {
     const p = join(dir, name);
     if (statSync(p).isDirectory()) out.push(...walk(p, exts));
     else if (exts.some((e) => name.endsWith(e)) && !name.includes(".test.")) out.push([relative(ROOT, p).split("\\").join("/"), readFileSync(p, "utf8")]); // posix paths, so allowlists match on Windows too
+  }
+  return out;
+}
+
+/** The repo's Markdown, minus what is installed, built or vendored. */
+function markdown(dir: string): [string, string][] {
+  const out: [string, string][] = [];
+  for (const name of readdirSync(dir)) {
+    if (["node_modules", ".git", "dist", ".claude"].includes(name)) continue;
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) out.push(...markdown(p));
+    else if (name.endsWith(".md")) out.push([relative(ROOT, p).split("\\").join("/"), readFileSync(p, "utf8")]);
   }
   return out;
 }
@@ -74,6 +87,39 @@ describe("design rules", () => {
     // text-body (13). Display sizes of 14px and up are deliberate one-offs.
     const RAW = /text-\[(?:\d|1[0-3])(?:\.\d+)?px\]/;
     expect(offenders(EVERYTHING, RAW)).toEqual([]);
+  });
+
+  it("no em dashes in text a person reads (strings, JSX text, docs)", () => {
+    // The family's copy rule (AGENTS.md rule 13). Comments are exempt, so
+    // code is parsed and only string literals, template text and JSX text
+    // are checked; Markdown is checked whole, code blocks included, since
+    // diagrams and trees in docs render as text too.
+    const EM = "—";
+    const hits: string[] = [];
+    for (const [rel, src] of EVERYTHING) {
+      if (!/\.tsx?$/.test(rel) || !src.includes(EM)) continue;
+      const kind = rel.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+      const sf = ts.createSourceFile(rel, src, ts.ScriptTarget.Latest, true, kind);
+      const visit = (node: ts.Node) => {
+        const isText =
+          node.kind === ts.SyntaxKind.JsxText ||
+          ts.isStringLiteralLike(node) ||
+          ts.isTemplateLiteralToken(node);
+        const text = isText ? node.getText(sf) : "";
+        if (text.includes(EM)) {
+          const line = sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1;
+          hits.push(`${rel}:${line}: ${text.trim().slice(0, 80)}`);
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(sf);
+    }
+    for (const [rel, src] of markdown(ROOT)) {
+      src.split("\n").forEach((line, i) => {
+        if (line.includes(EM)) hits.push(`${rel}:${i + 1}: ${line.trim().slice(0, 80)}`);
+      });
+    }
+    expect(hits, "use a colon, comma, parentheses, a period, a middle dot or an en dash (AGENTS.md rule 13)").toEqual([]);
   });
 
   it("indeterminate progress steps; nothing uses animate-spin", () => {

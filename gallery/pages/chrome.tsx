@@ -80,7 +80,7 @@ export function ChromePage() {
         </div>
       </Demo>
       <Grid cols={2}>
-        <Demo title="Title bar — Windows / Linux" meta="drawn controls on the right">
+        <Demo title="Title bar · Windows / Linux" meta="drawn controls on the right">
           <div className="overflow-hidden rounded-xl ring-1 ring-border">
             <TitleBar controls="preview" brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />} title="Atlas" />
           </div>
@@ -88,7 +88,7 @@ export function ChromePage() {
             Close hovers destructive; min and max hover neutral. The whole bar is a drag region except the controls in it.
           </p>
         </Demo>
-        <Demo title="Title bar — macOS" meta="native traffic lights, 80px inset">
+        <Demo title="Title bar: macOS" meta="native traffic lights, 80px inset">
           <div className="overflow-hidden rounded-xl ring-1 ring-border">
             <MacBar />
           </div>

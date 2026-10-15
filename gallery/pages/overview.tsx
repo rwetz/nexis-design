@@ -60,7 +60,7 @@ export function OverviewPage() {
           <h1 className="font-heading text-4xl font-medium tracking-tight">Nexis Design</h1>
           <p className="max-w-[70ch] text-sm text-muted-foreground">
             The design system for the Nexis family of Tauri desktop apps: OKLCH tokens, {themes.length} themes, a runtime theme engine,
-            the components, the motion vocabulary, borderless window chrome and the cursor set — the same layer Nexis itself is built on.
+            the components, the motion vocabulary, borderless window chrome and the cursor set: the same layer Nexis itself is built on.
           </p>
         </div>
         <div className="flex gap-2">

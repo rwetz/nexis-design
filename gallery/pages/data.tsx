@@ -83,7 +83,7 @@ export function DataPage() {
   return (
     <Page
       title="Data"
-      lede="Tables sort with a three-state cycle and keep blanks last in both directions. Numbers are right-aligned Geist Mono in tabular figures, so columns of digits line up. Selection is the accent's quiet tint plus a leading bar — never a block of strong colour."
+      lede="Tables sort with a three-state cycle and keep blanks last in both directions. Numbers are right-aligned Geist Mono in tabular figures, so columns of digits line up. Selection is the accent's quiet tint plus a leading bar, never a block of strong colour."
     >
       <Grid cols={3} className="lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Demo title="Data table" meta="click a header to sort, a row to select" flush>
@@ -98,7 +98,7 @@ export function DataPage() {
             className="max-h-[340px]"
           />
         </Demo>
-        <Demo title="Property list" meta={svc ? svc.name : "—"}>
+        <Demo title="Property list" meta={svc ? svc.name : "–"}>
           {svc && (
             <PropertyList
               items={[
@@ -174,7 +174,7 @@ export function DataPage() {
             ))}
           </ItemGroup>
         </Demo>
-        <Demo title="Avatars" meta="initials on neutral — no per-user confetti">
+        <Demo title="Avatars" meta="initials on neutral: no per-user confetti">
           <div className="flex items-center gap-3">
             <Avatar name="Ryan Wetzstein" size={40} presence="online" />
             <Avatar name="Grace Hopper" size={32} presence="busy" />

@@ -1,9 +1,9 @@
-# Nexis — Design Language
+# Nexis: Design Language
 
 > The design language of the **Nexis** family of Tauri desktop apps, as it
 > stands in Nexis 1.31 and in this package. Every value here is lifted from
-> the real code — `src/styles/globals.css`, `src/theme/`, `src/icon/icon.tsx`
-> — not invented. When this file and the code disagree, the code wins and this
+> the real code: `src/styles/globals.css`, `src/theme/`, `src/icon/icon.tsx`
+>, not invented. When this file and the code disagree, the code wins and this
 > file has a bug.
 >
 > **Scope:** Tauri v2 webview apps on React 19 + Tailwind v4. Native GPUI
@@ -51,7 +51,7 @@ replacing its *look*. The table is the clearest statement of what is a rule
 
 Tokens are declared in `oklch(L C H)` in `globals.css` (`:root` light, `.dark`
 dark) and every component reads them through Tailwind (`bg-card`,
-`text-muted-foreground`). **A component never contains a colour literal** —
+`text-muted-foreground`). **A component never contains a colour literal**:
 it is the one thing that cannot follow a theme change. `test/design-rules`
 fails on raw hex and on Tailwind's stock palette (`emerald-500` and friends)
 anywhere in `src/` or `templates/`.
@@ -60,7 +60,7 @@ anywhere in `src/` or `templates/`.
 |---|---|
 | Page | `background` / `foreground` |
 | Raised | `card`, `popover` (+ `-foreground`) |
-| Chrome | `sidebar` (+ 7 `sidebar-*`) — title bar, nav, status bar |
+| Chrome | `sidebar` (+ 7 `sidebar-*`): title bar, nav, status bar |
 | Emphasis | `primary` (neutral, high contrast), `secondary` |
 | Quiet | `muted` / `muted-foreground`, `accent` (hover/selected fill) |
 | Lines | `border`, `input`, `ring` (focus) |
@@ -74,11 +74,11 @@ the same over any surface.
 ### 2.2 One accent
 
 `--brand` is the only colour with an opinion. **It marks the one action a
-surface exists to perform, the selected item, focus and live progress —
+surface exists to perform, the selected item, focus and live progress,
 never decoration, never a link.** On the default theme it is coral; on every
 other theme `applyTheme` points it at the theme's `ring` (falling back to
-`primary`), so the whole accent system — the gliding rail, the aurora, the
-chart's main series, the selected row's bar — re-tints with the theme.
+`primary`), so the whole accent system: the gliding rail, the aurora, the
+chart's main series, the selected row's bar: re-tints with the theme.
 
 `primary` is *not* the accent in Nexis: on the default theme it is a
 near-black/near-white neutral, the high-contrast button for ordinary
@@ -91,33 +91,33 @@ and blue (`var(--terminal-ansi-*)`). Every Nexis theme generates those against
 its own backgrounds with contrast floors, so a status pill is legible on
 Aurelian's umber and Glacier's ice without anyone checking. Error is
 `--destructive`. Use `Badge variant="success"`, `StatusDot tone="warning"`,
-`text-success` — never `text-emerald-500`, which is the same green on every
+`text-success`, never `text-emerald-500`, which is the same green on every
 theme and was the commonest raw colour in Nexis before this rule.
 
 ### 2.4 Themes
 
 22 themes, each a light and a dark variant (`src/theme/themes/`):
 
-- **Nexis (17)** — Nexis Default, Halcyon, Meridian, Cinder, Aurelian,
+- **Nexis (17)**: Nexis Default, Halcyon, Meridian, Cinder, Aurelian,
   Thicket, Vermillion, then the loud half: Hotwire, Tangerine, Sulfur, Acid,
   Absinthe, Cyanotype, Glacier, Ultramarine, Ultraviolet, Synthwave. All but
   the default are **generated** from one shared OKLCH lightness ramp by
   Nexis's `scripts/generate-theme-palettes.py`, so the set holds one contrast
   profile across sixteen hues. The loud half turns *surface* chroma up, not
-  just the accent — a saturated background reads as a colour, not as grey.
-- **Community (5)** — Tokyo Night, Catppuccin, Nord, Gruvbox, Rosé Pine,
+  just the accent: a saturated background reads as a colour, not as grey.
+- **Community (5)**: Tokyo Night, Catppuccin, Nord, Gruvbox, Rosé Pine,
   credited and kept as their authors made them (held to WCAG AA only).
 
 `themes.contrast.test.ts` re-asserts the generator's floors against the
-committed files — foreground ≥ 11:1, muted text ≥ 4.5:1, the accent ≥ 4.5:1
-both ways, ANSI ≥ 4:1 — so a hand edit cannot quietly break a theme. **Fix the
+committed files, foreground ≥ 11:1, muted text ≥ 4.5:1, the accent ≥ 4.5:1
+both ways, ANSI ≥ 4:1, so a hand edit cannot quietly break a theme. **Fix the
 colour, not the floor.** Do not hand-edit a generated theme; regenerate it.
 
 ### 2.5 High contrast
 
 `ThemeProvider` sets `html[data-contrast="high"]` from the user's preference
 or the OS (`prefers-contrast: more`, `forced-colors: active`). The overrides
-are declared on **`body`**, not `:root` — themes write their palette as inline
+are declared on **`body`**, not `:root`, themes write their palette as inline
 properties on `<html>`, which no stylesheet rule on `:root` can beat; custom
 properties inherit, so `body` wins for everything including portals. It works
 on top of every theme: muted text, borders and focus close toward the
@@ -137,7 +137,7 @@ overpainted.
 
 Canvas, WebGL and xterm cannot read `var(--x)`. `styles/tokens.ts`
 (`readAppTokens`, `readTerminalTokens`, `resolveCssColor`) resolves tokens to
-`rgb()` through a probe element — and through a 1×1 canvas, because
+`rgb()` through a probe element, and through a 1×1 canvas, because
 Chromium/WebKit now keep `oklch()` in computed styles. Re-read on
 `useTheme().paletteEpoch`, not on the theme id: the id changes during the
 render that requests a theme, the variables land in an effect after it.
@@ -154,7 +154,7 @@ render that requests a theme, the variables land in an effect after it.
 
 Geist and Geist Mono are one designer's sans and mono, so chrome and code
 share a skeleton. Space Grotesk is the family's voice and is **illegible
-below ~13px** — never use it for body text, labels or menus.
+below ~13px**, never use it for body text, labels or menus.
 
 Sizes are dense, and below 14px they come from a four-step scale
 (`--text-*` in `globals.css`), never a raw `text-[Npx]`:
@@ -177,7 +177,7 @@ patch first, then Geist Mono, then JetBrains Mono for Cyrillic.
 ### 3.1 Icons
 
 One choke point: `<Icon name="…" />` (`src/icon/icon.tsx`). Call sites name an
-*idea* — `"refresh"`, `"git-branch"` — never a vendor export, so one idea is
+*idea* (`"refresh"`, `"git-branch"`) never a vendor export, so one idea is
 one glyph everywhere and swapping the vendor (Phosphor today) is a one-file
 change. It is the only module allowed to import `@phosphor-icons/react`
 (tripwired).
@@ -188,7 +188,7 @@ change. It is the only module allowed to import `@phosphor-icons/react`
 - **Weight is state:** regular rests, `active` swaps to fill.
   `FILL_CHANGES_SHAPE` lists glyphs whose fill is a different drawing (the
   globe) and keeps them regular.
-- **No emoji, anywhere** — UI, source, logs, commits. An emoji is drawn by
+- **No emoji, anywhere**: UI, source, logs, commits. An emoji is drawn by
   the OS font: wrong colour, wrong weight, different on every platform, tofu
   on a bare Linux. Typographic marks (`→ ↵ ⇧ · ✓`) are fine. Tripwired.
 
@@ -203,7 +203,7 @@ change. It is the only module allowed to import `@phosphor-icons/react`
 - **Depth:** surface steps (`background → card → popover`) plus a hairline
   ring (`ring-1 ring-foreground/6`, `/10` in dark). Shadows only on things
   that float; `backdrop-blur` only on things that float over content
-  (dropped entirely on Linux — WebKitGTK re-composites it every frame).
+  (dropped entirely on Linux: WebKitGTK re-composites it every frame).
 - **Rhythm:** title bar 40px, toolbar 48px, status bar 28px, panel header
   40px, rows 28–36px, the 4px Tailwind grid between.
 
@@ -214,7 +214,7 @@ change. It is the only module allowed to import `@phosphor-icons/react`
 Nexis's motion is derived from what it is: a terminal. Transitions are short
 and decisive; pending states *blink* at a caret's cadence instead of
 breathing; indeterminate progress *ticks* because a character cell cannot
-sweep. Nothing overshoots — nothing in a tool should bounce.
+sweep. Nothing overshoots: nothing in a tool should bounce.
 
 ### 5.1 The tokens (`:root` in `globals.css`)
 
@@ -226,25 +226,25 @@ sweep. Nothing overshoots — nothing in a tool should bounce.
 | `--dur-panel` | 140ms | popovers, tooltips, collapsibles |
 | `--dur-window` | 200ms | dialogs, sheets |
 | `--dur-scene` | 420ms | a data canvas or companion window arriving |
-| `--blink-cadence` | 1060ms | a VT100 caret — live indicators |
+| `--blink-cadence` | 1060ms | a VT100 caret: live indicators |
 | `--tick-cadence` × `--tick-steps` | 640ms × 4 | indeterminate progress |
 | `--live-cadence` | 1600ms | a long run's slow scan |
 
 `--default-transition-duration` / `-timing-function` point at `--dur-tap` /
 `--ease-enter` inside `@theme`, so **every bare `transition-*` utility
-inherits the house curve** — the hundreds of call sites that never named a
+inherits the house curve**: the hundreds of call sites that never named a
 duration included. Leaving is faster than arriving: `tw-animate-css`
 entrances run at `--dur-panel` on the enter curve, exits at `--dur-tap` on the
 exit curve.
 
 ### 5.2 The vocabulary
 
-- `.nexis-spin` (`<Spinner>`) — four quarter-turns, stepped. Never
+- `.nexis-spin` (`<Spinner>`): four quarter-turns, stepped. Never
   `animate-spin` (tripwired).
-- `.nexis-blink` (`<StatusDot live>`, `<Blink>`) — near-square wave at caret
-  cadence. Never `animate-pulse` for status (skeletons keep it — a
+- `.nexis-blink` (`<StatusDot live>`, `<Blink>`): near-square wave at caret
+  cadence. Never `animate-pulse` for status (skeletons keep it: a
   placeholder is a different idiom).
-- `<ThoughtLine>` — a stream still arriving. **Live only**; never from stored
+- `<ThoughtLine>`: a stream still arriving. **Live only**; never from stored
   state.
 - Moments (`components/motion.tsx`): `<SceneEnter>` (a scene arrives once),
   `<Stagger>` (setup cards, 70ms apart), `<ResultArrival>` (one accent flash
@@ -253,14 +253,14 @@ exit curve.
   `<ViewEnter>` (a page, workspace or tab body switched to: fade up, 260ms)
   and `<ContentEnter>` (content landing after a load: a plain fade, 220ms).
 - App shells (from Epoch): `.nexis-shell-header`, `.nexis-shell-body`,
-  `.nexis-shell-status` on the three regions of a full-window app — the
+  `.nexis-shell-status` on the three regions of a full-window app: the
   title bar drops, the body rises, the status bar fades in last. The same
   arrival as a tool window (`.nexis-window-*`), but with `backwards` fill so
   no transform lingers to trap fixed overlays.
-- Docking workspaces: `styles/dockview.css` — groups as rounded cards on a
+- Docking workspaces: `styles/dockview.css`, groups as rounded cards on a
   gap surface, tabs as pills, the accent only on the focused tab's icon.
 - The theme switch crossfades the whole window through the View Transitions
-  API — except on Linux, where WebKitGTK's snapshot kills the web process on
+  API: except on Linux, where WebKitGTK's snapshot kills the web process on
   NVIDIA (PITFALLS §3).
 
 ### 5.3 JS motion is the exception
@@ -268,8 +268,8 @@ exit curve.
 `motion` is for what CSS cannot do: a selection that **travels** and must
 retarget mid-flight. `useGlidingRail` + `RailIndicator` is the rule for every
 nav, tab strip and mode switch whose selection moves (`SidebarNav`,
-`Segmented`, `GlidingTabs`). The mark moves by `clip-path: inset(… round r)`
-— paint only, corners stay true — never by animating width. One spring
+`Segmented`, `GlidingTabs`). The mark moves by `clip-path: inset(… round r)`:
+paint only, corners stay true, never by animating width. One spring
 (`railSpring`: 520/40), collapsed to instant under reduced motion. Import
 `m`, never `motion.*`, under `<LazyMotion features={domAnimation} strict>`.
 
@@ -277,10 +277,10 @@ nav, tab strip and mode switch whose selection moves (`SidebarNav`,
 
 1. **Motion marks events.** Entrances animate; exits are faster; live data
    never animates (a tweening chart shows values that never existed). Use
-   `StatusItem live` for counters — tabular figures, no tween.
+   `StatusItem live` for counters: tabular figures, no tween.
 2. **Moments are moments.** The scene budget (420ms) is for a canvas or a
    window arriving, not a button or a menu.
-3. **Reduced motion turns it all off** — one shared rule for CSS, `useReducedMotion` for the rail.
+3. **Reduced motion turns it all off**: one shared rule for CSS, `useReducedMotion` for the rail.
 
 ---
 
@@ -299,15 +299,15 @@ on macOS.
 - **Linux only:** an undecorated GTK window has no resize borders, so
   `WindowResizeEdges` lays invisible strips on the edges with the custom
   resize cursors and hands the gesture to the compositor. Windows does not
-  need it — tao gives undecorated windows native hit-testing.
+  need it: tao gives undecorated windows native hit-testing.
 - **No flash:** the window is created hidden and shown after React's first
-  paint (`setTimeout`, not rAF — rAF does not fire in a hidden window);
+  paint (`setTimeout`, not rAF: rAF does not fire in a hidden window);
   `index.html` sets the mode class before the bundle loads.
 - The whole title bar is a `data-tauri-drag-region`.
 
 ### 6.1 Cursors
 
-The "Tailless Smooth" set — 29 PNGs in `assets/cursors/`, wired entirely in
+The "Tailless Smooth" set: 29 PNGs in `assets/cursors/`, wired entirely in
 CSS: the arrow on `html`, the pointer on every interactive role, the caret on
 text, and every Tailwind `.cursor-*` utility overridden so
 `cursor-col-resize` just works. `nexis-design-assets` copies them into
@@ -319,13 +319,13 @@ text, and every Tailwind `.cursor-*` utility overridden so
 
 The app reads as layered glass: `bg-card` / `bg-popover` with hairlines, and
 `backdrop-blur` where a surface floats over content (menus, the command
-palette, sticky table headers). Scrollbars are killed everywhere —
+palette, sticky table headers). Scrollbars are killed everywhere:
 Linux/Windows Chromium bars break the chrome and macOS flashes its overlay bar
-during layout — and come back per-region via `ScrollArea` or the 3px
+during layout, and come back per-region via `ScrollArea` or the 3px
 `.nexis-scrollbar`.
 
 **Nexis-only:** the `SurfaceLayer` (animated WebGL backgrounds behind every
-pane, image backgrounds with blur) lives in Nexis, not here — it pulls in
+pane, image backgrounds with blur) lives in Nexis, not here: it pulls in
 `ogl` and five shaders that most apps should not ship.
 
 ---
@@ -351,7 +351,7 @@ The catalogue is [COMPONENTS.md](COMPONENTS.md).
 
 - A **`Theme`** is data: `{ id, name, variants: { light?, dark? } }`, each
   variant `{ colors?, terminal? }`, plus an optional `editorTheme` per mode.
-- `applyTheme(theme, mode)` — the only writer — sets the variant's colours as
+- `applyTheme(theme, mode)`, the only writer, sets the variant's colours as
   inline custom properties on `<html>`, derives `--brand`, and writes the 16
   ANSI variables. `clearTheme()` removes them; the default theme *is* the
   absence of overrides (globals.css shows through), which is why its palette
@@ -385,7 +385,7 @@ The catalogue is [COMPONENTS.md](COMPONENTS.md).
 ```
 
 `.zoom-content` / `.zoom-exempt` give an app-wide Ctrl± zoom that a region
-can opt out of (editors must — PITFALLS §9).
+can opt out of (editors must: PITFALLS §9).
 
 ---
 
@@ -404,4 +404,4 @@ An app belongs to the family when it has:
 7. The cursor set.
 8. A `CommandPalette` with every action.
 9. Panels for regions, `CallChip` for long work, `StatusBar` for facts.
-10. The design-rules tests passing — or the same rules held in the app's own.
+10. The design-rules tests passing, or the same rules held in the app's own.

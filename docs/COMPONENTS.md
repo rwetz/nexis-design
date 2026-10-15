@@ -28,7 +28,7 @@ shared version yet.
 | `Meter` | new | a reading with thresholds (warn 75%, danger 90%); never tweens |
 | `Progress` | Nexis | work toward done |
 | `Spinner` | Nexis | stepped, four quarter-turns |
-| `ThoughtLine` | Nexis | a stream still arriving — live only |
+| `ThoughtLine` | Nexis | a stream still arriving: live only |
 | `CallChip` | Nexis | a long run the user started: elapsed + stop |
 
 ### Forms
@@ -118,8 +118,8 @@ shared version yet.
 ### Motion moments
 
 `SceneEnter`, `ViewEnter`, `ContentEnter`, `Stagger`, `ResultArrival`, `RunLive`,
-`AuroraBorder`, `Blink`
-— thin wrappers over the CSS classes, with `replayKey` to play again. See
+`AuroraBorder`, `Blink`:
+thin wrappers over the CSS classes, with `replayKey` to play again. See
 [DESIGN_LANGUAGE.md §5](DESIGN_LANGUAGE.md#5-motion).
 
 ### Lib
@@ -133,7 +133,7 @@ arithmetic) · `readAppTokens`, `readTerminalTokens`, `resolveCssColor`.
 ## Behaviour every interactive component carries
 
 - Reachable and operable by keyboard; focus always visible (`ring-ring/30`).
-- A role and an accessible name — icon-only buttons label the *button*, the
+- A role and an accessible name: icon-only buttons label the *button*, the
   glyph is `aria-hidden`.
 - State in `data-*` / `aria-*` attributes (`data-state`, `aria-selected`,
   `aria-current`, `aria-sort`), so styles and tests key off the same thing.
@@ -146,7 +146,7 @@ arithmetic) · `readAppTokens`, `readTerminalTokens`, `resolveCssColor`.
 - No virtualised **table** (the `DataTable` renders every row; page it, or
   use `VirtualList` with your own row layout past ~2,000 rows).
 - No multi-select in `DataTable` or `Tree` yet.
-- No combobox (typeahead select) — `Command` inside a `Popover` is the
+- No combobox (typeahead select): `Command` inside a `Popover` is the
   pattern until there is one.
 - Charts have no legend component and no time axis formatting beyond labels.
 - `Calendar` picks a date, not a range.
@@ -154,7 +154,7 @@ arithmetic) · `readAppTokens`, `readTerminalTokens`, `resolveCssColor`.
 ## Rules for writing a component
 
 1. **Check Nexis first.** If Nexis has it in `components/ui`, port it here
-   unchanged except for imports — the package and Nexis must not drift. If
+   unchanged except for imports: the package and Nexis must not drift. If
    you improve it, the improvement goes to Nexis too.
 2. Tokens only. If a colour you need has no token, the answer is a token in
    `globals.css` that follows the theme (see how `success` maps to ANSI

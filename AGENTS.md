@@ -1,8 +1,8 @@
-# AGENTS.md — building with Nexis Design
+# AGENTS.md: building with Nexis Design
 
 Instructions for coding agents (and people) using **@nexis/design** to build
 Tauri desktop apps, and for working on the package itself. Read the section
-you need; the API cheat sheet is exact (it is compiled — `test/cheatsheet.tsx`),
+you need; the API cheat sheet is exact (it is compiled: `test/cheatsheet.tsx`),
 so copy from it rather than guessing prop names.
 
 - **Nexis Design** = the design system of the Nexis app family: tokens, 22
@@ -49,30 +49,30 @@ the sidebar (or `#/app/<template>`).
 
 Combine templates; every piece below is in the package.
 
-- **Chat / messaging** — `workbench` shell: `SidebarNav` of channels (unread
+- **Chat / messaging**: `workbench` shell: `SidebarNav` of channels (unread
   counts as `meta`) → a `VirtualList` of messages (`Avatar` + name + body) →
   a `Textarea` composer pinned at the bottom; `AuroraBorder` round it while a
   reply streams, `ThoughtLine` in the header. No animation per message.
-- **File manager** — `explorer`'s toolbar + `Breadcrumb` path + a resizable
+- **File manager**: `explorer`'s toolbar + `Breadcrumb` path + a resizable
   split with a `Tree` of folders and a `DataTable` of entries; `ContextMenu`
   on rows; `AlertDialog` for delete; `toast(…, { action: Undo })`.
-- **Media / gallery** — a wrapping grid of cards, `Segmented` for density,
+- **Media / gallery**: a wrapping grid of cards, `Segmented` for density,
   `Sheet` + `PropertyList` for metadata, `SceneEnter` as each loads.
-- **Music / media player** — `SidebarNav` library, `DataTable` tracklist, a
+- **Music / media player**: `SidebarNav` library, `DataTable` tracklist, a
   bottom bar with icon `Button`s (`play`/`pause`/`stop`), `Slider` for
   position and volume, `Meter` as a level meter (it never tweens).
-- **API client** — `workbench`: `Tree` of requests, tabs of open requests, a
+- **API client**: `workbench`: `Tree` of requests, tabs of open requests, a
   `Select` for the method + `Input` for the URL in a `Toolbar`, `GlidingTabs`
   for Headers/Body/Auth, `PropertyList` for response headers, `Stat` for
   timing.
-- **System monitor** — `dashboard` with a `Meter` per core, `LineChart` per
+- **System monitor**: `dashboard` with a `Meter` per core, `LineChart` per
   resource, a process `DataTable` (`density="compact"`), `Heatmap` of load by
   hour.
-- **AI assistant panel** — `CommandPalette` + a `Sheet` or split pane;
+- **AI assistant panel**: `CommandPalette` + a `Sheet` or split pane;
   `AuroraBorder` on the composer while streaming, `ThoughtLine` for
   reasoning, `CallChip` for a long agent run, `ResultArrival` when a result
   lands.
-- **Kanban / tracker** — `explorer` data + columns of `Panel`s with `Item`
+- **Kanban / tracker**: `explorer` data + columns of `Panel`s with `Item`
   cards; `Badge` tones for status; `Sheet` for details.
 
 ---
@@ -83,11 +83,11 @@ Combine templates; every piece below is in the package.
    strict` → `ThemeProvider storageKey="<app>"` → `TooltipProvider`, plus
    `<Toaster />`. Import `@nexis/design/styles/globals.css` (or
    `globals.ide.css` with a terminal/editor) once.
-2. **Colours only from tokens** — `bg-card`, `text-muted-foreground`,
+2. **Colours only from tokens**: `bg-card`, `text-muted-foreground`,
    `border-border`, `bg-brand`, `text-success`. Never a hex, never Tailwind's
    stock palette (`emerald-500`): they ignore all 22 themes. Tripwired.
 3. **One accent.** `brand` (`Button variant="brand"`, `Badge variant="brand"`)
-   marks *the* primary action, the selected item, focus and live progress —
+   marks *the* primary action, the selected item, focus and live progress,
    never decoration, never a link. `primary` is a neutral, not the accent.
 4. **State colours are tones:** `success` / `warning` / `info` /
    `destructive` (`Badge`, `StatusDot`, `text-success`). They are the theme's
@@ -98,7 +98,7 @@ Combine templates; every piece below is in the package.
    **No emoji, anywhere.** Both tripwired.
 6. **Type:** Geist by default; `font-mono` for code, ids and numbers in
    tables (with `tabular-nums`); `font-heading` (Space Grotesk) only for
-   titles, empty states and big numbers — never below ~13px.
+   titles, empty states and big numbers, never below ~13px.
    Sizes below 14px come from the scale: `text-micro` (10px, badges, key
    chips), `text-caption` (11px, metadata, status bar), `text-ui` (12px,
    rows, lists, menus) and `text-body` (13px, prose). Never `text-[11px]`;
@@ -119,8 +119,13 @@ Combine templates; every piece below is in the package.
     the title bar, `nexis-shell-body` on the body, `nexis-shell-status` on
     the status bar; a switched-to page is a `ViewEnter`.
 12. **Docking layouts use dockview** with `@nexis/design/styles/dockview.css`
-    (`dockview-theme-nexis`, `.nexis-dock`, `.nexis-dock-tab`) — never a
+    (`dockview-theme-nexis`, `.nexis-dock`, `.nexis-dock-tab`), never a
     hand-themed one.
+13. **No em dashes in anything a person reads**: UI strings, JSX text, docs,
+    the wiki, the website, the changelog. Use a colon to introduce, a comma
+    for an aside, parentheses for a list, a period between two sentences,
+    `·` between parts of a title ("Epoch · Nexis") and `–` for "no value" in
+    a cell. Code comments are exempt. Tripwired.
 
 ---
 
@@ -279,10 +284,10 @@ pnpm tauri dev           # look at it: every screen, dark and light, one other t
 
 **Headless (CI, a cloud container):** the frontend runs in any browser.
 `pnpm dev` and drive it with Playwright (Chromium is enough; Tauri APIs are
-gated off) — `scripts/shot.mjs <url> <out.png>` in this repo is a one-file
+gated off): `scripts/shot.mjs <url> <out.png>` in this repo is a one-file
 example. Look at the screenshot: overflow, a missing class, a wrong colour
 are only visible that way. The native chrome (traffic lights, real min/max,
-resize) can only be checked in `tauri dev` on each OS — say so if you could
+resize) can only be checked in `tauri dev` on each OS: say so if you could
 not.
 
 ---
@@ -298,15 +303,15 @@ pnpm screenshots         # regenerate docs/img (all, or `pnpm screenshots app-` 
 
 - **Nexis is the source.** The theme files, `applyTheme`, `globals.css`,
   `icon.tsx` and most of `components/ui` are ports of Nexis's own. Change them
-  in Nexis first (or in both, in the same breath), not here alone — drift
+  in Nexis first (or in both, in the same breath), not here alone: drift
   between the two is the failure this package exists to end. New components
   that Nexis lacks are fine to add here first.
-- `pnpm test` — theme contrast floors for all 22 themes × 2 modes, the design
+- `pnpm test`: theme contrast floors for all 22 themes × 2 modes, the design
   rules (icon vendor, emoji, raw colours, stock palette, `animate-spin`,
   `motion.*`, every component exported), the logic of every component, every
   template mounting, the cheat sheet mounting, 0.1 compatibility.
-- A new component: [docs/COMPONENTS.md](docs/COMPONENTS.md#rules-for-writing-a-component)
-  — exported from `src/index.ts`, shown in the gallery, logic tested, added
+- A new component: [docs/COMPONENTS.md](docs/COMPONENTS.md#rules-for-writing-a-component):
+  exported from `src/index.ts`, shown in the gallery, logic tested, added
   to the cheat sheet if it is common, screenshots regenerated.
 - A new theme: generate it with Nexis's `scripts/generate-theme-palettes.py`
   and copy the file in; it must pass `themes.contrast.test.ts`. Add its folder

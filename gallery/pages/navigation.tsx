@@ -44,7 +44,7 @@ export function NavigationPage() {
   return (
     <Page
       title="Navigation"
-      lede="Every nav whose selection moves uses one rail that travels between items — useGlidingRail with RailIndicator, which glides by clip-path so nothing relayouts mid-flight. One spring, no overshoot, instant under reduced motion."
+      lede="Every nav whose selection moves uses one rail that travels between items: useGlidingRail with RailIndicator, which glides by clip-path so nothing relayouts mid-flight. One spring, no overshoot, instant under reduced motion."
     >
       <Grid cols={2}>
         <Demo title="Sidebar" meta="sections · counts · collapse" flush bodyClassName="flex-row gap-0">
@@ -106,7 +106,7 @@ export function NavigationPage() {
                 Build output.
               </TabsContent>
             </Tabs>
-            <Row label="GlidingTabs — sub-tabs inside a panel">
+            <Row label="GlidingTabs: sub-tabs inside a panel">
               <GlidingTabs
                 label="Request"
                 value={sub}

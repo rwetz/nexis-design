@@ -27,7 +27,7 @@ export function FeedbackPage() {
   return (
     <Page
       title="Feedback"
-      lede="How the app talks back. A long-running thing the user started gets a CallChip — how long, and how to stop it — not another spinner. A stream that is still arriving gets a ThoughtLine. Toasts are sonner, themed."
+      lede="How the app talks back. A long-running thing the user started gets a CallChip, how long, and how to stop it, not another spinner. A stream that is still arriving gets a ThoughtLine. Toasts are sonner, themed."
     >
       <Grid cols={2}>
         <Demo title="Alerts" meta="inline, in the flow">

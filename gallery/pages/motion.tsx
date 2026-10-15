@@ -38,7 +38,7 @@ export function MotionPage() {
   return (
     <Page
       title="Motion"
-      lede="Derived from what Nexis is — a terminal. Transitions are short and decisive; pending states blink at a caret's cadence instead of breathing; indeterminate progress ticks in steps because a character cell cannot sweep. Effects are moments that carry information — a scene arriving, a result landing, a run that is alive — never decoration. All of it switches off under reduced motion."
+      lede="Derived from what Nexis is: a terminal. Transitions are short and decisive; pending states blink at a caret's cadence instead of breathing; indeterminate progress ticks in steps because a character cell cannot sweep. Effects are moments that carry information, a scene arriving, a result landing, a run that is alive, never decoration. All of it switches off under reduced motion."
     >
       <Grid cols={3}>
         <Demo title="Curves" meta="asymmetric · no overshoot" bodyClassName="flex-row justify-around">

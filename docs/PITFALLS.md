@@ -1,4 +1,4 @@
-# Pitfalls — field notes from real scaffolds and from building this package
+# Pitfalls: field notes from real scaffolds and from building this package
 
 > Every entry here bit for real while standing up an app in this family
 > (first recorded casualty: `nexis-dev-dashboard`, since merged into
@@ -13,13 +13,13 @@
 ## 1. Linux borderless chrome needs its own platform override (Step 7)
 
 If an app ships only `tauri.windows.conf.json`, on Linux the main window
-therefore keeps `decorations: true` and is opaque — while `platform.ts` still
+therefore keeps `decorations: true` and is opaque, while `platform.ts` still
 reports `USE_CUSTOM_WINDOW_CONTROLS = true`, so you get **double chrome**
 (native titlebar + our controls) and no rounded corners.
 
 **Fix:** also create `src-tauri/tauri.linux.conf.json`, mirroring the Windows
 override (`label: "main"`, `decorations: false`, `transparent: true`,
-`shadow: false`, `visible: false`) **plus the window size/min-size fields** —
+`shadow: false`, `visible: false`) **plus the window size/min-size fields**:
 the platform config's `windows` array *replaces* the base one wholesale, it is
 not deep-merged per-field.
 
@@ -32,7 +32,7 @@ dies at first paint with:
 Gdk-Message: Error 71 (Protocol error) dispatching to Wayland display.
 ```
 
-The tempting workarounds all fail in different ways — **verified empirically,
+The tempting workarounds all fail in different ways: **verified empirically,
 do not re-litigate**:
 
 | Attempt | Result |
@@ -71,22 +71,22 @@ dashboard-class UI; profile before shipping anything animation-heavy, and
 leave the `MYAPP_KEEP_HW_ACCEL` escape hatch so users can re-test as
 webkit/NVIDIA fix things.
 
-## 3. View Transitions crossfade wedges/crashes WebKitGTK — ✅ handled in the package
+## 3. View Transitions crossfade wedges/crashes WebKitGTK: ✅ handled in the package
 
 `ThemeProvider.withViewTransition` uses `document.startViewTransition` for the
 theme crossfade. WebKitGTK 2.52 **exposes the API but cannot survive it** on a
 full-window repaint: the web process crashes (user-visible: "app crashes when
 I change theme") or wedges into a blank white webview.
 
-**Fix:** gate the crossfade off on Linux — hard cut instead. The package's
+**Fix:** gate the crossfade off on Linux, hard cut instead. The package's
 `withViewTransition` (`src/theme/ThemeProvider.tsx`) includes `IS_LINUX` in its
 early-out condition. macOS/Windows WebViews
 keep the crossfade. Re-test on webkit2gtk upgrades.
 
-## 4. Borderless windows have no edge resize cursors — ✅ handled in the package
+## 4. Borderless windows have no edge resize cursors: ✅ handled in the package
 
 With `decorations: false` the webview owns every pixel, so hovering a window
-edge shows the default arrow — resize affordance is invisible (KWin still
+edge shows the default arrow: resize affordance is invisible (KWin still
 resizes, users just can't discover it).
 
 **Fix:** render an invisible resize-handle overlay: 8 absolutely-positioned
@@ -96,7 +96,7 @@ utility (the custom cursor set already covers them) and
 `onMouseDown → getCurrentWindow().startResizeDragging(direction)`.
 Requires the `core:window:allow-start-resize-dragging` permission. Hide the
 overlay while maximized. This is the package's `<WindowResizeEdges />`
-(`src/components/WindowResizeEdges.tsx`; `ResizeHandles` is the 0.1 alias) —
+(`src/components/WindowResizeEdges.tsx`; `ResizeHandles` is the 0.1 alias):
 mount it; don't rewrite it.
 
 It is **Linux-only**, and that matters: Windows gives an undecorated window
@@ -134,20 +134,20 @@ allowBuilds:
 ## 7. `tauri.conf.json` references you must prune (Step 7/8)
 
 Nexis's `bundle.windows.nsis` block references
-`"installerHooks": "./installer-hooks.nsh"` — a Nexis-only file. If you copy
+`"installerHooks": "./installer-hooks.nsh"`, a Nexis-only file. If you copy
 that block, Windows builds fail until you delete the line (and point
 `headerImage` at your own image, or drop it). Also remember `tauri icon` must run before the first
 `cargo check`: `generate_context!` fails if the icon files listed in
-`bundle.icon` don't exist yet (as does a missing `../dist` — `mkdir dist`).
+`bundle.icon` don't exist yet (as does a missing `../dist`: `mkdir dist`).
 
-## 8. Tailwind does not see the package's classes — ✅ handled in the package
+## 8. Tailwind does not see the package's classes: ✅ handled in the package
 
 Tailwind v4 scans your project, not `node_modules`. In 0.1 every app had to
 add `@source "../../node_modules/@nexis/design/src"` or every package
-component rendered unstyled — and the path depended on where the app's
+component rendered unstyled, and the path depended on where the app's
 stylesheet sat.
 
-**Fix:** `globals.css` carries `@source "../";` — relative to *itself* — so
+**Fix:** `globals.css` carries `@source "../";`, relative to *itself*, so
 importing it is enough wherever it is imported from. Tripwired in
 `test/design-rules.test.ts`. Corollary for this repo: the gallery's own
 stylesheet adds `@source "../templates"`, because Vite's root is `gallery/`
@@ -165,7 +165,7 @@ instead. (Nexis AGENTS.md pitfall 15.)
 ## 10. `link:` to a local checkout typechecks against two Reacts
 
 `pnpm add link:../nexis-design` symlinks the package, which brings its own
-`node_modules` — so the app sees two `@types/react` and `tsc` fails with
+`node_modules`, so the app sees two `@types/react` and `tsc` fails with
 "Two different types with this name exist, but they are unrelated."
 
 **Fix:** use `file:` for a local checkout (`NEXIS_PATH=… scripts/new-app.sh`
@@ -175,7 +175,7 @@ git are unaffected.
 ## 11. `color-mix(in oklch, …)` toward a grey swings the hue
 
 Mixing coral (hue 35) into a cool grey (hue ~220) in OKLCH interpolates the
-*hue* along the shorter arc — straight through purple. The first heatmap
+*hue* along the shorter arc: straight through purple. The first heatmap
 rendered magenta cells on the default theme.
 
 **Fix:** mix toward greys and other low-chroma colours in **`oklab`**; use

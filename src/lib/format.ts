@@ -6,7 +6,7 @@
 
 /** 1536 → "1.5 KB". Binary units, because that is what file sizes are. */
 export function formatBytes(bytes: number, digits = 1): string {
-  if (!Number.isFinite(bytes)) return "—";
+  if (!Number.isFinite(bytes)) return "–";
   const units = ["B", "KB", "MB", "GB", "TB"];
   let v = Math.abs(bytes);
   let u = 0;
@@ -20,7 +20,7 @@ export function formatBytes(bytes: number, digits = 1): string {
 
 /** 18234 → "18.2K", 4_100_000 → "4.1M". For stat tiles, not for tables. */
 export function formatCompact(n: number, digits = 1): string {
-  if (!Number.isFinite(n)) return "—";
+  if (!Number.isFinite(n)) return "–";
   const abs = Math.abs(n);
   const [div, suffix] =
     abs >= 1e9 ? [1e9, "B"] : abs >= 1e6 ? [1e6, "M"] : abs >= 1e3 ? [1e3, "K"] : [1, ""];

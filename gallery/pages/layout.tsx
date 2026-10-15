@@ -53,7 +53,7 @@ export function LayoutPage() {
               </ResizablePanel>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize="35%">
-                <div className="h-full p-3 font-mono text-caption text-muted-foreground">$ pnpm test — 41 passed</div>
+                <div className="h-full p-3 font-mono text-caption text-muted-foreground">$ pnpm test: 41 passed</div>
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>
@@ -79,7 +79,7 @@ export function LayoutPage() {
         <Card>
           <CardHeader>
             <CardTitle>Card</CardTitle>
-            <CardDescription>For content that is a unit — a plan, a preset, a result.</CardDescription>
+            <CardDescription>For content that is a unit: a plan, a preset, a result.</CardDescription>
             <CardAction>
               <Button variant="ghost" size="icon-sm" aria-label="More">
                 <Icon name="more" />
