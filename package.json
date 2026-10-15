@@ -33,6 +33,7 @@
     "./styles/globals.ide.css": "./src/styles/globals.ide.css",
     "./styles/fonts.css": "./src/styles/fonts.css",
     "./styles/code-highlight.css": "./src/styles/code-highlight.css",
+    "./styles/dockview.css": "./src/styles/dockview.css",
     "./assets/*": "./assets/*",
     "./package.json": "./package.json"
   },

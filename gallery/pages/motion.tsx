@@ -4,6 +4,7 @@ import {
   Blink,
   Button,
   Icon,
+  ContentEnter,
   ResultArrival,
   RunLive,
   SceneEnter,
@@ -14,6 +15,7 @@ import {
   useTheme,
   DEFAULT_THEME_ID,
   Textarea,
+  ViewEnter,
 } from "@nexis/design";
 import { Demo, Grid, Page } from "../kit";
 
@@ -97,6 +99,18 @@ export function MotionPage() {
                 </div>
               ))}
             </Stagger>
+          </div>
+          <div className="flex flex-col gap-2">
+            <span className="text-[11px] tracking-wide text-muted-foreground uppercase">View enter · 260ms</span>
+            <ViewEnter replayKey={n} className="grid h-36 place-items-center rounded-2xl bg-muted/60 text-sm text-muted-foreground">
+              A page or workspace switched to
+            </ViewEnter>
+          </div>
+          <div className="flex flex-col gap-2">
+            <span className="text-[11px] tracking-wide text-muted-foreground uppercase">Content enter · 220ms fade</span>
+            <ContentEnter replayKey={n} className="grid h-36 place-items-center rounded-2xl bg-muted/60 text-sm text-muted-foreground">
+              Data landing after a load
+            </ContentEnter>
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-[11px] tracking-wide text-muted-foreground uppercase">Result arrival · one accent flash</span>

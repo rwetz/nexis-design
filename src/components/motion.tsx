@@ -29,6 +29,16 @@ export function SceneEnter({ replayKey, className, ...props }: MomentProps) {
   return <div key={replayKey} className={cn("nexis-scene-enter", className)} {...props} />;
 }
 
+/** A view switched to (a page, a workspace, a tab's body): fade up, 260ms. */
+export function ViewEnter({ replayKey, className, ...props }: MomentProps) {
+  return <div key={replayKey} className={cn("nexis-view-enter", className)} {...props} />;
+}
+
+/** Content landing after a load (data, a run, a file): a plain fade, 220ms. */
+export function ContentEnter({ replayKey, className, ...props }: MomentProps) {
+  return <div key={replayKey} className={cn("nexis-content-enter", className)} {...props} />;
+}
+
 /** Children enter one after another, 70ms apart. For setup cards, not lists. */
 export function Stagger({ replayKey, className, ...props }: MomentProps) {
   return <div key={replayKey} className={cn("nexis-stagger", className)} {...props} />;
