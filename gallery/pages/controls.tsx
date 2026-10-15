@@ -127,7 +127,7 @@ export function ControlsPage() {
                 ["mac", "aarch64-apple-darwin"],
                 ["linux", "x86_64-unknown-linux-gnu"],
               ] as const).map(([k, l]) => (
-                <label key={k} className="flex items-center gap-2 pl-6 font-mono text-[12px]">
+                <label key={k} className="flex items-center gap-2 pl-6 font-mono text-ui">
                   <Checkbox checked={targets[k]} onCheckedChange={(v) => setTargets({ ...targets, [k]: !!v })} />
                   {l}
                 </label>

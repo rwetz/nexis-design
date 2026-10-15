@@ -156,9 +156,20 @@ Geist and Geist Mono are one designer's sans and mono, so chrome and code
 share a skeleton. Space Grotesk is the family's voice and is **illegible
 below ~13px** — never use it for body text, labels or menus.
 
-Sizes are dense: 13px for trees, tables and navs; 14px for body and inputs;
-12px for meta; 11px for the status bar and section labels (uppercase,
-tracked). Numbers that change or align use `tabular-nums`.
+Sizes are dense, and below 14px they come from a four-step scale
+(`--text-*` in `globals.css`), never a raw `text-[Npx]`:
+
+| Step | Size | Where |
+|---|---|---|
+| `text-micro` | 10px | badges, counters, key chips, overlines |
+| `text-caption` | 11px | metadata, the status bar, section labels (uppercase, tracked) |
+| `text-ui` | 12px | panel rows, lists, menus |
+| `text-body` | 13px | navs, trees, prose the user reads |
+
+From 14px up (body copy, inputs, titles) use Tailwind's `text-sm`/`lg`/`xl`.
+The steps set no line-height, so a row keeps its own; `cn()` knows the
+names, so tailwind-merge never mistakes one for a colour. Numbers that change
+or align use `tabular-nums`. Tripwired in `test/design-rules.test.ts`.
 
 The terminal resolves its own chain (`lib/fonts.ts`): an installed Nerd Font
 patch first, then Geist Mono, then JetBrains Mono for Cyrillic.

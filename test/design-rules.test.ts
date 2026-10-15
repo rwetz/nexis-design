@@ -12,7 +12,7 @@ function walk(dir: string, exts = [".ts", ".tsx", ".css"]): [string, string][] {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
     if (statSync(p).isDirectory()) out.push(...walk(p, exts));
-    else if (exts.some((e) => name.endsWith(e)) && !name.includes(".test.")) out.push([relative(ROOT, p), readFileSync(p, "utf8")]);
+    else if (exts.some((e) => name.endsWith(e)) && !name.includes(".test.")) out.push([relative(ROOT, p).split("\\").join("/"), readFileSync(p, "utf8")]); // posix paths, so allowlists match on Windows too
   }
   return out;
 }
@@ -65,6 +65,15 @@ describe("design rules", () => {
       (_rel, line) => /^\s*(\/\/|\*)/.test(line) || /url\(#|href="#|`#\$|"#\/|'#\//.test(line) || /gradient\(.*#000/.test(line),
     );
     expect(hits).toEqual([]);
+  });
+
+  it("text below 14px uses a type-scale step, not raw pixels (Nexis pitfall 18)", () => {
+    // Nexis drifted to ~1,450 hand-picked `text-[Npx]` sizes across eleven
+    // values from 8px to 13px, half-pixels included, so adjacent rows never
+    // matched. Use text-micro (10) / text-caption (11) / text-ui (12) /
+    // text-body (13). Display sizes of 14px and up are deliberate one-offs.
+    const RAW = /text-\[(?:\d|1[0-3])(?:\.\d+)?px\]/;
+    expect(offenders(EVERYTHING, RAW)).toEqual([]);
   });
 
   it("indeterminate progress steps; nothing uses animate-spin", () => {

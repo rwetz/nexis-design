@@ -62,7 +62,7 @@ export function Panel({
         >
           {icon && <Icon name={icon} className="text-muted-foreground" />}
           {title !== undefined && (
-            <h3 className="truncate font-heading text-[13px] font-medium tracking-tight">{title}</h3>
+            <h3 className="truncate font-heading text-body font-medium tracking-tight">{title}</h3>
           )}
           {meta !== undefined && (
             <span className="truncate text-xs text-muted-foreground">{meta}</span>
@@ -93,7 +93,7 @@ export function SectionLabel({
   return (
     <div
       data-slot="section-label"
-      className={cn("flex items-center gap-3 py-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase", className)}
+      className={cn("flex items-center gap-3 py-1 text-caption font-medium tracking-wide text-muted-foreground uppercase", className)}
       {...props}
     >
       {children}

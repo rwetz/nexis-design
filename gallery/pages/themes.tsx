@@ -61,8 +61,8 @@ function Swatch({ theme, mode, active, onPick }: { theme: Theme; mode: "light" |
         </div>
         <div className="flex flex-1 flex-col gap-2 p-2.5">
           <div className="flex items-center gap-1.5">
-            <span className="rounded-full bg-brand px-2 py-0.5 text-[9px] font-medium text-brand-foreground">Run</span>
-            <span className="rounded-full bg-secondary px-2 py-0.5 text-[9px] text-secondary-foreground">Step</span>
+            <span className="rounded-full bg-brand px-2 py-0.5 text-micro font-medium text-brand-foreground">Run</span>
+            <span className="rounded-full bg-secondary px-2 py-0.5 text-micro text-secondary-foreground">Step</span>
             <span className="ml-auto size-1.5 rounded-full bg-success" />
             <span className="size-1.5 rounded-full bg-warning" />
             <span className="size-1.5 rounded-full bg-destructive" />
@@ -81,9 +81,9 @@ function Swatch({ theme, mode, active, onPick }: { theme: Theme; mode: "light" |
         ))}
       </div>
       <div className="flex items-center gap-2 border-t border-border px-3 py-2">
-        <span className="truncate text-[13px] font-medium">{theme.name}</span>
+        <span className="truncate text-body font-medium">{theme.name}</span>
         {active && <Icon name="check" size="xs" className="text-brand" />}
-        <span className="ml-auto truncate text-[10px] text-muted-foreground">{theme.author ?? (mode === "dark" ? "Dark" : "Light")}</span>
+        <span className="ml-auto truncate text-micro text-muted-foreground">{theme.author ?? (mode === "dark" ? "Dark" : "Light")}</span>
       </div>
     </button>
   );

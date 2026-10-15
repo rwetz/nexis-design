@@ -18,7 +18,7 @@ function MacBar() {
         <span className="size-3 rounded-full bg-[#28c840]" />
       </span>
       <img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />
-      <span className="text-[13px] font-medium">Atlas</span>
+      <span className="text-body font-medium">Atlas</span>
       <span className="flex-1" />
       <Button size="icon-xs" variant="ghost" aria-label="Search">
         <Icon name="search" />

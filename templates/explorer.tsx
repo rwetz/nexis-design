@@ -230,7 +230,7 @@ export default function App() {
 }
 
 const COLUMNS: Column<Issue, K>[] = [
-  { key: "id", header: "ID", sortable: true, width: 90, cell: (r) => <span className="font-mono text-[12px] text-muted-foreground">{r.id}</span> },
+  { key: "id", header: "ID", sortable: true, width: 90, cell: (r) => <span className="font-mono text-ui text-muted-foreground">{r.id}</span> },
   { key: "title", header: "Title", sortable: true, cell: (r) => <span className="block max-w-[46ch] truncate">{r.title}</span> },
   { key: "status", header: "Status", sortable: true, cell: (r) => <Badge variant={STATUS_TONE[r.status]}>{r.status}</Badge> },
   {

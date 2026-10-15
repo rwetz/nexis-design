@@ -62,7 +62,7 @@ export function FoundationsPage() {
             {SURFACES.map(([name, cls]) => (
               <div key={name} className="flex flex-col gap-1.5">
                 <span className={cn("h-14 rounded-xl ring-1 ring-border", cls)} />
-                <span className="font-mono text-[11px] text-muted-foreground">--{name}</span>
+                <span className="font-mono text-caption text-muted-foreground">--{name}</span>
               </div>
             ))}
           </div>
@@ -73,8 +73,8 @@ export function FoundationsPage() {
               <div key={name} className="flex items-center gap-3">
                 <span className={cn("size-10 shrink-0 rounded-xl", cls)} />
                 <span className="flex flex-col">
-                  <span className="font-mono text-[11px]">--{name}</span>
-                  <span className="text-[11px] text-muted-foreground">{note}</span>
+                  <span className="font-mono text-caption">--{name}</span>
+                  <span className="text-caption text-muted-foreground">{note}</span>
                 </span>
               </div>
             ))}
@@ -95,20 +95,20 @@ export function FoundationsPage() {
       <Demo title="Type" meta="Geist · Geist Mono · Space Grotesk">
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] tracking-wide text-muted-foreground uppercase">Display — font-heading</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">Display — font-heading</span>
             <span className="font-heading text-4xl font-medium tracking-tight">Nexis 1.31</span>
             <span className="font-heading text-xl font-medium">Panel titles, dialogs, empty states</span>
             <span className="text-xs text-muted-foreground">Space Grotesk. Only where the app speaks in its own voice; illegible below ~13px.</span>
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] tracking-wide text-muted-foreground uppercase">Interface — font-sans</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">Interface — font-sans</span>
             <span className="text-base">The quick brown fox jumps over the lazy dog.</span>
             <span className="text-sm">Body 14 · labels, menus, inputs</span>
-            <span className="text-[13px]">Dense 13 · trees, tables, sidebars</span>
+            <span className="text-body">Dense 13 · trees, tables, sidebars</span>
             <span className="text-xs text-muted-foreground">Meta 12 · hints, captions, the status bar at 11</span>
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] tracking-wide text-muted-foreground uppercase">Code & figures — font-mono</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">Code & figures — font-mono</span>
             <span className="font-mono text-sm">const p95 = 54; // ms</span>
             <span className="font-mono text-sm tabular-nums">0123456789 · 1,204.50</span>
             <span className="text-xs text-muted-foreground">Geist Mono. Same skeleton as Geist, so code and chrome agree. Tabular figures in every table.</span>
@@ -122,7 +122,7 @@ export function FoundationsPage() {
             {["rounded-sm", "rounded-md", "rounded-lg", "rounded-xl", "rounded-2xl", "rounded-3xl", "rounded-4xl", "rounded-full"].map((r) => (
               <div key={r} className="flex flex-col items-center gap-2">
                 <span className={cn("size-12 bg-muted ring-1 ring-border", r)} />
-                <span className="font-mono text-[10px] text-muted-foreground">{r.replace("rounded-", "")}</span>
+                <span className="font-mono text-micro text-muted-foreground">{r.replace("rounded-", "")}</span>
               </div>
             ))}
           </div>
@@ -131,12 +131,12 @@ export function FoundationsPage() {
           </p>
         </Demo>
         <Demo title="Motion tokens" meta="every bare transition-* inherits --dur-tap / --ease-enter">
-          <table className="w-full text-[13px]">
+          <table className="w-full text-body">
             <tbody>
               {MOTION.map(([t, v, note]) => (
                 <tr key={t} className="border-b border-border/50 last:border-0">
-                  <td className="py-1.5 font-mono text-[12px]">{t}</td>
-                  <td className="py-1.5 font-mono text-[12px] text-brand">{v}</td>
+                  <td className="py-1.5 font-mono text-ui">{t}</td>
+                  <td className="py-1.5 font-mono text-ui text-brand">{v}</td>
                   <td className="py-1.5 text-muted-foreground">{note}</td>
                 </tr>
               ))}
@@ -156,7 +156,7 @@ export function FoundationsPage() {
               className={cn("flex flex-col items-center gap-2 rounded-xl bg-muted/50 p-3 ring-1 ring-border/60", `cursor-${css}`)}
             >
               <img src={`./cursors/${file}.png`} alt="" className="size-8 rounded-md bg-white/90 p-0.5" />
-              <span className="font-mono text-[10px] text-muted-foreground">{css}</span>
+              <span className="font-mono text-micro text-muted-foreground">{css}</span>
             </div>
           ))}
         </div>

@@ -92,7 +92,7 @@ export default function App() {
               size="sm"
               pressed={levels[l]}
               onPressedChange={(v) => setLevels((s) => ({ ...s, [l]: v }))}
-              className={cn("font-mono text-[11px] uppercase", levels[l] && LEVEL_CLASS[l])}
+              className={cn("font-mono text-caption uppercase", levels[l] && LEVEL_CLASS[l])}
             >
               {l}
             </Toggle>
@@ -121,7 +121,7 @@ export default function App() {
         renderRow={(i) => {
           const l = shown[i];
           return (
-            <div className="flex h-full items-center gap-3 px-4 font-mono text-[12px] hover:bg-muted/40">
+            <div className="flex h-full items-center gap-3 px-4 font-mono text-ui hover:bg-muted/40">
               <span className="w-16 shrink-0 text-muted-foreground tabular-nums">{l.t}</span>
               <span className={cn("w-11 shrink-0 uppercase", LEVEL_CLASS[l.level])}>{l.level}</span>
               <span className="w-14 shrink-0 truncate text-muted-foreground">{l.src}</span>
@@ -143,7 +143,7 @@ export default function App() {
           value={cmd}
           onChange={(e) => setCmd(e.target.value)}
           placeholder="Type a command and press Enter"
-          className="h-full flex-1 bg-transparent font-mono text-[13px] outline-none placeholder:text-muted-foreground"
+          className="h-full flex-1 bg-transparent font-mono text-body outline-none placeholder:text-muted-foreground"
         />
         <Button type="submit" size="xs" variant="ghost" disabled={!cmd.trim()}>
           Run
@@ -160,7 +160,7 @@ export default function App() {
             </StatusItem>
             {errors > 0 && (
               <StatusItem onClick={() => setLevels({ debug: false, info: false, warn: false, error: true })}>
-                <Badge variant="destructive" className="h-4 px-1.5 text-[10px]">{errors} errors</Badge>
+                <Badge variant="destructive" className="h-4 px-1.5 text-micro">{errors} errors</Badge>
               </StatusItem>
             )}
           </>

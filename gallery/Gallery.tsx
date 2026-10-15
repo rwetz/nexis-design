@@ -248,7 +248,7 @@ export function Gallery() {
           >
             <Icon name="search" size="xs" />
             <span className="flex-1 text-left">Search components, themes, templates…</span>
-            <kbd className="font-mono text-[10px]">{fmtShortcut(MOD_KEY, SHIFT_KEY, "P")}</kbd>
+            <kbd className="font-mono text-micro">{fmtShortcut(MOD_KEY, SHIFT_KEY, "P")}</kbd>
           </button>
         }
         actions={
@@ -290,7 +290,7 @@ export function Gallery() {
             },
           ]}
           footer={
-            <div className="flex items-center gap-2 px-2 py-1 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-2 px-2 py-1 text-caption text-muted-foreground">
               <span className="font-mono">@nexis/design</span>
               <span className="flex-1" />
               <span className="font-mono">0.2.0</span>

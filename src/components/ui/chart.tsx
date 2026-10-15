@@ -115,7 +115,7 @@ export function LineChart({
           {ticks.map((t) => (
             <g key={t}>
               <line x1={padL} x2={padL + w} y1={yOf(t)} y2={yOf(t)} stroke="var(--border)" strokeDasharray={t === 0 ? undefined : "2 4"} />
-              <text x={padL - 8} y={yOf(t)} dy="0.32em" textAnchor="end" className="fill-muted-foreground font-mono text-[10px]">
+              <text x={padL - 8} y={yOf(t)} dy="0.32em" textAnchor="end" className="fill-muted-foreground font-mono text-micro">
                 {format(t)}
               </text>
             </g>
@@ -142,7 +142,7 @@ export function LineChart({
                     x={padL + i * dx}
                     y={height - 4}
                     textAnchor={i === 0 ? "start" : i === labels.length - 1 ? "end" : "middle"}
-                    className="fill-muted-foreground font-mono text-[10px]"
+                    className="fill-muted-foreground font-mono text-micro"
                   >
                     {l}
                   </text>
@@ -154,7 +154,7 @@ export function LineChart({
       )}
       {hover !== null && width > 0 && (
         <div
-          className="pointer-events-none absolute top-1 rounded-lg bg-popover px-2 py-1 text-[11px] shadow-md ring-1 ring-foreground/10"
+          className="pointer-events-none absolute top-1 rounded-lg bg-popover px-2 py-1 text-caption shadow-md ring-1 ring-foreground/10"
           style={{
             left: Math.min(width - 110, Math.max(0, padL + hover * dx + 8)),
           }}
@@ -193,14 +193,14 @@ export function BarChart({
         const on = i === highlight;
         return (
           <div key={b.label} className="group/bar flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
-            <span className={cn("font-mono text-[10px] tabular-nums", on ? "text-foreground" : "text-muted-foreground opacity-0 group-hover/bar:opacity-100")}>
+            <span className={cn("font-mono text-micro tabular-nums", on ? "text-foreground" : "text-muted-foreground opacity-0 group-hover/bar:opacity-100")}>
               {format(b.value)}
             </span>
             <div
               className={cn("w-full rounded-t-md rounded-b-xs", on ? "bg-brand" : "bg-muted-foreground/25 group-hover/bar:bg-muted-foreground/40")}
               style={{ height: `${(b.value / max) * (height - 36)}px` }}
             />
-            <span className={cn("truncate text-[11px]", on ? "text-foreground" : "text-muted-foreground")}>{b.label}</span>
+            <span className={cn("truncate text-caption", on ? "text-foreground" : "text-muted-foreground")}>{b.label}</span>
           </div>
         );
       })}
@@ -259,7 +259,7 @@ export function Heatmap({
         <>
           <span />
           {colLabels.map((c, i) => (
-            <span key={i} className="text-center font-mono text-[9px] text-muted-foreground">
+            <span key={i} className="text-center font-mono text-micro text-muted-foreground">
               {c}
             </span>
           ))}
@@ -267,7 +267,7 @@ export function Heatmap({
       )}
       {rows.map((r, ri) => (
         <React.Fragment key={ri}>
-          <span className="pr-2 text-right text-[10px] leading-[14px] text-muted-foreground">{rowLabels?.[ri] ?? ""}</span>
+          <span className="pr-2 text-right text-micro leading-[14px] text-muted-foreground">{rowLabels?.[ri] ?? ""}</span>
           {r.map((v, ci) => (
             <span
               key={ci}

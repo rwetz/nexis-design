@@ -94,7 +94,7 @@ export function DataTable<T, K extends string>({
 
   return (
     <div className={cn("relative min-h-0 overflow-auto nexis-scrollbar", className)}>
-      <table aria-label={label} className="w-full border-separate border-spacing-0 text-[13px]">
+      <table aria-label={label} className="w-full border-separate border-spacing-0 text-body">
         <thead className={cn(stickyHeader && "sticky top-0 z-10 bg-card/95 backdrop-blur-sm")}>
           <tr>
             {columns.map((c) => {
@@ -178,7 +178,7 @@ export function DataTable<T, K extends string>({
                         rowH,
                         "border-b border-border/50 px-3 whitespace-nowrap",
                         align(c),
-                        c.numeric && "font-mono text-[12px] tabular-nums text-foreground/85",
+                        c.numeric && "font-mono text-ui tabular-nums text-foreground/85",
                         isSel && ci === 0 && "shadow-[inset_2px_0_0_var(--brand)]",
                       )}
                     >

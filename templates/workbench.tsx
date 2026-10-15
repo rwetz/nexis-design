@@ -78,7 +78,7 @@ export default function App() {
       />
       <ResizablePanelGroup orientation="horizontal" className="min-h-0 flex-1">
         <ResizablePanel defaultSize="20%" minSize="12%" className="bg-sidebar">
-          <div className="flex h-9 items-center px-3 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">Explorer</div>
+          <div className="flex h-9 items-center px-3 text-caption font-medium tracking-wide text-muted-foreground uppercase">Explorer</div>
           <ContextMenu>
             <ContextMenuTrigger asChild>
               <div className="h-[calc(100%-2.25rem)] overflow-y-auto nexis-scrollbar">
@@ -110,7 +110,7 @@ export default function App() {
                   aria-selected={id === active}
                   onClick={() => setActive(id)}
                   className={cn(
-                    "group/tab flex h-8 cursor-pointer items-center gap-2 rounded-t-lg pr-1.5 pl-3 text-[12.5px]",
+                    "group/tab flex h-8 cursor-pointer items-center gap-2 rounded-t-lg pr-1.5 pl-3 text-ui",
                     id === active ? "bg-background text-foreground shadow-[inset_0_2px_0_var(--brand)]" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -130,7 +130,7 @@ export default function App() {
                 </div>
               ))}
             </div>
-            <div className="flex h-7 shrink-0 items-center gap-1 px-4 text-[11.5px] text-muted-foreground">
+            <div className="flex h-7 shrink-0 items-center gap-1 px-4 text-ui text-muted-foreground">
               {active.split("/").map((p, i, a) => (
                 <React.Fragment key={i}>
                   {i > 0 && <Icon name="chevron-right" size={10} />}
@@ -146,7 +146,7 @@ export default function App() {
               renderRow={(i) => (
                 <div
                   onClick={() => setCursor(i)}
-                  className={cn("flex h-full items-center font-mono text-[12.5px]", i === cursor && "bg-muted/60")}
+                  className={cn("flex h-full items-center font-mono text-ui", i === cursor && "bg-muted/60")}
                 >
                   <span className={cn("w-14 shrink-0 pr-4 text-right tabular-nums", i === cursor ? "text-foreground" : "text-muted-foreground/50")}>
                     {i + 1}
@@ -182,7 +182,7 @@ export default function App() {
                       key={i}
                       type="button"
                       onClick={() => setCursor(i)}
-                      className="flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-[12.5px] hover:bg-muted"
+                      className="flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-ui hover:bg-muted"
                     >
                       <Icon name={l.includes("function") ? "symbol-function" : l.includes("type") ? "symbol-type" : "variable"} className="text-brand/80" />
                       <span className="truncate font-mono">{l.replace(/^export /, "").split(/[ (=<]/)[1]}</span>

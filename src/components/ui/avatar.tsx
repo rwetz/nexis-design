@@ -77,7 +77,7 @@ export function AvatarStack({ names, max = 4, size = 28 }: { names: readonly str
       ))}
       {rest > 0 && (
         <span
-          className="grid place-items-center rounded-full bg-muted text-[11px] font-medium text-muted-foreground ring-2 ring-background"
+          className="grid place-items-center rounded-full bg-muted text-caption font-medium text-muted-foreground ring-2 ring-background"
           style={{ width: size, height: size }}
         >
           +{rest}

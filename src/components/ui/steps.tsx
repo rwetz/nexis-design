@@ -41,11 +41,11 @@ export function Steps({
                 disabled={state === "todo" || !onSelect}
                 aria-current={state === "current" ? "step" : undefined}
                 onClick={() => onSelect?.(i)}
-                className="group/step flex items-center gap-2 rounded-full pr-1 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-default"
+                className="group/step flex items-center gap-2 rounded-full pr-1 text-body outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-default"
               >
                 <span
                   className={cn(
-                    "grid size-6 shrink-0 place-items-center rounded-full font-mono text-[11px] font-medium transition-colors",
+                    "grid size-6 shrink-0 place-items-center rounded-full font-mono text-caption font-medium transition-colors",
                     state === "done" && "bg-brand/15 text-brand",
                     state === "current" && "bg-brand text-brand-foreground",
                     state === "todo" && "bg-muted text-muted-foreground",

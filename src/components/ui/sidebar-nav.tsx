@@ -78,7 +78,7 @@ export function SidebarNav<Id extends string>({
         {sections.map((section, si) => (
           <React.Fragment key={section.title ?? si}>
             {section.title && !collapsed && (
-              <div className="relative z-10 px-2.5 pt-3 pb-1 text-[11px] font-medium tracking-wide text-muted-foreground/80 uppercase first:pt-1">
+              <div className="relative z-10 px-2.5 pt-3 pb-1 text-caption font-medium tracking-wide text-muted-foreground/80 uppercase first:pt-1">
                 {section.title}
               </div>
             )}
@@ -94,7 +94,7 @@ export function SidebarNav<Id extends string>({
                   onClick={() => onChange(item.id)}
                   onPointerEnter={() => rail.setHoverId(item.id)}
                   className={cn(
-                    "relative z-10 flex h-8 shrink-0 items-center gap-2.5 rounded-[10px] text-[13px] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+                    "relative z-10 flex h-8 shrink-0 items-center gap-2.5 rounded-[10px] text-body transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
                     collapsed ? "justify-center px-0" : "px-2.5",
                     on ? "font-medium text-sidebar-accent-foreground" : "text-sidebar-foreground/70 hover:text-sidebar-foreground",
                   )}
@@ -102,7 +102,7 @@ export function SidebarNav<Id extends string>({
                   <Icon name={item.icon} size="md" active={on} />
                   {!collapsed && <span className="flex-1 truncate text-left">{item.label}</span>}
                   {!collapsed && item.meta !== undefined && (
-                    <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{item.meta}</span>
+                    <span className="font-mono text-caption tabular-nums text-muted-foreground">{item.meta}</span>
                   )}
                 </button>
               );

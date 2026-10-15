@@ -59,7 +59,7 @@ export function TitleBar({ brand, title, center, actions, controls = "auto", cla
     >
       {brand}
       {title !== undefined && (
-        <span data-tauri-drag-region className="truncate text-[13px] font-medium text-foreground/90">
+        <span data-tauri-drag-region className="truncate text-body font-medium text-foreground/90">
           {title}
         </span>
       )}

@@ -99,6 +99,10 @@ Combine templates; every piece below is in the package.
 6. **Type:** Geist by default; `font-mono` for code, ids and numbers in
    tables (with `tabular-nums`); `font-heading` (Space Grotesk) only for
    titles, empty states and big numbers — never below ~13px.
+   Sizes below 14px come from the scale: `text-micro` (10px, badges, key
+   chips), `text-caption` (11px, metadata, status bar), `text-ui` (12px,
+   rows, lists, menus) and `text-body` (13px, prose). Never `text-[11px]`;
+   above 13px use `text-sm`/`lg`/`xl`. Tripwired.
 7. **Motion marks events.** Use the moments (`SceneEnter`, `ResultArrival`,
    `AuroraBorder`, …) and the house tokens; never `animate-spin` (use
    `Spinner`), never `animate-pulse` for status (use `StatusDot live`). Live

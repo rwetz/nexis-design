@@ -18,11 +18,11 @@ export type Property = { label: string; value: React.ReactNode; mono?: boolean }
 
 export function PropertyList({ items, className }: { items: readonly Property[]; className?: string }) {
   return (
-    <dl className={cn("grid grid-cols-[minmax(6rem,auto)_minmax(0,1fr)] gap-x-6 text-[13px]", className)}>
+    <dl className={cn("grid grid-cols-[minmax(6rem,auto)_minmax(0,1fr)] gap-x-6 text-body", className)}>
       {items.map((p) => (
         <div key={p.label} className="contents">
           <dt className="border-b border-border/50 py-2 text-muted-foreground">{p.label}</dt>
-          <dd className={cn("min-w-0 truncate border-b border-border/50 py-2 text-right", p.mono && "font-mono text-[12px]")}>
+          <dd className={cn("min-w-0 truncate border-b border-border/50 py-2 text-right", p.mono && "font-mono text-ui")}>
             {p.value}
           </dd>
         </div>

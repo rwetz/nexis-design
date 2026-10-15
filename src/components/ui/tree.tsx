@@ -108,7 +108,7 @@ export function Tree({ nodes, expanded, onExpandedChange, selected, onSelect, la
   };
 
   return (
-    <div role="tree" aria-label={label} className={cn("flex flex-col py-1 text-[13px]", className)}>
+    <div role="tree" aria-label={label} className={cn("flex flex-col py-1 text-body", className)}>
       {flat.map((f, i) => {
         const open = expanded.has(f.node.id);
         const isSel = f.node.id === selected;
@@ -153,7 +153,7 @@ export function Tree({ nodes, expanded, onExpandedChange, selected, onSelect, la
             </span>
             <Icon name={icon} className={cn(f.hasChildren ? "text-brand/80" : "text-muted-foreground")} active={isSel && !f.hasChildren} />
             <span className="flex-1 truncate">{f.node.label}</span>
-            {f.node.meta !== undefined && <span className="text-[11px] text-muted-foreground">{f.node.meta}</span>}
+            {f.node.meta !== undefined && <span className="text-caption text-muted-foreground">{f.node.meta}</span>}
           </div>
         );
       })}

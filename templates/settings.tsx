@@ -189,7 +189,7 @@ export default function App() {
                             data-no-rainbow
                             onClick={() => theme.setThemeId(t.id)}
                             className={cn(
-                              "flex items-center gap-2 rounded-xl px-3 py-2 text-left text-[13px] ring-1 transition-colors",
+                              "flex items-center gap-2 rounded-xl px-3 py-2 text-left text-body ring-1 transition-colors",
                               theme.themeId === t.id ? "bg-brand/10 ring-brand" : "ring-border hover:bg-muted",
                             )}
                           >

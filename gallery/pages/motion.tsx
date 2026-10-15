@@ -26,7 +26,7 @@ function Curve({ d, label, color }: { d: string; label: string; color: string })
         <rect x="0" y="0" width="100" height="100" rx="6" fill="none" stroke="var(--border)" />
         <path d={d} fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
       </svg>
-      <span className="font-mono text-[11px] text-muted-foreground">{label}</span>
+      <span className="font-mono text-caption text-muted-foreground">{label}</span>
     </div>
   );
 }
@@ -85,13 +85,13 @@ export function MotionPage() {
       >
         <div className="grid gap-5 lg:grid-cols-3">
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] tracking-wide text-muted-foreground uppercase">Scene enter · 420ms</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">Scene enter · 420ms</span>
             <SceneEnter replayKey={n} className="grid h-36 place-items-center rounded-2xl bg-muted/60 text-sm text-muted-foreground">
               A canvas or companion window arriving
             </SceneEnter>
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] tracking-wide text-muted-foreground uppercase">Stagger · 70ms apart</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">Stagger · 70ms apart</span>
             <Stagger replayKey={n} className="grid h-36 grid-cols-3 gap-2">
               {["Bare", "Standard", "Everything"].map((x) => (
                 <div key={x} className="grid place-items-center rounded-2xl bg-muted/60 text-xs text-muted-foreground">
@@ -101,19 +101,19 @@ export function MotionPage() {
             </Stagger>
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] tracking-wide text-muted-foreground uppercase">View enter · 260ms</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">View enter · 260ms</span>
             <ViewEnter replayKey={n} className="grid h-36 place-items-center rounded-2xl bg-muted/60 text-sm text-muted-foreground">
               A page or workspace switched to
             </ViewEnter>
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] tracking-wide text-muted-foreground uppercase">Content enter · 220ms fade</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">Content enter · 220ms fade</span>
             <ContentEnter replayKey={n} className="grid h-36 place-items-center rounded-2xl bg-muted/60 text-sm text-muted-foreground">
               Data landing after a load
             </ContentEnter>
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-[11px] tracking-wide text-muted-foreground uppercase">Result arrival · one accent flash</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">Result arrival · one accent flash</span>
             <ResultArrival replayKey={n} className="flex h-36 flex-col justify-center gap-1 rounded-2xl bg-card p-4 ring-1 ring-border">
               <span className="text-xs text-muted-foreground">llama.cpp · q4_k_m</span>
               <span className="font-heading text-3xl font-medium tabular-nums">48.2 tok/s</span>

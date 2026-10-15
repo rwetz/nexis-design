@@ -18,7 +18,7 @@ export function IconsPage() {
               <Icon name="terminal" size={s} />
               <Icon name="terminal" size={s} active />
             </div>
-            <span className="font-mono text-[11px] text-muted-foreground">
+            <span className="font-mono text-caption text-muted-foreground">
               {s} · {ICON_SIZE[s]}
             </span>
           </div>
@@ -47,7 +47,7 @@ export function IconsPage() {
               className={cn("flex flex-col items-center gap-2 rounded-xl px-1 py-3 text-foreground/85 hover:bg-muted")}
             >
               <Icon name={n} size="lg" active={active} />
-              <span className="w-full truncate text-center font-mono text-[10px] text-muted-foreground">{n}</span>
+              <span className="w-full truncate text-center font-mono text-micro text-muted-foreground">{n}</span>
             </div>
           ))}
         </div>

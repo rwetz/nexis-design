@@ -53,7 +53,7 @@ export function Demo({
 export function Row({ label, children, className }: { label?: string; children: React.ReactNode; className?: string }) {
   return (
     <div className="flex flex-col gap-2">
-      {label && <span className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">{label}</span>}
+      {label && <span className="text-caption font-medium tracking-wide text-muted-foreground uppercase">{label}</span>}
       <div className={cn("flex flex-wrap items-center gap-2", className)}>{children}</div>
     </div>
   );

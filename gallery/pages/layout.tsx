@@ -43,7 +43,7 @@ export function LayoutPage() {
           <ResizablePanel defaultSize="52%">
             <ResizablePanelGroup orientation="vertical">
               <ResizablePanel defaultSize="65%">
-                <div className="h-full p-4 font-mono text-[12px] leading-6 text-muted-foreground">
+                <div className="h-full p-4 font-mono text-ui leading-6 text-muted-foreground">
                   <div>
                     <span className="text-info">export function</span> <span className="text-foreground">Panel</span>(props) {"{"}
                   </div>
@@ -53,7 +53,7 @@ export function LayoutPage() {
               </ResizablePanel>
               <ResizableHandle withHandle />
               <ResizablePanel defaultSize="35%">
-                <div className="h-full p-3 font-mono text-[11px] text-muted-foreground">$ pnpm test — 41 passed</div>
+                <div className="h-full p-3 font-mono text-caption text-muted-foreground">$ pnpm test — 41 passed</div>
               </ResizablePanel>
             </ResizablePanelGroup>
           </ResizablePanel>
@@ -67,7 +67,7 @@ export function LayoutPage() {
       <Grid cols={3}>
         <Demo title="Scroll area" meta="themed thumb, no native bar" flush>
           <ScrollArea className="h-[220px]">
-            <div className="flex flex-col p-3 font-mono text-[11.5px]">
+            <div className="flex flex-col p-3 font-mono text-ui">
               {Array.from({ length: 60 }, (_, i) => logLine(i)).map((l) => (
                 <span key={l.i} className="truncate leading-6 text-muted-foreground">
                   {l.t} {l.msg}

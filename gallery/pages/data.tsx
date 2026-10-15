@@ -127,7 +127,7 @@ export function DataPage() {
             renderRow={(i) => {
               const l = logLine(i);
               return (
-                <div className="flex h-full items-center gap-3 px-4 font-mono text-[11.5px] hover:bg-muted/50">
+                <div className="flex h-full items-center gap-3 px-4 font-mono text-ui hover:bg-muted/50">
                   <span className="w-12 shrink-0 text-right text-muted-foreground/60 tabular-nums">{i + 1}</span>
                   <span className="shrink-0 text-muted-foreground">{l.t}</span>
                   <span className={cn("w-10 shrink-0 uppercase", LEVEL_TONE[l.level])}>{l.level}</span>
