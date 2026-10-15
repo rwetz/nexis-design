@@ -111,7 +111,12 @@ Combine templates; every piece below is in the package.
 10. **Every app exposes its actions in a `CommandPalette`** on Mod+Shift+P
     (`useCommandPaletteShortcut`).
 11. **Chrome:** `TitleBar` + `WindowResizeEdges` at the root; window APIs only
-    behind `IN_TAURI`.
+    behind `IN_TAURI`. The shell arrives in order: `nexis-shell-header` on
+    the title bar, `nexis-shell-body` on the body, `nexis-shell-status` on
+    the status bar; a switched-to page is a `ViewEnter`.
+12. **Docking layouts use dockview** with `@nexis/design/styles/dockview.css`
+    (`dockview-theme-nexis`, `.nexis-dock`, `.nexis-dock-tab`) — never a
+    hand-themed one.
 
 ---
 
@@ -214,7 +219,7 @@ const columns: Column<Row, "name" | "rps">[] = [
 
 // Framing, motion
 <Panel title="Services" meta="8" actions={…} flush>…</Panel>   <SectionLabel>Danger zone</SectionLabel>
-<SceneEnter replayKey={k}>   <Stagger>   <ResultArrival>   <RunLive active>   <AuroraBorder active className="rounded-2xl">
+<SceneEnter replayKey={k}>   <ViewEnter replayKey={page}>   <ContentEnter replayKey={id}>   <Stagger>   <ResultArrival>   <RunLive active>   <AuroraBorder active className="rounded-2xl">
 
 // Theme
 const t = useTheme();  t.setThemeId("aurelian");  t.setMode("light|dark|system");  t.setContrast("high");  t.paletteEpoch

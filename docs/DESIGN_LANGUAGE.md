@@ -238,7 +238,16 @@ exit curve.
 - Moments (`components/motion.tsx`): `<SceneEnter>` (a scene arrives once),
   `<Stagger>` (setup cards, 70ms apart), `<ResultArrival>` (one accent flash
   when a result lands), `<RunLive>` (a long run's slow scan), `<AuroraBorder>`
-  (the accent traced round an element while the agent streams).
+  (the accent traced round an element while the agent streams),
+  `<ViewEnter>` (a page, workspace or tab body switched to: fade up, 260ms)
+  and `<ContentEnter>` (content landing after a load: a plain fade, 220ms).
+- App shells (from Epoch): `.nexis-shell-header`, `.nexis-shell-body`,
+  `.nexis-shell-status` on the three regions of a full-window app — the
+  title bar drops, the body rises, the status bar fades in last. The same
+  arrival as a tool window (`.nexis-window-*`), but with `backwards` fill so
+  no transform lingers to trap fixed overlays.
+- Docking workspaces: `styles/dockview.css` — groups as rounded cards on a
+  gap surface, tabs as pills, the accent only on the focused tab's icon.
 - The theme switch crossfades the whole window through the View Transitions
   API — except on Linux, where WebKitGTK's snapshot kills the web process on
   NVIDIA (PITFALLS §3).

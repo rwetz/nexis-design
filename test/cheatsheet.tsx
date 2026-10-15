@@ -12,7 +12,7 @@ import {
   DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
   Empty, EmptyDescription, EmptyHeader, EmptyTitle,
   Field, fmtShortcut, GlidingTabs, Heatmap, Icon, Input, LineChart, Meter, MOD_KEY, NumberInput,
-  Pagination, Panel, PropertyList, ResultArrival, SceneEnter, SectionLabel, Segmented,
+  Pagination, Panel, PropertyList, ResultArrival, SceneEnter, ViewEnter, ContentEnter, SectionLabel, Segmented,
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
   Sheet, SheetContent, SheetHeader, SheetTitle, SHIFT_KEY,
   SidebarNav, Sparkline, Spinner, Stat, StatusBar, StatusDot, StatusItem, Steps, Switch,
@@ -151,6 +151,8 @@ export function Cheatsheet() {
 
       {/* Motion moments */}
       <SceneEnter replayKey={page}>…</SceneEnter>
+      <ViewEnter replayKey={page}>…</ViewEnter>
+      <ContentEnter replayKey={page}>…</ContentEnter>
       <ResultArrival>48.2 tok/s</ResultArrival>
       <AuroraBorder active className="rounded-2xl"><Input /></AuroraBorder>
     </div>
