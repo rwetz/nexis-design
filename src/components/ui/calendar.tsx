@@ -80,7 +80,7 @@ export function Calendar({
   return (
     <div data-slot="calendar" className={cn("w-[17rem] select-none", className)}>
       <div className="mb-2 flex items-center gap-1">
-        <span className="flex-1 pl-1 font-heading text-sm font-medium">
+        <span className="flex-1 pl-1 text-sm font-medium">
           {MONTH_NAMES[view.month - 1]} <span className="text-muted-foreground">{view.year}</span>
         </span>
         <Button variant="ghost" size="icon-sm" aria-label="Previous month" onClick={() => setView(addMonths(view, -1))}>

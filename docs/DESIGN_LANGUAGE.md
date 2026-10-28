@@ -40,7 +40,7 @@ replacing its *look*. The table is the clearest statement of what is a rule
 | A shared motion vocabulary | CSS tokens: `--dur-*`, `--ease-enter/exit`, caret blink, stepped spin | stepped clips at the refresh rate |
 | Respect reduced motion | one `prefers-reduced-motion` rule + `useReducedMotion` on the rail | render the final state |
 | Self-drawn chrome on Win/Linux, native on macOS | 12px rounded transparent frame | square frame, text-mode controls |
-| Self-hosted fonts | Geist + Geist Mono + Space Grotesk | PxPlus VGA + JetBrains Mono |
+| Self-hosted fonts | Inter + Geist Mono (code only) | PxPlus VGA + JetBrains Mono |
 | One idea, one glyph | `<Icon name>` over Phosphor | 32 pixel icons |
 | Every action in a palette | `CommandPalette`, Mod+Shift+P | `CommandPalette`, Ctrl+Shift+P |
 | Tripwire tests on invariants | contrast floors, icon/emoji/colour guards | contrast, glyph coverage |
@@ -153,13 +153,14 @@ render that requests a theme, the variables land in an effect after it.
 
 | Role | Face | Token | Where |
 |---|---|---|---|
-| Interface | **Geist** (variable) | `font-sans` | everything by default |
-| Code & figures | **Geist Mono** | `font-mono` | code, ids, paths, numbers in tables, key chips |
-| Display | **Space Grotesk** | `font-heading` | dialog and sheet titles, panel titles, empty states, page headings, the big number in a stat |
+| Interface | **Inter** (variable, with optical sizes) | `font-sans` | everything a person reads: chrome, rows, numbers, headings, prose |
+| Code | **Geist Mono** | `font-mono` | code, paths, hashes, ids, terminal text; never numbers in readouts |
 
-Geist and Geist Mono are one designer's sans and mono, so chrome and code
-share a skeleton. Space Grotesk is the family's voice and is **illegible
-below ~13px**, never use it for body text, labels or menus.
+One face for the interface (RULES R1.1): titles are Inter at `text-lg` or
+`text-2xl`, weight 600, so a heading and the rows under it share a skeleton.
+Inter's optical-size axis gives the small steps an open, wide-spaced cut and
+the titles a tight one, from the same file. Numbers are Inter with
+`tabular-nums` (R1.3), right-aligned in a fixed slot.
 
 Sizes are dense, and below 14px they come from a four-step scale
 (`--text-*` in `globals.css`), never a raw `text-[Npx]`:
@@ -400,7 +401,7 @@ An app belongs to the family when it has:
 
 1. Colours only from tokens; **one** accent; state from the theme's ANSI.
 2. All 22 themes working, light and dark, plus high contrast on top.
-3. Geist / Geist Mono / Space Grotesk, each in its job.
+3. Inter for everything read, Geist Mono for code only (RULES R1).
 4. `<Icon name>` only; five sizes; no emoji.
 5. The motion tokens; stepped spin; caret blink; gliding rails; reduced
    motion respected.

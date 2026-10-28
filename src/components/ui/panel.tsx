@@ -13,9 +13,10 @@
  * header row by hand and the three drifted: different heights, the meta on
  * the left in one app and the right in another, actions that jumped when the
  * title wrapped.
+
  *
- * The title is set in the display face (`font-heading`) — this is one of the
- * few places the family speaks in its own voice.
+ * The title is Inter at text-sm/500 (docs/RULES.md R1.4), the panel heading
+ * step.
  */
 
 import type * as React from "react";
@@ -62,7 +63,7 @@ export function Panel({
         >
           {icon && <Icon name={icon} className="text-muted-foreground" />}
           {title !== undefined && (
-            <h3 className="truncate font-heading text-body font-medium tracking-tight">{title}</h3>
+            <h3 className="truncate text-sm font-medium">{title}</h3>
           )}
           {meta !== undefined && (
             <span className="truncate text-xs text-muted-foreground">{meta}</span>

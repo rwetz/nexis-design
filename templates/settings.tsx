@@ -111,7 +111,7 @@ export default function App() {
         <main className="flex min-w-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 overflow-y-auto nexis-scrollbar">
             <div key={section} className="nexis-scene-enter mx-auto flex max-w-3xl flex-col gap-6 px-10 py-8">
-              <h1 className="font-heading text-2xl font-medium tracking-tight capitalize">{section === "keys" ? "Keybindings" : section}</h1>
+              <h1 className="text-lg font-semibold capitalize">{section === "keys" ? "Keybindings" : section}</h1>
 
               {section === "general" && (
                 <>

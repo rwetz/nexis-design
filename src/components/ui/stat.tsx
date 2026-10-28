@@ -55,7 +55,7 @@ export function Stat({
       <span className="truncate text-xs text-muted-foreground">{label}</span>
       <div className="flex items-end justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-1">
-          <span className="truncate font-heading text-[26px] leading-none font-medium tracking-tight tabular-nums">{value}</span>
+          <span className="truncate text-2xl leading-none font-semibold tracking-tight tabular-nums">{value}</span>
           {delta !== undefined && (
             <span
               className={cn(

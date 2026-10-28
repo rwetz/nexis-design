@@ -31,16 +31,10 @@
     --default-transition-duration: var(--dur-tap);
     --default-transition-timing-function: var(--ease-enter);
 
-    /* The display face. Used only where Nexis speaks in its own voice —
-     * dialog and sheet titles, empty states, Atlas panel headers, the
-     * welcome wordmark, Settings section headers. Everything else stays on
-     * --font-sans, because this face is not legible at the 9-12px the rest
-     * of the UI lives at. */
-    --font-heading: 'Space Grotesk Variable', 'Geist Variable', sans-serif;
-    /* The UI face, paired with --font-mono below: Geist and Geist Mono are
-     * one designer's sans and mono, so the interface and the code share a
-     * skeleton instead of being two families that happen to co-exist. */
-    --font-sans: 'Geist Variable', 'Geist', 'Inter Variable', sans-serif;
+    /* The one UI face (docs/RULES.md R1.1). There is no display face:
+     * titles are Inter at text-lg/600, so a heading and the row under it
+     * share a skeleton. */
+    --font-sans: 'Inter Variable', 'Inter', system-ui, sans-serif;
     /* Mirrors FALLBACK_CHAIN in src/lib/fonts.ts, which is what the terminal
      * and CodeMirror resolve through. Kept in sync by hand on purpose: this
      * one is a static CSS value, that one probes installed Nerd Fonts at

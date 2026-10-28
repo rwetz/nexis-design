@@ -150,7 +150,7 @@ export default function App() {
                 <span className="grid size-14 place-items-center rounded-full bg-success/15 text-success">
                   <Icon name="check" size="xl" />
                 </span>
-                <h2 className="font-heading text-2xl font-medium">{name || "Workspace"} is ready</h2>
+                <h2 className="text-2xl font-semibold tracking-tight">{name || "Workspace"} is ready</h2>
                 <p className="max-w-sm text-sm text-muted-foreground">Open it now, or find it later in the workspace switcher.</p>
                 <Button variant="brand">
                   Open workspace <Icon name="arrow-right" />
@@ -179,7 +179,7 @@ export default function App() {
 function Header({ title, sub }: { title: string; sub: string }) {
   return (
     <div className="flex flex-col gap-1">
-      <h1 className="font-heading text-2xl font-medium tracking-tight">{title}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
       <p className="text-sm text-muted-foreground">{sub}</p>
     </div>
   );

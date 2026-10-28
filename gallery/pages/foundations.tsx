@@ -92,26 +92,27 @@ export function FoundationsPage() {
         </Demo>
       </Grid>
 
-      <Demo title="Type" meta="Geist · Geist Mono · Space Grotesk">
+      <Demo title="Type" meta="Inter · Geist Mono">
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="flex flex-col gap-2">
-            <span className="text-caption tracking-wide text-muted-foreground uppercase">Display: font-heading</span>
-            <span className="font-heading text-4xl font-medium tracking-tight">Nexis 1.31</span>
-            <span className="font-heading text-xl font-medium">Panel titles, dialogs, empty states</span>
-            <span className="text-xs text-muted-foreground">Space Grotesk. Only where the app speaks in its own voice; illegible below ~13px.</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">Titles: font-sans</span>
+            <span className="text-2xl font-semibold tracking-tight">Nexis 1.31</span>
+            <span className="text-lg font-semibold">Page titles, dialogs, empty states</span>
+            <span className="text-caption text-muted-foreground">Inter at text-lg and text-2xl, weight 600. There is no display face.</span>
           </div>
           <div className="flex flex-col gap-2">
             <span className="text-caption tracking-wide text-muted-foreground uppercase">Interface: font-sans</span>
-            <span className="text-base">The quick brown fox jumps over the lazy dog.</span>
-            <span className="text-sm">Body 14 · labels, menus, inputs</span>
-            <span className="text-body">Dense 13 · trees, tables, sidebars</span>
-            <span className="text-xs text-muted-foreground">Meta 12 · hints, captions, the status bar at 11</span>
+            <span className="text-sm">The quick brown fox jumps over the lazy dog.</span>
+            <span className="text-body">Body 13 · prose, dialogs, settings descriptions</span>
+            <span className="text-ui">UI 12 · rows, labels, menus</span>
+            <span className="text-caption text-muted-foreground">Caption 11 · hints, the status bar</span>
+            <span className="text-ui tabular-nums">0123456789 · 1,204.50 · 25° · 3.6</span>
           </div>
           <div className="flex flex-col gap-2">
-            <span className="text-caption tracking-wide text-muted-foreground uppercase">Code & figures: font-mono</span>
+            <span className="text-caption tracking-wide text-muted-foreground uppercase">Code: font-mono</span>
             <span className="font-mono text-sm">const p95 = 54; // ms</span>
-            <span className="font-mono text-sm tabular-nums">0123456789 · 1,204.50</span>
-            <span className="text-xs text-muted-foreground">Geist Mono. Same skeleton as Geist, so code and chrome agree. Tabular figures in every table.</span>
+            <span className="font-mono text-sm">src/press/state.ts · a3f9c1e</span>
+            <span className="text-caption text-muted-foreground">Geist Mono, for code, paths and ids only. Numbers stay in Inter with tabular figures.</span>
           </div>
         </div>
       </Demo>

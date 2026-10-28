@@ -102,8 +102,8 @@ this list and RULES.md disagree, RULES.md wins.
    for selected. Never import `@phosphor-icons/react` (or any icon library)
    directly; add a name to `src/icon/icon.tsx` if the idea has none.
    **No emoji, anywhere.** Both tripwired.
-6. **Type:** one face for everything a person reads (RULES R1: Inter,
-   replacing Geist and Space Grotesk; until that lands, Geist).
+6. **Type:** one face, Inter, for everything a person reads (RULES R1);
+   there is no display face and no `font-heading`.
    `font-mono` only for code, paths and ids, never numbers: numbers are the
    sans with `tabular-nums`, right-aligned in a fixed slot. Sizes below 14px
    come from the scale: `text-micro` (10px), `text-caption` (11px),

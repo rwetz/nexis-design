@@ -1,16 +1,15 @@
-/* The three faces the family is set in, self-hosted via Fontsource so the
- * app never reaches the network for a glyph.
+/* The two faces the family is set in, self-hosted via Fontsource so the
+ * app never reaches the network for a glyph (docs/RULES.md R1).
  *
- *   Geist            the UI face (--font-sans)
- *   Geist Mono       code, numbers in tables, key chips (--font-mono)
- *   Space Grotesk    the display face (--font-heading) — titles, empty
- *                    states, section headers only; illegible below ~13px
+ *   Inter        everything a person reads: chrome, rows, numbers (with
+ *                tabular-nums), headings, prose (--font-sans). The opsz
+ *                build carries Inter's optical-size axis, so the 10-13px
+ *                steps get the open, wide-spaced cut and titles the tight one.
+ *   Geist Mono   code, paths, hashes, ids and terminal text only
+ *                (--font-mono); never numbers in readouts.
  *
- * Geist and Geist Mono are one designer's sans and mono, so chrome and code
- * share a skeleton instead of being two families that happen to co-exist.
  * JetBrains Mono is not loaded here: it is only the terminal's Cyrillic
  * fallback, and an app with a terminal imports it itself (see globals.ide.css).
  */
-@import "@fontsource-variable/geist/wght.css";
+@import "@fontsource-variable/inter/opsz.css";
 @import "@fontsource-variable/geist-mono/wght.css";
-@import "@fontsource-variable/space-grotesk/wght.css";

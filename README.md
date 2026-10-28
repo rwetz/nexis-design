@@ -82,7 +82,7 @@ toolkit, and it does not try to.
 | | |
 |---|---|
 | `theme/` | 22 themes (17 generated Nexis palettes + 5 community), `applyTheme`, and `ThemeProvider` / `useTheme`: light/dark/system, high contrast on top of any theme, the default theme's rainbow hover, the palette epoch, a View Transition crossfade (hard cut on Linux). |
-| `styles/` | `globals.css`: OKLCH tokens, status tones that follow the theme, the motion tokens and classes, chrome, scrollbars, cursors, high contrast; `globals.ide.css` adds xterm/CodeMirror; `fonts.css` (Geist, Geist Mono, Space Grotesk); `tokens.ts` to read colours back for canvas/WebGL. |
+| `styles/` | `globals.css`: OKLCH tokens, status tones that follow the theme, the motion tokens and classes, chrome, scrollbars, cursors, high contrast; `globals.ide.css` adds xterm/CodeMirror; `fonts.css` (Inter, Geist Mono); `tokens.ts` to read colours back for canvas/WebGL. |
 | `components/ui/` | ~70 components: controls, forms, overlays, command palette, navigation, data (table, tree, virtual list), charts, feedback, layout ([COMPONENTS.md](docs/COMPONENTS.md)). |
 | `components/` | Chrome (`TitleBar`, `StatusBar`, `WindowControls`, `WindowResizeEdges`) and the motion moments (`SceneEnter`, `ResultArrival`, `AuroraBorder`, …). |
 | `icon/` | `<Icon name="…" />`: 172 semantic names over Phosphor, five sizes, weight as state. The only module allowed to import an icon vendor. |
@@ -146,6 +146,17 @@ pnpm screenshots               # regenerate every image in this README from the 
 - [ASSETS.md](docs/ASSETS.md): cursors, and why logos are per app.
 - [ROADMAP.md](docs/ROADMAP.md): what "one design layer for the family"
   still needs.
+
+## Upgrading to the rules (unreleased)
+
+docs/RULES.md lands in steps; each changes what an app must do:
+
+- **Fonts (R1).** Inter replaces Geist and Space Grotesk. Swap the peers:
+  `pnpm remove @fontsource-variable/geist @fontsource-variable/space-grotesk`
+  and `pnpm add @fontsource-variable/inter`; keep `geist-mono` for code.
+  `font-heading` is gone: a title is `text-lg font-semibold`, a big figure
+  `text-2xl font-semibold tabular-nums`. Numbers are the sans with
+  `tabular-nums`, not `font-mono`.
 
 ## Upgrading from 0.1
 

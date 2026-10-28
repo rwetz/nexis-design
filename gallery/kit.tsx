@@ -17,7 +17,7 @@ export function Page({
     <div className={cn("mx-auto flex w-full max-w-[1320px] flex-col gap-5 px-8 pt-7 pb-12", className)}>
       {title && (
         <header className="flex flex-col gap-1.5">
-          <h1 className="font-heading text-[28px] leading-tight font-medium tracking-tight">{title}</h1>
+          <h1 className="text-2xl leading-tight font-semibold tracking-tight">{title}</h1>
           {lede && <p className="max-w-[72ch] text-sm text-muted-foreground">{lede}</p>}
         </header>
       )}

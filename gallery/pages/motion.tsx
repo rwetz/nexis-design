@@ -116,7 +116,7 @@ export function MotionPage() {
             <span className="text-caption tracking-wide text-muted-foreground uppercase">Result arrival · one accent flash</span>
             <ResultArrival replayKey={n} className="flex h-36 flex-col justify-center gap-1 rounded-2xl bg-card p-4 ring-1 ring-border">
               <span className="text-xs text-muted-foreground">llama.cpp · q4_k_m</span>
-              <span className="font-heading text-3xl font-medium tabular-nums">48.2 tok/s</span>
+              <span className="text-2xl font-semibold tabular-nums">48.2 tok/s</span>
               <span className="text-xs text-success">+12% vs onnx</span>
             </ResultArrival>
           </div>

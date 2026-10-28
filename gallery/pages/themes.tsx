@@ -125,11 +125,11 @@ export function ThemesPage() {
         </div>
       </Demo>
       <section className="flex flex-col gap-3">
-        <h2 className="font-heading text-lg font-medium">Nexis</h2>
+        <h2 className="text-lg font-semibold">Nexis</h2>
         {grid(listNexisThemes())}
       </section>
       <section className="flex flex-col gap-3">
-        <h2 className="font-heading text-lg font-medium">Community</h2>
+        <h2 className="text-lg font-semibold">Community</h2>
         {grid(listCommunityThemes())}
       </section>
     </Page>

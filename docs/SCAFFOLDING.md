@@ -80,7 +80,7 @@ pnpm add github:rwetz/nexis-design#<rev>
 # its peers (see package.json "peerDependencies" for versions)
 pnpm add react react-dom radix-ui class-variance-authority clsx tailwind-merge \
   @phosphor-icons/react motion cmdk sonner react-resizable-panels @tanstack/react-virtual \
-  @fontsource-variable/geist @fontsource-variable/geist-mono @fontsource-variable/space-grotesk \
+  @fontsource-variable/inter @fontsource-variable/geist-mono \
   @tauri-apps/api @tauri-apps/plugin-os tailwindcss tw-animate-css shadcn
 pnpm add -D @tailwindcss/vite @vitejs/plugin-react
 ```
