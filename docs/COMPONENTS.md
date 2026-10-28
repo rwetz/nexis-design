@@ -104,6 +104,12 @@ shared version yet.
 | `ScrollArea`, `ScrollFade` | Nexis | themed scroll; edge fades |
 | `Separator` | Nexis | |
 | `BranchedMenu` | Nexis | grouped menu whose grouping is drawn |
+| `SettingsLayout`, `SettingsPage`, `SettingsGroup`, `SettingRow` | new | the settings screen (RULES R4.2): left-aligned page, label and description beside a fixed control column |
+| `PanelSection` | new | a side panel's section: 48px overline header, gutter body (R4.3) |
+| `ControlRow` | new | label, control, value with a clamped label column and a fixed value slot; edited dot and double-click reset (R4.4) |
+| `ThumbnailGrid`, `ThumbnailCard` | new | a gallery that shares the row, at most N columns; cards lift on hover, neutral selection (R4.5) |
+| `Strip` | Press | a sideways row of cards: no scrollbar, wheel scrolls it, faded edges (R4.6) |
+| `ColorPicker` | Press | swatch + popover: saturation/value square, hue strip, hex field, swatches, eyedropper |
 
 ### Chrome
 
@@ -121,6 +127,10 @@ shared version yet.
 `Blink`:
 thin wrappers over the CSS classes, with `replayKey` to play again. See
 [DESIGN_LANGUAGE.md §5](DESIGN_LANGUAGE.md#5-motion).
+
+`ListPresence` + `PresenceItem`: enter *and* exit for list rows (RULES R8.1),
+on the house curves; the one moment built on `motion`, since CSS cannot
+animate an element out.
 
 ### Lib
 

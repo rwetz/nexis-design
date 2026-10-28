@@ -28,8 +28,8 @@ lists the work.
 
 **R1.1 One face.** Every app uses **Inter** (variable, `font-sans`) for
 everything a person reads: chrome, rows, numbers, headings, prose. There is
-no display face and no second sans. **(planned)** Geist and Space Grotesk
-leave the package; `font-heading` is removed. Tripwired.
+no display face and no second sans: Geist and Space Grotesk are gone and
+there is no `font-heading`. Tripwired.
 
 **R1.2 Mono is for text you'd copy, not for numbers.** `font-mono` (Geist
 Mono until a replacement is chosen) is for code, file paths, hashes, ids,
@@ -171,7 +171,7 @@ hand-building one of these, stop and use (or build) the component.
 search, then actions) → body → `StatusBar`. The status bar shows only when
 the current view has facts to show; otherwise it's absent, not empty.
 
-**R4.2 Settings page.** `SettingsLayout` **(planned)**:
+**R4.2 Settings page.** `SettingsLayout` + `SettingsPage` + `SettingsGroup`:
 
 - Left: section nav, 224px, `SidebarNav`, full height, with Back at the
   bottom only when Settings replaced another view.
@@ -180,7 +180,7 @@ the current view has facts to show; otherwise it's absent, not empty.
   the content far from the nav it belongs to.
 - The section is a column up to 760px wide at 100% (it grows with R2).
   Title (`text-lg`), then an optional one-line description, then groups.
-- Each setting is a `SettingRow` **(planned)**: label (`text-sm`, 500) and
+- Each setting is a `SettingRow`: label (`text-sm`, 500) and
   description (`text-body`, muted) on the left, 1fr; the control on the
   right, a fixed 280px column, right-aligned for switches and segmented
   controls, full column width for inputs and selects. Rows are separated by
@@ -189,13 +189,12 @@ the current view has facts to show; otherwise it's absent, not empty.
 - Destructive settings go last, in a group of their own, with a
   `destructive` outline button that opens an `AlertDialog`.
 
-**R4.3 Side panel (inspector).** A column of `PanelSection`s **(planned)**:
+**R4.3 Side panel (inspector).** A column of `PanelSection`s:
 header row (overline title + icon-sm actions), body with `--space-gutter`.
 Collapsible sections use `Accordion` with no content indent (the column is
 too narrow to spend 24px on hierarchy).
 
-**R4.4 Control row.** A labelled control in a panel is a `ControlRow`
-**(planned)**:
+**R4.4 Control row.** A labelled control in a panel is a `ControlRow`:
 
 - grid `[label 7rem to 10rem] [control 1fr] [value 3.5rem]`: the label
   column is `clamp(7rem, 38%, 10rem)`, so a narrow panel doesn't crush the
@@ -205,14 +204,14 @@ too narrow to spend 24px on hierarchy).
 - the label wraps to two lines before it truncates; the row keeps its
   height with `min-h-8`.
 
-**R4.5 Galleries.** Thumbnail grids use `ThumbnailGrid` **(planned)**:
+**R4.5 Galleries.** Thumbnail grids use `ThumbnailGrid` (and `ThumbnailCard`):
 `grid-template-columns: repeat(auto-fill, minmax(min, 1fr))` with a min of
 9rem for cards and 6rem for swatches, and a max column count so a wide
 window gets bigger cards, not twenty columns. Titles get two lines before
 truncating.
 
-**R4.6 Horizontal strips.** A sideways-scrolling row of cards uses `Strip`
-**(planned)**: no scrollbar, vertical wheel scrolls it, edges fade where
+**R4.6 Horizontal strips.** A sideways-scrolling row of cards uses `Strip`:
+no scrollbar, vertical wheel scrolls it, edges fade where
 there's more.
 
 **R4.7 Narrow windows.** Below 1024 CSS px (after scale), side panels
@@ -311,7 +310,7 @@ mean status and nothing else. An "edited" marker is a neutral dot
 | One of 6 or more | `Select` |
 | A number in a range | `Slider` + typed value (R4.4) |
 | A number without a range | `NumberInput` |
-| A colour | `ColorPicker` **(planned, from Press)** |
+| A colour | `ColorPicker` |
 | Edited from default | neutral dot after the label (R6.5); double-click the label to reset |
 | Busy | `Spinner` in place of the icon; the control keeps its width |
 | Long work the user started | `CallChip` in the toolbar |
@@ -335,8 +334,8 @@ addition:
 
 **R8.1 Every content swap animates.** When a panel's content changes
 because the selection changed, it uses `SceneEnter replayKey`. New list
-items enter with `nexis-scene-enter`; removed ones leave with `Presence`
-**(planned)**. Cards lift 2px on hover. Nothing pops.
+items enter with `nexis-scene-enter`; removed ones leave with `ListPresence` +
+`PresenceItem`. Cards lift 2px on hover. Nothing pops.
 
 **R8.2 Highlights travel.** Menu and list highlights move between items
 (the glide rail), never jump.

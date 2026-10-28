@@ -30,6 +30,7 @@ export { WindowResizeEdges as ResizeHandles } from "./components/WindowResizeEdg
 
 // ── Motion moments ────────────────────────────────────────────────────────
 export * from "./components/motion";
+export * from "./components/presence";
 
 // ── Components ────────────────────────────────────────────────────────────
 export * from "./components/ui/BranchedMenu";
@@ -87,6 +88,12 @@ export * from "./components/ui/slider";
 export * from "./components/ui/sonner";
 export * from "./components/ui/spinner";
 export * from "./components/ui/stat";
+export * from "./components/ui/settings-layout";
+export * from "./components/ui/panel-section";
+export * from "./components/ui/control-row";
+export * from "./components/ui/thumbnail";
+export * from "./components/ui/strip";
+export * from "./components/ui/color-picker";
 export * from "./components/ui/status-dot";
 export * from "./components/ui/steps";
 export * from "./components/ui/switch";

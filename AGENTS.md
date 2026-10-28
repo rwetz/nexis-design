@@ -189,6 +189,16 @@ export default function App() {
 <Segmented label="Range" size="sm" value={r} onChange={setR} segments={[{ id: "1h", label: "1H", icon?: "…" }]} />
 <Tooltip><TooltipTrigger asChild>…</TooltipTrigger><TooltipContent>Help</TooltipContent></Tooltip>
 
+// Layout patterns (docs/RULES.md §4)
+<SettingsLayout nav={<SidebarNav …/>}><SettingsPage title="Appearance" description="…"><SettingsGroup title="Theme">
+  <SettingRow label="Mode" description="…"><Segmented …/></SettingRow>   // align="stretch" for inputs and selects
+</SettingsGroup></SettingsPage></SettingsLayout>
+<PanelSection title="Layers" actions={<Button variant="ghost" size="icon-sm" …/>}>…</PanelSection>
+<ControlRow label="Line weight" edited={v !== def} onReset={reset} value={v}><Slider …/></ControlRow>
+<ThumbnailGrid min="9rem" maxColumns={6}><ThumbnailCard image={url} title="Stencil" meta="Print" selected /></ThumbnailGrid>
+<Strip>{cards}</Strip>   <ColorPicker label="Ink" value="#163a70" onChange={set} swatches={others} />
+<ListPresence>{rows.map((r) => <PresenceItem key={r.id}>…</PresenceItem>)}</ListPresence>
+
 // Forms
 <Field label="Name" required hint="…" error={msg | null} inline?><Input … /></Field>   // wires id/aria for the child
 <NumberInput value={n} onChange={setN} min={1} max={64} step={1} decimals={0} suffix="ms" />
