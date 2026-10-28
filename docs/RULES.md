@@ -242,12 +242,13 @@ There is one right overlay for each job. Use this table.
 **R5.1 Menus open away from their trigger, never over it.** `Select`,
 `DropdownMenu` and `Popover` use popper positioning: below the trigger,
 left edges aligned, the trigger's width at least; above it only when there's
-no room below. **(planned)** `Select`'s default changes from `item-aligned`
-to `popper`. Tripwired: `position="item-aligned"` fails.
+no room below. `Select` defaults to `popper`; tripwired:
+`position="item-aligned"` fails.
 
 **R5.2 Every menu has a visible hover.** The highlighted item gets
 `bg-muted` (not `bg-accent`, which some themes set equal to the popover).
-The current option in a `Select` carries a check at the right. **(planned)**
+The current option in a `Select` carries a check at the right and weight
+500.
 
 **R5.3 Overlay type matches its trigger.** A select's items are `text-ui`
 when its trigger is in a panel, `text-sm` when it's in a dialog or settings
@@ -255,7 +256,9 @@ page: the menu uses its trigger's size.
 
 **R5.4 Focus doesn't jump on open.** A sheet or popover that opens from a
 pointer click focuses its container, not its first control, so a tooltip
-doesn't pop. **(planned)** Default in `SheetContent` and `PopoverContent`.
+doesn't pop. `SheetContent` and `PopoverContent` do it by default
+(`focusSurfaceOnOpen`); `PopoverContent matchAnchorWidth` makes a popover at
+least as wide as its trigger.
 
 ---
 

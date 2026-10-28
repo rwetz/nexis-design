@@ -10,10 +10,25 @@ import { Select as SelectPrimitive } from "radix-ui"
 
 import { cn } from "../../lib/utils"
 
+// The trigger's size, so the menu's items match it (RULES R5.3): a select in
+// a dense panel opens a dense menu, one in a dialog a roomy one. The trigger
+// reports it; the content is portalled but still inside this provider.
+type SelectSize = "sm" | "default"
+const SelectSizeContext = React.createContext<{
+  size: SelectSize
+  setSize: (s: SelectSize) => void
+}>({ size: "default", setSize: () => {} })
+
 function Select({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />
+  const [size, setSize] = React.useState<SelectSize>("default")
+  const value = React.useMemo(() => ({ size, setSize }), [size])
+  return (
+    <SelectSizeContext.Provider value={value}>
+      <SelectPrimitive.Root data-slot="select" {...props} />
+    </SelectSizeContext.Provider>
+  )
 }
 
 function SelectGroup({
@@ -41,8 +56,10 @@ function SelectTrigger({
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
-  size?: "sm" | "default"
+  size?: SelectSize
 }) {
+  const { setSize } = React.useContext(SelectSizeContext)
+  React.useLayoutEffect(() => setSize(size), [size, setSize])
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
@@ -68,11 +85,15 @@ function SelectTrigger({
 function SelectContent({
   className,
   children,
-  position = "item-aligned",
-  align = "center",
+  // Below the trigger, left edges aligned, never over it (RULES R5.1).
+  // "item-aligned" centred the list on the current option, so it opened up,
+  // down or across the trigger depending on which option was chosen.
+  position = "popper",
+  align = "start",
+  sideOffset = 4,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
-  const viewportRef = React.useRef<HTMLDivElement>(null)
+  const [viewport, setViewport] = React.useState<HTMLDivElement | null>(null)
   const [glide, setGlide] = React.useState<{
     top: number
     height: number
@@ -83,8 +104,10 @@ function SelectContent({
   // attribute is what keeps the rail correct for both without duplicating
   // Radix's own notion of which item is active — there is no callback that
   // reports it.
+  // Keyed on the viewport element, which only exists while the menu is
+  // open: an effect that ran once on mount found nothing and never tracked
+  // a highlight, so the menu had no hover at all.
   React.useEffect(() => {
-    const viewport = viewportRef.current
     if (!viewport) return
     const sync = () => {
       const el = viewport.querySelector<HTMLElement>(
@@ -102,7 +125,7 @@ function SelectContent({
     })
     sync()
     return () => observer.disconnect()
-  }, [])
+  }, [viewport])
 
   return (
     <SelectPrimitive.Portal>
@@ -112,14 +135,15 @@ function SelectContent({
         className={cn("relative z-50 max-h-(--radix-select-content-available-height) min-w-36 origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-3xl bg-popover text-popover-foreground shadow-lg ring-1 ring-foreground/5 duration-100 data-[align-trigger=true]:animate-none data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:ring-foreground/10 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", position ==="popper"&&"data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1", className )}
         position={position}
         align={align}
+        sideOffset={position === "popper" ? sideOffset : undefined}
         {...props}
       >
         <SelectScrollUpButton />
         <SelectPrimitive.Viewport
-          ref={viewportRef}
+          ref={setViewport}
           data-position={position}
           className={cn(
-            "relative data-[position=popper]:h-(--radix-select-trigger-height) data-[position=popper]:w-full data-[position=popper]:min-w-(--radix-select-trigger-width)",
+            "relative p-1 data-[position=popper]:h-(--radix-select-trigger-height) data-[position=popper]:w-full data-[position=popper]:min-w-(--radix-select-trigger-width)",
             position === "popper" && ""
           )}
         >
@@ -132,7 +156,7 @@ function SelectContent({
             aria-hidden
             data-slot="select-glide"
             className={cn(
-              "pointer-events-none absolute inset-x-1 z-0 rounded-2xl bg-accent transition-[translate,height,opacity]",
+              "pointer-events-none absolute inset-x-1 top-0 z-0 rounded-2xl bg-muted transition-[translate,height,opacity]",
               glide ? "opacity-100" : "opacity-0",
             )}
             style={{
@@ -168,11 +192,13 @@ function SelectItem({
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Item>) {
+  const { size } = React.useContext(SelectSizeContext)
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
+      data-size={size}
       className={cn(
-        "relative z-10 flex w-full cursor-default items-center gap-2.5 rounded-2xl py-2 pr-8 pl-3 text-sm font-medium outline-hidden select-none focus:text-accent-foreground not-data-[variant=destructive]:focus:**:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+        "relative z-10 flex w-full cursor-default items-center gap-2 rounded-2xl pr-8 pl-3 outline-hidden select-none data-[size=default]:min-h-9 data-[size=default]:text-sm data-[size=sm]:min-h-8 data-[size=sm]:text-ui data-[state=checked]:font-medium focus:text-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
         className
       )}
       {...props}

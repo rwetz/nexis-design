@@ -113,6 +113,14 @@ describe("design rules", () => {
     expect(offenders(EVERYTHING, /\bfont-(?:thin|extralight|light|bold|extrabold|black)\b/)).toEqual([]);
   });
 
+  it("menus open beside their trigger, never over it (RULES R5.1)", () => {
+    // item-aligned centres a select's list on the current option, so it
+    // opened up, down or across its own trigger depending on the value.
+    expect(offenders(EVERYTHING, /position=["']item-aligned["']/)).toEqual([]);
+    const select = readFileSync(join(ROOT, "src/components/ui/select.tsx"), "utf8");
+    expect(select).toMatch(/position = "popper"/);
+  });
+
   it("the accent marks the primary action, focus and live progress, not selection (RULES R6.2, R6.3)", () => {
     // Selected tabs, rows, cards and nav items wore coral rings, tints and
     // bars, so the accent stopped meaning "do this". Selection is bg-muted

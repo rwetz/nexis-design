@@ -104,7 +104,7 @@ export * from "./components/ui/use-gliding-rail";
 // ── Lib ───────────────────────────────────────────────────────────────────
 export * from "./lib/platform";
 export { ease, dur, railSpring, useRailTransition, useReducedMotion, spring, tween } from "./lib/motion";
-export { cn } from "./lib/utils";
+export { cn, focusSurfaceOnOpen } from "./lib/utils";
 export { formatElapsed } from "./lib/duration";
 export * from "./lib/format";
 export * from "./lib/sort";
