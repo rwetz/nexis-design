@@ -244,7 +244,7 @@ export function Gallery() {
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="flex h-7 w-full max-w-sm items-center gap-2 rounded-full bg-muted/70 px-3 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex h-7 w-full max-w-sm items-center gap-2 rounded-full bg-muted/70 px-3 text-ui text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <Icon name="search" size="xs" />
             <span className="flex-1 text-left">Search components, themes, templates…</span>

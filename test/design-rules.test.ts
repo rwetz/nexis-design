@@ -89,6 +89,30 @@ describe("design rules", () => {
     expect(offenders(EVERYTHING, RAW)).toEqual([]);
   });
 
+  it("one UI face: no display face or font-heading (RULES R1.1)", () => {
+    // Space Grotesk was the family's display face and was illegible below
+    // ~13px, so every app had to know where it was allowed. Inter at
+    // text-lg/600 is the title now.
+    expect(offenders(EVERYTHING, /\bfont-heading\b|Space Grotesk/)).toEqual([]);
+  });
+
+  it("numbers are the sans with tabular-nums, never mono (RULES R1.2)", () => {
+    // Mono numbers read as code and widen every readout; Press's slider
+    // values were the complaint. Mono is for code, paths and ids.
+    expect(offenders(EVERYTHING, /font-mono[^"'`]*tabular-nums|tabular-nums[^"'`]*font-mono/)).toEqual([]);
+  });
+
+  it("sizes come from the type list (RULES R1.4)", () => {
+    // micro 10 · caption 11 · ui 12 · body 13 · sm 14 · lg 18 · 2xl 24. text-xs
+    // duplicated text-ui under another name, and text-base / text-xl / 3xl+
+    // were one-off sizes between the steps.
+    expect(offenders(EVERYTHING, /(?<![\w-])text-(?:xs|base|xl|[3-9]xl)\b|text-\[[\d.]+(?:px|rem|em)\]/)).toEqual([]);
+  });
+
+  it("weights are 400, 500 or 600 (RULES R1.5)", () => {
+    expect(offenders(EVERYTHING, /\bfont-(?:thin|extralight|light|bold|extrabold|black)\b/)).toEqual([]);
+  });
+
   it("no em dashes in text a person reads (strings, JSX text, docs)", () => {
     // The family's copy rule (AGENTS.md rule 13). Comments are exempt, so
     // code is parsed and only string literals, template text and JSX text

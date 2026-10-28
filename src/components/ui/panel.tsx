@@ -66,7 +66,7 @@ export function Panel({
             <h3 className="truncate text-sm font-medium">{title}</h3>
           )}
           {meta !== undefined && (
-            <span className="truncate text-xs text-muted-foreground">{meta}</span>
+            <span className="truncate text-ui text-muted-foreground">{meta}</span>
           )}
           <span className="flex-1" />
           {actions}

@@ -206,7 +206,7 @@ export function OverlaysPage() {
                   <Avatar name="Ryan Wetzstein" presence="online" />
                   <div className="flex flex-col text-sm">
                     <span className="font-medium">Ryan Wetzstein</span>
-                    <span className="text-xs text-muted-foreground">Maintains Nexis and nexis-design.</span>
+                    <span className="text-ui text-muted-foreground">Maintains Nexis and nexis-design.</span>
                   </div>
                 </div>
               </HoverCardContent>

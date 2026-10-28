@@ -45,7 +45,7 @@ export function Steps({
               >
                 <span
                   className={cn(
-                    "grid size-6 shrink-0 place-items-center rounded-full font-mono text-caption font-medium transition-colors",
+                    "grid size-6 shrink-0 place-items-center rounded-full tabular-nums text-caption font-medium transition-colors",
                     state === "done" && "bg-brand/15 text-brand",
                     state === "current" && "bg-brand text-brand-foreground",
                     state === "todo" && "bg-muted text-muted-foreground",

@@ -115,7 +115,7 @@ export function LineChart({
           {ticks.map((t) => (
             <g key={t}>
               <line x1={padL} x2={padL + w} y1={yOf(t)} y2={yOf(t)} stroke="var(--border)" strokeDasharray={t === 0 ? undefined : "2 4"} />
-              <text x={padL - 8} y={yOf(t)} dy="0.32em" textAnchor="end" className="fill-muted-foreground font-mono text-micro">
+              <text x={padL - 8} y={yOf(t)} dy="0.32em" textAnchor="end" className="fill-muted-foreground tabular-nums text-micro">
                 {format(t)}
               </text>
             </g>
@@ -142,7 +142,7 @@ export function LineChart({
                     x={padL + i * dx}
                     y={height - 4}
                     textAnchor={i === 0 ? "start" : i === labels.length - 1 ? "end" : "middle"}
-                    className="fill-muted-foreground font-mono text-micro"
+                    className="fill-muted-foreground tabular-nums text-micro"
                   >
                     {l}
                   </text>
@@ -160,9 +160,9 @@ export function LineChart({
           }}
         >
           {labels?.[hover] && <span className="mr-2 text-muted-foreground">{labels[hover]}</span>}
-          <span className="font-mono font-medium text-foreground">{format(values[hover])}</span>
+          <span className="tabular-nums font-medium text-foreground">{format(values[hover])}</span>
           {compare?.[hover] !== undefined && (
-            <span className="ml-2 font-mono text-muted-foreground">{format(compare[hover])}</span>
+            <span className="ml-2 tabular-nums text-muted-foreground">{format(compare[hover])}</span>
           )}
         </div>
       )}
@@ -193,7 +193,7 @@ export function BarChart({
         const on = i === highlight;
         return (
           <div key={b.label} className="group/bar flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
-            <span className={cn("font-mono text-micro tabular-nums", on ? "text-foreground" : "text-muted-foreground opacity-0 group-hover/bar:opacity-100")}>
+            <span className={cn("text-micro tabular-nums", on ? "text-foreground" : "text-muted-foreground opacity-0 group-hover/bar:opacity-100")}>
               {format(b.value)}
             </span>
             <div
@@ -259,7 +259,7 @@ export function Heatmap({
         <>
           <span />
           {colLabels.map((c, i) => (
-            <span key={i} className="text-center font-mono text-micro text-muted-foreground">
+            <span key={i} className="text-center tabular-nums text-micro text-muted-foreground">
               {c}
             </span>
           ))}

@@ -157,7 +157,7 @@ export function OverviewPage() {
           <AuroraBorder className="rounded-2xl">
             <Textarea rows={3} placeholder="Ask about this workspace…" className="rounded-2xl bg-card" />
           </AuroraBorder>
-          <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+          <div className="mt-3 flex items-center justify-between text-ui text-muted-foreground">
             <span>{fmtShortcut(MOD_KEY, "↵")} to send</span>
             <span>{t.resolvedMode === "dark" ? "Dark" : "Light"} · {themes.find((x) => x.id === t.themeId)?.name}</span>
           </div>

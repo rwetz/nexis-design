@@ -60,7 +60,7 @@ export function StatusItem({
   const body = (
     <>
       {icon && <Icon name={icon} size="xs" />}
-      {children !== undefined && <span className={cn("truncate", live && "font-mono tabular-nums")}>{children}</span>}
+      {children !== undefined && <span className={cn("truncate", live && "tabular-nums")}>{children}</span>}
     </>
   );
   const cls = cn("inline-flex h-5 items-center gap-1.5 rounded-md px-1.5", className);

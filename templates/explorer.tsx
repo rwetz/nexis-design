@@ -171,7 +171,7 @@ export default function App() {
       </div>
 
       <div className="flex h-12 shrink-0 items-center gap-3 border-t border-border/60 px-4">
-        <span className="text-xs text-muted-foreground tabular-nums">
+        <span className="text-ui text-muted-foreground tabular-nums">
           {filtered.length === 0 ? 0 : (current - 1) * PAGE + 1}–{Math.min(current * PAGE, filtered.length)} of {filtered.length}
         </span>
         <span className="flex-1" />

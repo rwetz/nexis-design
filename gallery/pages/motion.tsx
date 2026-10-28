@@ -70,7 +70,7 @@ export function MotionPage() {
               { id: "30d", label: "30D" },
             ]}
           />
-          <p className="text-xs text-muted-foreground">Click fast between ends: the pill retargets mid-flight instead of finishing the old trip first.</p>
+          <p className="text-ui text-muted-foreground">Click fast between ends: the pill retargets mid-flight instead of finishing the old trip first.</p>
         </Demo>
       </Grid>
 
@@ -94,7 +94,7 @@ export function MotionPage() {
             <span className="text-caption tracking-wide text-muted-foreground uppercase">Stagger · 70ms apart</span>
             <Stagger replayKey={n} className="grid h-36 grid-cols-3 gap-2">
               {["Bare", "Standard", "Everything"].map((x) => (
-                <div key={x} className="grid place-items-center rounded-2xl bg-muted/60 text-xs text-muted-foreground">
+                <div key={x} className="grid place-items-center rounded-2xl bg-muted/60 text-ui text-muted-foreground">
                   {x}
                 </div>
               ))}
@@ -115,9 +115,9 @@ export function MotionPage() {
           <div className="flex flex-col gap-2">
             <span className="text-caption tracking-wide text-muted-foreground uppercase">Result arrival · one accent flash</span>
             <ResultArrival replayKey={n} className="flex h-36 flex-col justify-center gap-1 rounded-2xl bg-card p-4 ring-1 ring-border">
-              <span className="text-xs text-muted-foreground">llama.cpp · q4_k_m</span>
+              <span className="text-ui text-muted-foreground">llama.cpp · q4_k_m</span>
               <span className="text-2xl font-semibold tabular-nums">48.2 tok/s</span>
-              <span className="text-xs text-success">+12% vs onnx</span>
+              <span className="text-ui text-success">+12% vs onnx</span>
             </ResultArrival>
           </div>
         </div>
@@ -129,7 +129,7 @@ export function MotionPage() {
             <Spinner />
             <div className="flex flex-col">
               <span className="text-sm">Benchmark · 4 models × 3 backends</span>
-              <span className="text-xs text-muted-foreground">cell 7 of 12</span>
+              <span className="text-ui text-muted-foreground">cell 7 of 12</span>
             </div>
           </RunLive>
         </Demo>
@@ -151,7 +151,7 @@ export function MotionPage() {
             Text only
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-ui text-muted-foreground">
           The default theme is the one neutral palette, so its hover lights the glyph (or the label) with one of four rotating gradients. Every other theme's accent is its identity, so it never gets one; high contrast turns it off.
         </p>
       </Demo>

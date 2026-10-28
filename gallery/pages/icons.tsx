@@ -31,11 +31,11 @@ export function IconsPage() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Switch id="ic-active" size="sm" checked={active} onCheckedChange={setActive} />
-              <Label htmlFor="ic-active" className="text-xs">
+              <Label htmlFor="ic-active" className="text-ui">
                 active
               </Label>
             </div>
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter…" className="h-7 w-44 text-xs" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter…" className="h-7 w-44 text-ui" />
           </div>
         }
       >

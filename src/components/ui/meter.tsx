@@ -46,7 +46,7 @@ export function Meter({ value, label, readout, warnAt = 0.75, dangerAt = 0.9, cl
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(v * 100)}
-      className={cn("grid grid-cols-[minmax(0,auto)_1fr_auto] items-center gap-3 text-xs", className)}
+      className={cn("grid grid-cols-[minmax(0,auto)_1fr_auto] items-center gap-3 text-ui", className)}
     >
       {label !== undefined ? (
         <span className="w-12 truncate text-muted-foreground">{label}</span>
@@ -63,7 +63,7 @@ export function Meter({ value, label, readout, warnAt = 0.75, dangerAt = 0.9, cl
         />
       </span>
       {text !== null ? (
-        <span className="w-10 text-right font-mono tabular-nums text-foreground/80">{text}</span>
+        <span className="w-10 text-right tabular-nums text-foreground/80">{text}</span>
       ) : (
         <span />
       )}

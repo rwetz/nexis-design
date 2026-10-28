@@ -127,7 +127,7 @@ export function FoundationsPage() {
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-ui text-muted-foreground">
             Pills for controls (buttons, inputs, selects), 3xl for floating surfaces (menus, popovers), 2xl for panels and cards, 12px for the window itself.
           </p>
         </Demo>
@@ -143,7 +143,7 @@ export function FoundationsPage() {
               ))}
             </tbody>
           </table>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-ui text-muted-foreground">
             Arrive on <span className="font-mono">--ease-enter</span> (decelerate hard), leave on <span className="font-mono">--ease-exit</span> (accelerate away, faster). Nothing overshoots: nothing in a tool should bounce.
           </p>
         </Demo>

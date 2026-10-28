@@ -52,7 +52,7 @@ export function Pagination({
       </Button>
       {pageWindow(total, page).map((p, i) =>
         p === null ? (
-          <span key={`gap-${i}`} className="w-6 text-center text-xs text-muted-foreground">
+          <span key={`gap-${i}`} className="w-6 text-center text-ui text-muted-foreground">
             …
           </span>
         ) : (
@@ -62,7 +62,7 @@ export function Pagination({
             size="icon-sm"
             aria-current={p === page ? "page" : undefined}
             onClick={() => onChange(p)}
-            className={cn("font-mono text-xs tabular-nums", p === page && "text-foreground")}
+            className={cn("text-ui tabular-nums", p === page && "text-foreground")}
           >
             {p}
           </Button>

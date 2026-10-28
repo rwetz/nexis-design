@@ -97,7 +97,7 @@ export default function App() {
             { title: "Admin", items: [{ id: "settings", label: "Settings", icon: "settings" }] },
           ]}
           footer={
-            <div className="flex items-center gap-2 px-2 py-1 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 px-2 py-1 text-ui text-muted-foreground">
               <StatusDot tone="success" /> on call · Ryan
             </div>
           }

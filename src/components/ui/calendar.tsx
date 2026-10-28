@@ -90,7 +90,7 @@ export function Calendar({
           <Icon name="chevron-right" />
         </Button>
       </div>
-      <div role="grid" ref={gridRef} className="grid grid-cols-7 gap-0.5 text-center text-xs">
+      <div role="grid" ref={gridRef} className="grid grid-cols-7 gap-0.5 text-center text-ui">
         {heads.map((h) => (
           <span key={h} role="columnheader" className="pb-1 text-caption text-muted-foreground">
             {h}

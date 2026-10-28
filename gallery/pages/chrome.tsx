@@ -42,7 +42,7 @@ export function ChromePage() {
             center={
               <div className="relative w-full max-w-xs">
                 <Icon name="search" size="xs" className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
-                <Input className="h-7 rounded-full pl-8 text-xs" placeholder="Search" />
+                <Input className="h-7 rounded-full pl-8 text-ui" placeholder="Search" />
               </div>
             }
           />
@@ -84,7 +84,7 @@ export function ChromePage() {
           <div className="overflow-hidden rounded-xl ring-1 ring-border">
             <TitleBar controls="preview" brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />} title="Atlas" />
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-ui text-muted-foreground">
             Close hovers destructive; min and max hover neutral. The whole bar is a drag region except the controls in it.
           </p>
         </Demo>
@@ -92,7 +92,7 @@ export function ChromePage() {
           <div className="overflow-hidden rounded-xl ring-1 ring-border">
             <MacBar />
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-ui text-muted-foreground">
             In Tauri on macOS, TitleBar leaves the left 80px clear and draws no controls of its own.
           </p>
         </Demo>

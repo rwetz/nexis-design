@@ -107,7 +107,7 @@ export function DataTable<T, K extends string>({
                   aria-sort={ariaSort}
                   style={{ width: c.width }}
                   className={cn(
-                    "h-9 border-b border-border px-3 text-xs font-medium whitespace-nowrap text-muted-foreground",
+                    "h-9 border-b border-border px-3 text-ui font-medium whitespace-nowrap text-muted-foreground",
                     align(c),
                   )}
                 >
@@ -178,7 +178,7 @@ export function DataTable<T, K extends string>({
                         rowH,
                         "border-b border-border/50 px-3 whitespace-nowrap",
                         align(c),
-                        c.numeric && "font-mono text-ui tabular-nums text-foreground/85",
+                        c.numeric && "text-ui tabular-nums text-foreground/85",
                         isSel && ci === 0 && "shadow-[inset_2px_0_0_var(--brand)]",
                       )}
                     >

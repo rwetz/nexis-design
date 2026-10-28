@@ -99,7 +99,7 @@ export default function App() {
                         <Icon name={p.icon} size="lg" active={preset === p.id} />
                       </span>
                       <span className="text-sm font-medium">{p.name}</span>
-                      <span className="text-xs text-muted-foreground">{p.blurb}</span>
+                      <span className="text-ui text-muted-foreground">{p.blurb}</span>
                     </button>
                   ))}
                 </Stagger>
@@ -138,7 +138,7 @@ export default function App() {
               <>
                 <Header title={progress < 100 ? "Installing…" : "Ready"} sub={`${preset} preset · ${name || "workspace"}`} />
                 <Progress value={progress} />
-                <div className="font-mono text-xs text-muted-foreground">
+                <div className="font-mono text-ui text-muted-foreground">
                   {progress < 30 ? "creating folders" : progress < 60 ? "fetching packs" : progress < 100 ? "writing settings" : "done"}
                   <span className="tabular-nums"> · {progress}%</span>
                 </div>

@@ -83,7 +83,7 @@ export default function App() {
       <Toolbar>
         <div className="relative w-64">
           <Icon name="filter" className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
-          <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter…" className="h-8 pl-8 font-mono text-xs" />
+          <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter…" className="h-8 pl-8 font-mono text-ui" />
         </div>
         <div className="flex items-center gap-1">
           {(Object.keys(levels) as Level[]).map((l) => (

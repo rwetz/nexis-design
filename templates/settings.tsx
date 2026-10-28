@@ -132,7 +132,7 @@ export default function App() {
                   <div className="flex items-center justify-between rounded-2xl p-4 ring-1 ring-destructive/30">
                     <div className="flex flex-col">
                       <span className="text-sm font-medium">Reset all settings</span>
-                      <span className="text-xs text-muted-foreground">Every preference goes back to its default. Themes and keys too.</span>
+                      <span className="text-ui text-muted-foreground">Every preference goes back to its default. Themes and keys too.</span>
                     </div>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -300,7 +300,7 @@ export default function App() {
               <span className="text-sm">
                 {dirty.length} unsaved {dirty.length === 1 ? "change" : "changes"}
               </span>
-              <span className="text-xs text-muted-foreground">{dirty.join(", ")}</span>
+              <span className="text-ui text-muted-foreground">{dirty.join(", ")}</span>
               <span className="flex-1" />
               <Button variant="ghost" onClick={() => setDraft(saved)}>
                 Discard

@@ -70,7 +70,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="flex h-7 w-full max-w-sm items-center gap-2 rounded-full bg-muted/70 px-3 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="flex h-7 w-full max-w-sm items-center gap-2 rounded-full bg-muted/70 px-3 text-ui text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <Icon name="search" size="xs" /> <span className="flex-1 text-left">nexis-design</span>
           </button>

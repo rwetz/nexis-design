@@ -66,7 +66,7 @@ export function ChartsPage() {
               <div key={s} className="flex items-center gap-3 text-sm">
                 <span className="w-14 text-muted-foreground">{s}</span>
                 <Sparkline values={wave(24, i + 11, 40, 15, 10)} width={150} tone={s === "search" ? "brand" : "muted"} />
-                <span className="ml-auto font-mono text-xs tabular-nums">{Math.round(40 + i * 7)}ms</span>
+                <span className="ml-auto text-ui tabular-nums">{Math.round(40 + i * 7)}ms</span>
               </div>
             ))}
           </div>

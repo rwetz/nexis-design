@@ -62,7 +62,7 @@ export function Field({ label, hint, error, required, inline = false, children, 
         {note && (
           <p
             id={noteId}
-            className={cn("text-xs", error ? "text-destructive" : "text-muted-foreground")}
+            className={cn("text-ui", error ? "text-destructive" : "text-muted-foreground")}
           >
             {note}
           </p>

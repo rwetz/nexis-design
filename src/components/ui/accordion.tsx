@@ -50,7 +50,7 @@ function AccordionTrigger({
           className="text-muted-foreground transition-transform group-data-[state=open]/acc:rotate-90"
         />
         <span className="flex-1">{children}</span>
-        {meta !== undefined && <span className="text-xs font-normal text-muted-foreground">{meta}</span>}
+        {meta !== undefined && <span className="text-ui font-normal text-muted-foreground">{meta}</span>}
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   );

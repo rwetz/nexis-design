@@ -89,13 +89,13 @@ export function NumberInput({
             setDraft(null);
           }
         }}
-        className="w-full min-w-0 bg-transparent font-mono tabular-nums outline-none"
+        className="w-full min-w-0 bg-transparent tabular-nums outline-none"
         role="spinbutton"
         aria-valuenow={value}
         aria-valuemin={Number.isFinite(min) ? min : undefined}
         aria-valuemax={Number.isFinite(max) ? max : undefined}
       />
-      {suffix && <span className="mr-1 text-xs text-muted-foreground">{suffix}</span>}
+      {suffix && <span className="mr-1 text-ui text-muted-foreground">{suffix}</span>}
       <span className="flex flex-col">
         <button
           type="button"

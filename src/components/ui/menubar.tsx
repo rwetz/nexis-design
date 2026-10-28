@@ -179,7 +179,7 @@ function MenubarLabel({
       data-slot="menubar-label"
       data-inset={inset}
       className={cn(
-        "px-3.5 py-2.5 text-xs text-muted-foreground data-inset:pl-9.5",
+        "px-3.5 py-2.5 text-ui text-muted-foreground data-inset:pl-9.5",
         className
       )}
       {...props}
@@ -208,7 +208,7 @@ function MenubarShortcut({
     <span
       data-slot="menubar-shortcut"
       className={cn(
-        "ml-auto text-xs tracking-widest text-muted-foreground group-focus/menubar-item:text-accent-foreground",
+        "ml-auto text-ui tracking-widest text-muted-foreground group-focus/menubar-item:text-accent-foreground",
         className
       )}
       {...props}

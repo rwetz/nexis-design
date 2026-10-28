@@ -102,7 +102,7 @@ export function SidebarNav<Id extends string>({
                   <Icon name={item.icon} size="md" active={on} />
                   {!collapsed && <span className="flex-1 truncate text-left">{item.label}</span>}
                   {!collapsed && item.meta !== undefined && (
-                    <span className="font-mono text-caption tabular-nums text-muted-foreground">{item.meta}</span>
+                    <span className="text-caption tabular-nums text-muted-foreground">{item.meta}</span>
                   )}
                 </button>
               );

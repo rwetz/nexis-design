@@ -28,14 +28,14 @@ export function Timeline({ events, className }: { events: readonly TimelineEvent
     <ol className={cn("flex flex-col", className)}>
       {events.map((e, i) => (
         <li key={e.id} className="grid grid-cols-[3.5rem_1rem_minmax(0,1fr)] gap-x-2">
-          <span className="pt-0.5 text-right font-mono text-caption text-muted-foreground tabular-nums">{e.time}</span>
+          <span className="pt-0.5 text-right text-caption text-muted-foreground tabular-nums">{e.time}</span>
           <span className="relative flex justify-center">
             <StatusDot tone={e.tone ?? "neutral"} live={e.live} className="mt-1.5" />
             {i < events.length - 1 && <span aria-hidden className="absolute top-4 bottom-0 w-px bg-border" />}
           </span>
           <div className="flex min-w-0 flex-col pb-4">
             <span className="truncate text-body text-foreground">{e.title}</span>
-            {e.detail && <span className="truncate text-xs text-muted-foreground">{e.detail}</span>}
+            {e.detail && <span className="truncate text-ui text-muted-foreground">{e.detail}</span>}
           </div>
         </li>
       ))}

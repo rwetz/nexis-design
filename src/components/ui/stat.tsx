@@ -52,14 +52,14 @@ export function Stat({
         className,
       )}
     >
-      <span className="truncate text-xs text-muted-foreground">{label}</span>
+      <span className="truncate text-ui text-muted-foreground">{label}</span>
       <div className="flex items-end justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-1">
           <span className="truncate text-2xl leading-none font-semibold tracking-tight tabular-nums">{value}</span>
           {delta !== undefined && (
             <span
               className={cn(
-                "inline-flex items-center gap-1 text-xs tabular-nums",
+                "inline-flex items-center gap-1 text-ui tabular-nums",
                 tone === "good" && "text-success",
                 tone === "bad" && "text-destructive",
                 tone === "flat" && "text-muted-foreground",
