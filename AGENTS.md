@@ -79,6 +79,11 @@ Combine templates; every piece below is in the package.
 
 ## 2. The rules (non-negotiable)
 
+The short list. The full ruleset, with a number for every rule, the layout
+patterns, which overlay to use, the control grammar and the sizes to check
+at, is [docs/RULES.md](docs/RULES.md). Read it before building UI; where
+this list and RULES.md disagree, RULES.md wins.
+
 1. **Providers once, at the root:** `LazyMotion features={domAnimation}
    strict` → `ThemeProvider storageKey="<app>"` → `TooltipProvider`, plus
    `<Toaster />`. Import `@nexis/design/styles/globals.css` (or
@@ -87,8 +92,9 @@ Combine templates; every piece below is in the package.
    `border-border`, `bg-brand`, `text-success`. Never a hex, never Tailwind's
    stock palette (`emerald-500`): they ignore all 22 themes. Tripwired.
 3. **One accent.** `brand` (`Button variant="brand"`, `Badge variant="brand"`)
-   marks *the* primary action, the selected item, focus and live progress,
-   never decoration, never a link. `primary` is a neutral, not the accent.
+   marks *the* primary action, keyboard focus and live progress, nothing
+   else: selection is neutral (RULES R6.2, R6.3). Never decoration, never a
+   link, never a rainbow. `primary` is a neutral, not the accent.
 4. **State colours are tones:** `success` / `warning` / `info` /
    `destructive` (`Badge`, `StatusDot`, `text-success`). They are the theme's
    ANSI roles.
@@ -96,13 +102,14 @@ Combine templates; every piece below is in the package.
    for selected. Never import `@phosphor-icons/react` (or any icon library)
    directly; add a name to `src/icon/icon.tsx` if the idea has none.
    **No emoji, anywhere.** Both tripwired.
-6. **Type:** Geist by default; `font-mono` for code, ids and numbers in
-   tables (with `tabular-nums`); `font-heading` (Space Grotesk) only for
-   titles, empty states and big numbers, never below ~13px.
-   Sizes below 14px come from the scale: `text-micro` (10px, badges, key
-   chips), `text-caption` (11px, metadata, status bar), `text-ui` (12px,
-   rows, lists, menus) and `text-body` (13px, prose). Never `text-[11px]`;
-   above 13px use `text-sm`/`lg`/`xl`. Tripwired.
+6. **Type:** one face for everything a person reads (RULES R1: Inter,
+   replacing Geist and Space Grotesk; until that lands, Geist).
+   `font-mono` only for code, paths and ids, never numbers: numbers are the
+   sans with `tabular-nums`, right-aligned in a fixed slot. Sizes below 14px
+   come from the scale: `text-micro` (10px), `text-caption` (11px),
+   `text-ui` (12px) and `text-body` (13px); never `text-[11px]` or
+   `text-xs`. Every size scales with the interface scale (RULES R2).
+   Tripwired.
 7. **Motion marks events.** Use the moments (`SceneEnter`, `ResultArrival`,
    `AuroraBorder`, …) and the house tokens; never `animate-spin` (use
    `Spinner`), never `animate-pulse` for status (use `StatusDot live`). Live

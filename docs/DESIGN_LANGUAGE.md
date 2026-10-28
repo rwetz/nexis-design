@@ -9,6 +9,11 @@
 > **Scope:** Tauri v2 webview apps on React 19 + Tailwind v4. Native GPUI
 > apps are the [Ferrite](https://github.com/rwetz/ferrite-design) family:
 > same rules, different look (§1).
+>
+> **The rules themselves are in [RULES.md](RULES.md)**, numbered and
+> rigid. This file describes the look; where it and RULES.md disagree (the
+> rainbow in §2.6, the three faces in §3, the accent on selected items),
+> RULES.md is the target and this file describes code that is changing.
 
 ---
 
