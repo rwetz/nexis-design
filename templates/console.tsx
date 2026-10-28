@@ -125,7 +125,7 @@ export default function App() {
               <span className="w-16 shrink-0 text-muted-foreground tabular-nums">{l.t}</span>
               <span className={cn("w-11 shrink-0 uppercase", LEVEL_CLASS[l.level])}>{l.level}</span>
               <span className="w-14 shrink-0 truncate text-muted-foreground">{l.src}</span>
-              <span className={cn("truncate", l.src === "you" && "text-brand")}>{l.msg}</span>
+              <span className={cn("truncate", l.src === "you" && "font-medium text-foreground")}>{l.msg}</span>
             </div>
           );
         }}
@@ -138,7 +138,7 @@ export default function App() {
         }}
         className="flex h-11 shrink-0 items-center gap-2 border-t border-border/60 px-4"
       >
-        <span className="font-mono text-sm text-brand">›</span>
+        <span className="font-mono text-sm text-muted-foreground">›</span>
         <input
           value={cmd}
           onChange={(e) => setCmd(e.target.value)}

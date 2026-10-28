@@ -267,10 +267,11 @@ Tripwired (exists).
 
 **R6.2 The accent marks three things.** `brand` is for: the one primary
 action on a screen (`Button variant="brand"`), the keyboard focus ring, and
-live progress (a running export, a meter filling). Nothing else. Not
-selected tabs, nav items, cards or rows; not links; not decoration; not
-"edited" markers. **(planned)** `SidebarNav`'s rail, `Segmented`'s thumb
-and the selected-card ring move to neutral.
+live progress (a running export, a meter filling), plus a chart's main data
+series. Nothing else. Not selected tabs, nav items, cards or rows; not
+links; not decoration; not "edited" or "unsaved" markers. Tripwired: no
+`ring-brand`, `border-brand`, `bg-brand/N` tints or brand bars outside
+`Badge`'s brand variant and the brand button.
 
 **R6.3 Selection is neutral.** A selected tab, nav item, row or card gets
 `bg-muted` (or `ring-2 ring-foreground/60` for a thumbnail) and full
@@ -279,8 +280,8 @@ coloured bar.
 
 **R6.4 No rainbow, no gradients on UI.** Text and icons are one flat token
 colour. No per-category colours, no hover gradients, no aurora borders in
-chrome. **(planned)** `rainbowAccent`, `RainbowDefs` and `AuroraBorder`
-leave the package (Nexis keeps its own copy). Tripwired.
+chrome. `rainbowAccent`, `RainbowDefs` and `AuroraBorder` are gone from the
+package (Nexis keeps its own copy). Tripwired.
 
 **R6.5 Status is a tone.** `success` / `warning` / `destructive` / `info`
 mean status and nothing else. An "edited" marker is a neutral dot

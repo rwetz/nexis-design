@@ -1,6 +1,5 @@
 import * as React from "react";
 import {
-  AuroraBorder,
   Blink,
   Button,
   Icon,
@@ -12,9 +11,6 @@ import {
   Spinner,
   Stagger,
   ThoughtLine,
-  useTheme,
-  DEFAULT_THEME_ID,
-  Textarea,
   ViewEnter,
 } from "@nexis/design";
 import { Demo, Grid, Page } from "../kit";
@@ -34,7 +30,6 @@ function Curve({ d, label, color }: { d: string; label: string; color: string })
 export function MotionPage() {
   const [n, setN] = React.useState(0);
   const [range, setRange] = React.useState<"1h" | "24h" | "7d" | "30d">("24h");
-  const t = useTheme();
   return (
     <Page
       title="Motion"
@@ -133,28 +128,8 @@ export function MotionPage() {
             </div>
           </RunLive>
         </Demo>
-        <Demo title="Aurora" meta={t.themeId === DEFAULT_THEME_ID && t.rainbowAccent ? "full spectrum on Nexis Default" : "the theme's accent"}>
-          <AuroraBorder className="rounded-2xl">
-            <Textarea rows={2} placeholder="Ask about this workspace…" className="rounded-2xl bg-card" />
-          </AuroraBorder>
-        </Demo>
       </Grid>
 
-      <Demo title="Rainbow hover" meta="Nexis Default only · hover the ghost buttons">
-        <div className="flex flex-wrap items-center gap-2">
-          {(["search", "git-branch", "terminal", "debug", "settings"] as const).map((i) => (
-            <Button key={i} variant="ghost" size="sm">
-              <Icon name={i} /> {i.replace("-", " ")}
-            </Button>
-          ))}
-          <Button variant="ghost" size="sm">
-            Text only
-          </Button>
-        </div>
-        <p className="text-ui text-muted-foreground">
-          The default theme is the one neutral palette, so its hover lights the glyph (or the label) with one of four rotating gradients. Every other theme's accent is its identity, so it never gets one; high contrast turns it off.
-        </p>
-      </Demo>
     </Page>
   );
 }

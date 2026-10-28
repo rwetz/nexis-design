@@ -6,7 +6,7 @@ import { ThemeProvider, TooltipProvider, Toaster } from "@nexis/design";
 import { Gallery } from "./Gallery";
 
 // URL overrides, so a screenshot or a shared link can pin the look:
-//   ?theme=aurelian&mode=light&contrast=high&rainbow=0
+//   ?theme=aurelian&mode=light&contrast=high
 // They are written into the provider's storage before it mounts, which is
 // exactly what a returning user's stored preferences look like.
 const q = new URLSearchParams(location.search);
@@ -15,7 +15,6 @@ for (const [param, key] of [
   ["theme", "theme"],
   ["mode", "mode"],
   ["contrast", "contrast"],
-  ["rainbow", "rainbow"],
 ] as const) {
   const v = q.get(param);
   if (v !== null) localStorage.setItem(`${KEY}:${key}`, v);

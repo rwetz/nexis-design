@@ -6,7 +6,7 @@ import * as React from "react";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
   Alert, AlertDescription, AlertTitle,
-  AuroraBorder, Avatar, Badge, BarChart, Button, CallChip, Calendar, Checkbox,
+  Avatar, Badge, BarChart, Button, CallChip, Calendar, Checkbox,
   type Column, CommandPalette, DataTable, DatePicker, dates,
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuSub,
   DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
@@ -154,7 +154,6 @@ export function Cheatsheet() {
       <ViewEnter replayKey={page}>…</ViewEnter>
       <ContentEnter replayKey={page}>…</ContentEnter>
       <ResultArrival>48.2 tok/s</ResultArrival>
-      <AuroraBorder active className="rounded-2xl"><Input /></AuroraBorder>
     </div>
   );
 }

@@ -113,6 +113,19 @@ describe("design rules", () => {
     expect(offenders(EVERYTHING, /\bfont-(?:thin|extralight|light|bold|extrabold|black)\b/)).toEqual([]);
   });
 
+  it("the accent marks the primary action, focus and live progress, not selection (RULES R6.2, R6.3)", () => {
+    // Selected tabs, rows, cards and nav items wore coral rings, tints and
+    // bars, so the accent stopped meaning "do this". Selection is bg-muted
+    // and full-strength text. Badge's brand variant and the brand button's
+    // own hover are the only tints allowed.
+    const TINT = /\b(?:ring|border|outline)-brand\b|\bbg-brand\/\d+|inset_[^\]]*var\(--brand\)/;
+    expect(offenders(SHIPPED, TINT, (rel) => rel === "src/components/ui/badge.tsx" || rel === "src/components/ui/button.tsx")).toEqual([]);
+  });
+
+  it("no rainbow, aurora or gradient text in the family (RULES R6.4)", () => {
+    expect(offenders(EVERYTHING, /rainbow|aurora|bg-clip-text/i, (_rel, line) => /^\s*(\/\/|\*)/.test(line))).toEqual([]);
+  });
+
   it("layout keeps to the 4px grid: no half steps in templates (RULES R3.1)", () => {
     // Half steps (6px, 10px) belong inside a control's own markup; layout
     // that uses them drifts off the grid one call site at a time.

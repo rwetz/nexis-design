@@ -22,7 +22,6 @@ import {
   useTheme,
   type TreeNode,
   ThoughtLine,
-  AuroraBorder,
   Textarea,
 } from "@nexis/design";
 import { wave } from "../data";
@@ -154,9 +153,7 @@ export function OverviewPage() {
           />
         </Panel>
         <Panel title="Assistant" meta={<span className="inline-flex items-center gap-1.5"><ThoughtLine /> thinking</span>}>
-          <AuroraBorder className="rounded-2xl">
-            <Textarea rows={3} placeholder="Ask about this workspace…" className="rounded-2xl bg-card" />
-          </AuroraBorder>
+                      <Textarea rows={3} placeholder="Ask about this workspace…" className="rounded-2xl bg-card" />
           <div className="mt-3 flex items-center justify-between text-ui text-muted-foreground">
             <span>{fmtShortcut(MOD_KEY, "↵")} to send</span>
             <span>{t.resolvedMode === "dark" ? "Dark" : "Light"} · {themes.find((x) => x.id === t.themeId)?.name}</span>

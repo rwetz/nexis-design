@@ -54,15 +54,6 @@ export function RunLive({ active = true, className, ...props }: React.ComponentP
   return <div className={cn(active && "nexis-run-live", className)} {...props} />;
 }
 
-/**
- * The aurora: the accent traced around an element's edge while something is
- * streaming. On the default theme with the rainbow accent on, it is the full
- * spectrum. Give the wrapper the same radius as its content.
- */
-export function AuroraBorder({ active = true, className, ...props }: React.ComponentProps<"div"> & { active?: boolean }) {
-  return <div className={cn(active && "aurora-border", className)} {...props} />;
-}
-
 /** Caret-cadence blink for an inline live marker. */
 export function Blink({ className, ...props }: React.ComponentProps<"span">) {
   return <span className={cn("nexis-blink", className)} {...props} />;

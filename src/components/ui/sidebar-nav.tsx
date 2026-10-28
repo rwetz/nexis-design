@@ -74,7 +74,6 @@ export function SidebarNav<Id extends string>({
       >
         <RailIndicator rail={rail} rect={rail.hoverRect} radius={10} className="inset-x-2 bg-sidebar-accent/70" />
         <RailIndicator rail={rail} rect={rail.activeRect} radius={10} className="inset-x-2 bg-sidebar-accent" />
-        <RailIndicator rail={rail} rect={rail.activeRect} radius={2} className="left-2 w-[3px] bg-brand" />
         {sections.map((section, si) => (
           <React.Fragment key={section.title ?? si}>
             {section.title && !collapsed && (

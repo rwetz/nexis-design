@@ -204,11 +204,10 @@ export default function App() {
                           <button
                             key={t.id}
                             type="button"
-                            data-no-rainbow
                             onClick={() => theme.setThemeId(t.id)}
                             className={cn(
                               "flex items-center gap-2 rounded-xl px-3 py-2 text-left text-body ring-1 transition-colors",
-                              theme.themeId === t.id ? "bg-brand/10 ring-brand" : "ring-border hover:bg-muted",
+                              theme.themeId === t.id ? "bg-muted ring-2 ring-foreground/60" : "ring-border hover:bg-muted",
                             )}
                           >
                             <span
@@ -314,7 +313,7 @@ export default function App() {
           </div>
           {dirty.length > 0 && (
             <footer className="nexis-scene-enter flex h-14 shrink-0 items-center gap-3 border-t border-border/60 bg-sidebar/60 px-10">
-              <span className="size-2 rounded-full bg-brand" />
+              <span className="size-2 rounded-full bg-foreground/60" />
               <span className="text-sm">
                 {dirty.length} unsaved {dirty.length === 1 ? "change" : "changes"}
               </span>

@@ -18,8 +18,6 @@ export {
   migrateThemeId,
 } from "./themes";
 export { getFolderColor } from "./folderColor";
-export { RainbowDefs } from "./RainbowDefs";
-export { installRainbowAccent, RAINBOW_VARIANTS } from "./rainbowAccent";
 export {
   INTERFACE_SCALES,
   autoInterfaceScale,

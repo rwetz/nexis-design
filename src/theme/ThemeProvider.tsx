@@ -9,7 +9,7 @@
  *
  * Tracks Nexis's `modules/theme/ThemeProvider.tsx` feature for feature —
  * theme id + light/dark/system mode, high contrast on top of any theme, the
- * default theme's rainbow hover accent, the palette epoch for canvas readers,
+ * interface scale (RULES R2), the palette epoch for canvas readers,
  * and the View Transition crossfade — with one difference: Nexis persists
  * through its own settings store, which no other app has. Here persistence is
  * `localStorage` under `storageKey`, and an app that keeps preferences
@@ -29,9 +29,7 @@ import {
 import { flushSync } from "react-dom";
 import { IS_LINUX } from "../lib/platform";
 import { applyTheme, clearTheme } from "./applyTheme";
-import { RainbowDefs } from "./RainbowDefs";
 import { autoInterfaceScale, type InterfaceScale, type InterfaceSize, parseInterfaceSize, stepInterfaceScale } from "./interfaceScale";
-import { installRainbowAccent } from "./rainbowAccent";
 import { getBuiltinTheme, getDefaultTheme, migrateThemeId } from "./themes";
 import { DEFAULT_THEME_ID, type Theme } from "./types";
 
@@ -99,7 +97,6 @@ export type ThemePrefs = {
   mode: ThemeModePref;
   themeId: string;
   contrast: ContrastPref;
-  rainbowAccent: boolean;
   interfaceSize: InterfaceSize;
 };
 
@@ -134,7 +131,6 @@ export type ThemeProviderState = {
   contrast: ContrastPref;
   /** High contrast is in effect (the preference, or the OS under "system"). */
   highContrast: boolean;
-  rainbowAccent: boolean;
   customThemes: Theme[];
   /**
    * Bumped once the theme's CSS variables are actually on the document.
@@ -150,7 +146,6 @@ export type ThemeProviderState = {
   setMode: (mode: ThemeModePref) => void;
   setThemeId: (id: string) => void;
   setContrast: (contrast: ContrastPref) => void;
-  setRainbowAccent: (on: boolean) => void;
   /** The user's interface size: Auto (follows the window) or a fixed step. */
   interfaceSize: InterfaceSize;
   /** The scale in effect now, Auto resolved against the window's width. */
@@ -180,7 +175,6 @@ export function ThemeProvider({
     mode: `${storageKey}:mode`,
     theme: `${storageKey}:theme`,
     contrast: `${storageKey}:contrast`,
-    rainbow: `${storageKey}:rainbow`,
     size: `${storageKey}:ui-size`,
   };
 
@@ -195,7 +189,6 @@ export function ThemeProvider({
     const v = read(K.contrast);
     return isContrastPref(v) ? v : "system";
   });
-  const [rainbowAccent, setRainbowState] = useState<boolean>(() => read(K.rainbow) !== "0");
   const [systemHighContrast, setSystemHighContrast] = useState(readSystemHighContrast);
   const [systemDark, setSystemDark] = useState<boolean>(() =>
     typeof window === "undefined"
@@ -269,21 +262,6 @@ export function ThemeProvider({
     return () => root.removeAttribute("data-contrast");
   }, [highContrast]);
 
-  // Only the default theme has a rainbow accent — every other theme's accent
-  // is its identity — and high contrast turns it off. Gating the install
-  // means a disabled setting costs nothing: no listener, no paint servers.
-  const rainbowActive = rainbowAccent && theme.id === DEFAULT_THEME_ID && !highContrast;
-  useEffect(() => {
-    if (!rainbowActive) return;
-    const root = document.documentElement;
-    root.setAttribute("data-rainbow-accent", "");
-    const stop = installRainbowAccent();
-    return () => {
-      root.removeAttribute("data-rainbow-accent");
-      stop();
-    };
-  }, [rainbowActive]);
-
   // Auto follows the window's CSS width. The scale is the root font size, so
   // applying it never changes innerWidth and can't feed back on itself.
   useEffect(() => {
@@ -300,11 +278,11 @@ export function ThemeProvider({
   }, [interfaceScale]);
 
   useEffect(() => {
-    onChange?.({ mode, themeId, contrast, rainbowAccent, interfaceSize });
+    onChange?.({ mode, themeId, contrast, interfaceSize });
     // onChange is deliberately not a dependency: an inline arrow would fire
     // this on every render of the parent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, themeId, contrast, rainbowAccent, interfaceSize]);
+  }, [mode, themeId, contrast, interfaceSize]);
 
   const setMode = useCallback(
     (next: ThemeModePref) => {
@@ -328,14 +306,6 @@ export function ThemeProvider({
       write(K.contrast, next);
     },
     [K.contrast],
-  );
-
-  const setRainbowAccent = useCallback(
-    (on: boolean) => {
-      setRainbowState(on);
-      write(K.rainbow, on ? "1" : "0");
-    },
-    [K.rainbow],
   );
 
   const setInterfaceSize = useCallback(
@@ -372,13 +342,11 @@ export function ThemeProvider({
       theme,
       contrast,
       highContrast,
-      rainbowAccent,
       customThemes,
       paletteEpoch,
       setMode,
       setThemeId,
       setContrast,
-      setRainbowAccent,
       interfaceSize,
       interfaceScale,
       setInterfaceSize,
@@ -390,13 +358,11 @@ export function ThemeProvider({
       theme,
       contrast,
       highContrast,
-      rainbowAccent,
       customThemes,
       paletteEpoch,
       setMode,
       setThemeId,
       setContrast,
-      setRainbowAccent,
       interfaceSize,
       interfaceScale,
       setInterfaceSize,
@@ -405,7 +371,6 @@ export function ThemeProvider({
 
   return (
     <ThemeProviderContext.Provider value={value}>
-      {rainbowActive ? <RainbowDefs /> : null}
       {children}
     </ThemeProviderContext.Provider>
   );

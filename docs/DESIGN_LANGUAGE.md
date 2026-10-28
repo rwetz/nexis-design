@@ -12,7 +12,6 @@
 >
 > **The rules themselves are in [RULES.md](RULES.md)**, numbered and
 > rigid. This file describes the look; where it and RULES.md disagree (the
-> rainbow in §2.6, the three faces in §3, the accent on selected items),
 > RULES.md is the target and this file describes code that is changing.
 
 ---
@@ -46,7 +45,7 @@ replacing its *look*. The table is the clearest statement of what is a rule
 | Tripwire tests on invariants | contrast floors, icon/emoji/colour guards | contrast, glyph coverage |
 | Corners | one `--radius`, pills for controls | 0px |
 | Depth | surface steps + hairlines; glass blur where floating | lines and surface steps only |
-| Texture | `.aurora-border`, `.brand-glow`, area gradients | ordered dither |
+| Texture | `.brand-glow`, area gradients in charts | ordered dither |
 
 ---
 
@@ -82,8 +81,9 @@ the same over any surface.
 surface exists to perform, the selected item, focus and live progress,
 never decoration, never a link.** On the default theme it is coral; on every
 other theme `applyTheme` points it at the theme's `ring` (falling back to
-`primary`), so the whole accent system: the gliding rail, the aurora, the
-chart's main series, the selected row's bar: re-tints with the theme.
+`primary`), so the whole accent system: primary buttons, focus rings, live
+progress and the chart's main series: re-tints with the theme. Selection is
+neutral, never the accent (RULES R6.3).
 
 `primary` is *not* the accent in Nexis: on the default theme it is a
 near-black/near-white neutral, the high-contrast button for ordinary
@@ -126,17 +126,15 @@ are declared on **`body`**, not `:root`, themes write their palette as inline
 properties on `<html>`, which no stylesheet rule on `:root` can beat; custom
 properties inherit, so `body` wins for everything including portals. It works
 on top of every theme: muted text, borders and focus close toward the
-foreground; the rainbow and the background layer switch off.
+foreground; the background layer switches off.
 
-### 2.6 The default theme's rainbow
+### 2.6 No rainbow
 
-The default theme is the one neutral palette, so its hover lights the glyph
-(or a text-only label) with one of four rotating gradients
-(`theme/rainbowAccent.ts` decides; `globals.css` paints). Only on the default
-theme, only on neutral-hover buttons (not primary, destructive, rows, menu
-items or trees), off under high contrast, and on the aurora it becomes the
-full spectrum. Every other theme's accent *is* its identity and must not be
-overpainted.
+There was one: on the default theme, hovering a neutral button lit its glyph
+with a rotating gradient, and the aurora border went full spectrum. It's gone
+from the family (RULES R6.4): text and icons are one flat token colour, and
+no category, hover or border gets its own hue. Nexis keeps its own copy for
+itself.
 
 ### 2.7 Reading colours from JS
 
@@ -255,8 +253,7 @@ exit curve.
   state.
 - Moments (`components/motion.tsx`): `<SceneEnter>` (a scene arrives once),
   `<Stagger>` (setup cards, 70ms apart), `<ResultArrival>` (one accent flash
-  when a result lands), `<RunLive>` (a long run's slow scan), `<AuroraBorder>`
-  (the accent traced round an element while the agent streams),
+  when a result lands), `<RunLive>` (a long run's slow scan, or a reply streaming),
   `<ViewEnter>` (a page, workspace or tab body switched to: fade up, 260ms)
   and `<ContentEnter>` (content landing after a load: a plain fade, 220ms).
 - App shells (from Epoch): `.nexis-shell-header`, `.nexis-shell-body`,
@@ -364,7 +361,7 @@ The catalogue is [COMPONENTS.md](COMPONENTS.md).
   absence of overrides (globals.css shows through), which is why its palette
   lives in the stylesheet.
 - `ThemeProvider` resolves `light | dark | system` (live), the theme id
-  (builtin or `customThemes`), contrast and the rainbow; persists to
+  (builtin or `customThemes`), contrast and the interface scale; persists to
   `localStorage` under `storageKey`; exposes `paletteEpoch`. An app that
   stores preferences elsewhere passes `onChange`.
 - Retired ids map to survivors in `migrateThemeId`, so removing a theme never

@@ -35,7 +35,7 @@ with the theme, mode and command palette in the title bar:
 | --- | --- |
 | ![Toasts on the house surfaces](docs/img/components-toasts.png) | ![Layout: resizable splits, scroll area, card (Tokyo Night)](docs/img/components-layout.png) |
 
-![Motion, caught mid-frame: a stagger arriving, a result landing, the aurora around the composer](docs/img/motion-midframe.png)
+![Motion, caught mid-frame: a stagger arriving, a result landing, a live run](docs/img/motion-midframe.png)
 
 **Twenty-two themes**: seventeen Nexis palettes generated from one OKLCH
 ramp, five credited community ones, each light and dark, every one held to
@@ -81,10 +81,10 @@ toolkit, and it does not try to.
 
 | | |
 |---|---|
-| `theme/` | 22 themes (17 generated Nexis palettes + 5 community), `applyTheme`, and `ThemeProvider` / `useTheme`: light/dark/system, high contrast on top of any theme, the default theme's rainbow hover, the palette epoch, a View Transition crossfade (hard cut on Linux). |
+| `theme/` | 22 themes (17 generated Nexis palettes + 5 community), `applyTheme`, and `ThemeProvider` / `useTheme`: light/dark/system, high contrast on top of any theme, the interface scale, the palette epoch, a View Transition crossfade (hard cut on Linux). |
 | `styles/` | `globals.css`: OKLCH tokens, status tones that follow the theme, the motion tokens and classes, chrome, scrollbars, cursors, high contrast; `globals.ide.css` adds xterm/CodeMirror; `fonts.css` (Inter, Geist Mono); `tokens.ts` to read colours back for canvas/WebGL. |
 | `components/ui/` | ~70 components: controls, forms, overlays, command palette, navigation, data (table, tree, virtual list), charts, feedback, layout ([COMPONENTS.md](docs/COMPONENTS.md)). |
-| `components/` | Chrome (`TitleBar`, `StatusBar`, `WindowControls`, `WindowResizeEdges`) and the motion moments (`SceneEnter`, `ResultArrival`, `AuroraBorder`, …). |
+| `components/` | Chrome (`TitleBar`, `StatusBar`, `WindowControls`, `WindowResizeEdges`) and the motion moments (`SceneEnter`, `ResultArrival`, `RunLive`, …). |
 | `icon/` | `<Icon name="…" />`: 172 semantic names over Phosphor, five sizes, weight as state. The only module allowed to import an icon vendor. |
 | `lib/` | Platform facts and key labels, the motion constants, fuzzy matching, sorting, calendar dates, formatting. |
 | `assets/cursors/` | The "Tailless Smooth" cursor set, 29 PNGs. |
@@ -157,6 +157,17 @@ docs/RULES.md lands in steps; each changes what an app must do:
   `font-heading` is gone: a title is `text-lg font-semibold`, a big figure
   `text-2xl font-semibold tabular-nums`. Numbers are the sans with
   `tabular-nums`, not `font-mono`.
+
+- **Colour (R6).** The rainbow is gone: `rainbowAccent`,
+  `setRainbowAccent`, `RainbowDefs`, `installRainbowAccent` and
+  `AuroraBorder` no longer exist (use `RunLive` where the aurora marked a
+  stream), and `data-no-rainbow` does nothing. Selection is neutral: replace
+  `ring-brand` / `bg-brand/10` on selected items with `bg-muted` (and
+  `ring-2 ring-foreground/60` for a selected card).
+- **Interface scale (R2).** `ThemeProvider` now scales the whole UI with the
+  window; add the Interface size setting (see the settings template).
+- **Space and chrome (R3).** `TitleBar` and `Panel` headers are 48px; use
+  the named spaces (`px-gutter`, `gap-group`) for layout.
 
 ## Upgrading from 0.1
 

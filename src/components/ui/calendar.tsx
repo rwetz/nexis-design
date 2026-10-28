@@ -134,8 +134,8 @@ export function Calendar({
                 "grid h-8 place-items-center rounded-full tabular-nums transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
                 outside ? "text-muted-foreground/45" : "text-foreground",
                 !isSel && !disabled && "hover:bg-muted",
-                isToday && !isSel && "ring-1 ring-brand/60 ring-inset",
-                isSel && "bg-brand font-medium text-brand-foreground",
+                isToday && !isSel && "ring-1 ring-foreground/40 ring-inset",
+                isSel && "bg-foreground font-medium text-background",
                 disabled && "cursor-not-allowed opacity-35",
               )}
             >

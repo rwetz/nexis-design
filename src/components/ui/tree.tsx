@@ -11,10 +11,6 @@
  * lists, so keyboard movement is index arithmetic and a 2,000-node tree is one
  * loop. WAI-ARIA tree semantics: Up/Down move, Right opens or steps in, Left
  * closes or steps out, Enter/Space selects, Home/End jump.
- *
- * Rows sit under `role="tree"`, which also keeps the default theme's rainbow
- * hover off them (rainbowAccent.ts excludes trees — a tint across a file name
- * erases the file-type colour).
  */
 
 import * as React from "react";
@@ -151,7 +147,7 @@ export function Tree({ nodes, expanded, onExpandedChange, selected, onSelect, la
                 <Icon name="chevron-right" size={10} className={cn("transition-transform", open && "rotate-90")} />
               )}
             </span>
-            <Icon name={icon} className={cn(f.hasChildren ? "text-brand/80" : "text-muted-foreground")} active={isSel && !f.hasChildren} />
+            <Icon name={icon} className="text-muted-foreground" active={isSel && !f.hasChildren} />
             <span className="flex-1 truncate">{f.node.label}</span>
             {f.node.meta !== undefined && <span className="text-caption text-muted-foreground">{f.node.meta}</span>}
           </div>

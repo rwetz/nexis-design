@@ -80,8 +80,8 @@ export function applyTheme(theme: Theme, mode: ThemeMode): void {
   for (const v of ALL_VARS) root.style.removeProperty(v);
   if (colors) {
     writeColors(root, colors);
-    // Make the brand-accent system (the sliding tab indicator, the composer
-    // aurora, the active-pane glow — everything keyed off --brand) take on the
+    // Make the brand-accent system (primary buttons, focus rings, live
+    // progress, the active-pane glow — everything keyed off --brand) take on the
     // theme's signature colour so it coincides with the theme. `ring` is the
     // vivid accent across themes (Tokyo Night's primary is a washed lavender,
     // its ring the blue); primary is the fallback. The default Nexis theme

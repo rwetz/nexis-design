@@ -125,7 +125,7 @@ export function DataTable<T, K extends string>({
                       <Icon
                         name={active && sort!.dir === "desc" ? "chevron-down" : "chevron-up"}
                         size="xs"
-                        className={cn(active ? "text-brand" : "opacity-0 group-hover/sort:opacity-40")}
+                        className={cn(active ? "text-foreground" : "opacity-0 group-hover/sort:opacity-40")}
                       />
                     </button>
                   ) : (
@@ -166,10 +166,10 @@ export function DataTable<T, K extends string>({
                 className={cn(
                   "outline-none focus-visible:bg-muted/70",
                   onSelect && "cursor-pointer",
-                  isSel ? "bg-brand/10" : onSelect && "hover:bg-muted/50",
+                  isSel ? "bg-muted" : onSelect && "hover:bg-muted/50",
                 )}
               >
-                {columns.map((c, ci) => {
+                {columns.map((c) => {
                   const v = c.value ? c.value(row) : (row as Record<string, unknown>)[c.key];
                   return (
                     <td
@@ -179,7 +179,6 @@ export function DataTable<T, K extends string>({
                         "border-b border-border/50 px-3 whitespace-nowrap",
                         align(c),
                         c.numeric && "text-ui tabular-nums text-foreground/85",
-                        isSel && ci === 0 && "shadow-[inset_2px_0_0_var(--brand)]",
                       )}
                     >
                       {c.cell ? c.cell(row) : v === null || v === undefined ? "" : String(v)}

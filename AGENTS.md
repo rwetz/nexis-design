@@ -51,7 +51,7 @@ Combine templates; every piece below is in the package.
 
 - **Chat / messaging**: `workbench` shell: `SidebarNav` of channels (unread
   counts as `meta`) → a `VirtualList` of messages (`Avatar` + name + body) →
-  a `Textarea` composer pinned at the bottom; `AuroraBorder` round it while a
+  a `Textarea` composer pinned at the bottom; `RunLive` round it while a
   reply streams, `ThoughtLine` in the header. No animation per message.
 - **File manager**: `explorer`'s toolbar + `Breadcrumb` path + a resizable
   split with a `Tree` of folders and a `DataTable` of entries; `ContextMenu`
@@ -69,7 +69,7 @@ Combine templates; every piece below is in the package.
   resource, a process `DataTable` (`density="compact"`), `Heatmap` of load by
   hour.
 - **AI assistant panel**: `CommandPalette` + a `Sheet` or split pane;
-  `AuroraBorder` on the composer while streaming, `ThoughtLine` for
+  `RunLive` on the composer while streaming, `ThoughtLine` for
   reasoning, `CallChip` for a long agent run, `ResultArrival` when a result
   lands.
 - **Kanban / tracker**: `explorer` data + columns of `Panel`s with `Item`
@@ -94,7 +94,7 @@ this list and RULES.md disagree, RULES.md wins.
 3. **One accent.** `brand` (`Button variant="brand"`, `Badge variant="brand"`)
    marks *the* primary action, keyboard focus and live progress, nothing
    else: selection is neutral (RULES R6.2, R6.3). Never decoration, never a
-   link, never a rainbow. `primary` is a neutral, not the accent.
+   link, never a gradient. `primary` is a neutral, not the accent.
 4. **State colours are tones:** `success` / `warning` / `info` /
    `destructive` (`Badge`, `StatusDot`, `text-success`). They are the theme's
    ANSI roles.
@@ -111,7 +111,7 @@ this list and RULES.md disagree, RULES.md wins.
    `text-xs`. Every size scales with the interface scale (RULES R2).
    Tripwired.
 7. **Motion marks events.** Use the moments (`SceneEnter`, `ResultArrival`,
-   `AuroraBorder`, …) and the house tokens; never `animate-spin` (use
+   `RunLive`, …) and the house tokens; never `animate-spin` (use
    `Spinner`), never `animate-pulse` for status (use `StatusDot live`). Live
    data never animates (`StatusItem live`, `Meter`, charts redraw in place).
    Import `m`, never `motion.*`.
@@ -235,7 +235,7 @@ const columns: Column<Row, "name" | "rps">[] = [
 
 // Framing, motion
 <Panel title="Services" meta="8" actions={…} flush>…</Panel>   <SectionLabel>Danger zone</SectionLabel>
-<SceneEnter replayKey={k}>   <ViewEnter replayKey={page}>   <ContentEnter replayKey={id}>   <Stagger>   <ResultArrival>   <RunLive active>   <AuroraBorder active className="rounded-2xl">
+<SceneEnter replayKey={k}>   <ViewEnter replayKey={page}>   <ContentEnter replayKey={id}>   <Stagger>   <ResultArrival>   <RunLive active>
 
 // Theme
 const t = useTheme();  t.setThemeId("aurelian");  t.setMode("light|dark|system");  t.setContrast("high");  t.paletteEpoch

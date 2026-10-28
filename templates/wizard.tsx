@@ -88,14 +88,13 @@ export default function App() {
                     <button
                       key={p.id}
                       type="button"
-                      data-no-rainbow
                       onClick={() => setPreset(p.id)}
                       className={cn(
                         "flex flex-col items-start gap-3 rounded-2xl p-4 text-left ring-1 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                        preset === p.id ? "bg-brand/8 ring-brand" : "ring-border hover:bg-muted/60",
+                        preset === p.id ? "bg-muted ring-2 ring-foreground/60" : "ring-border hover:bg-muted/60",
                       )}
                     >
-                      <span className={cn("grid size-10 place-items-center rounded-xl", preset === p.id ? "bg-brand text-brand-foreground" : "bg-muted")}>
+                      <span className={cn("grid size-10 place-items-center rounded-xl", preset === p.id ? "bg-foreground text-background" : "bg-muted")}>
                         <Icon name={p.icon} size="lg" active={preset === p.id} />
                       </span>
                       <span className="text-sm font-medium">{p.name}</span>
@@ -116,11 +115,10 @@ export default function App() {
                       <button
                         key={t.id}
                         type="button"
-                        data-no-rainbow
                         onClick={() => theme.setThemeId(t.id)}
                         className={cn(
                           "flex items-center gap-2 rounded-xl px-3 py-3 text-left text-body ring-1",
-                          theme.themeId === t.id ? "bg-brand/10 ring-brand" : "ring-border hover:bg-muted",
+                          theme.themeId === t.id ? "bg-muted ring-2 ring-foreground/60" : "ring-border hover:bg-muted",
                         )}
                       >
                         <span

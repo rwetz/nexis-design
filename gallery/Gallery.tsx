@@ -5,7 +5,6 @@ import * as React from "react";
 import {
   Button,
   CommandPalette,
-  DEFAULT_THEME_ID,
   fmtShortcut,
   Icon,
   type IconName,
@@ -311,9 +310,6 @@ export function Gallery() {
               {theme.resolvedMode === "dark" ? "Dark" : "Light"}
             </StatusItem>
             {theme.highContrast && <StatusItem icon="contrast">High contrast</StatusItem>}
-            {theme.themeId === DEFAULT_THEME_ID && theme.rainbowAccent && !theme.highContrast && (
-              <StatusItem icon="sparkle">Rainbow hover</StatusItem>
-            )}
           </>
         }
         right={

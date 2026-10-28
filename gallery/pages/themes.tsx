@@ -46,7 +46,6 @@ function Swatch({ theme, mode, active, onPick }: { theme: Theme; mode: "light" |
       onClick={onPick}
       style={scopedVars(theme, mode)}
       aria-pressed={active}
-      data-no-rainbow
       className={cn(
         "group/sw flex flex-col overflow-hidden rounded-2xl bg-background text-left text-foreground ring-1 ring-foreground/10 transition-shadow outline-none focus-visible:ring-2 focus-visible:ring-ring",
         active && "ring-2 ring-brand",
@@ -118,10 +117,6 @@ export function ThemesPage() {
         <div className="flex items-center gap-2">
           <Switch id="hc" checked={t.highContrast} onCheckedChange={(on) => t.setContrast(on ? "high" : "standard")} />
           <Label htmlFor="hc">High contrast: on top of any theme</Label>
-        </div>
-        <div className="flex items-center gap-2">
-          <Switch id="rb" checked={t.rainbowAccent} onCheckedChange={t.setRainbowAccent} />
-          <Label htmlFor="rb">Rainbow hover (Nexis Default only)</Label>
         </div>
       </Demo>
       <section className="flex flex-col gap-3">

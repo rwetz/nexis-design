@@ -118,7 +118,7 @@ shared version yet.
 ### Motion moments
 
 `SceneEnter`, `ViewEnter`, `ContentEnter`, `Stagger`, `ResultArrival`, `RunLive`,
-`AuroraBorder`, `Blink`:
+`Blink`:
 thin wrappers over the CSS classes, with `replayKey` to play again. See
 [DESIGN_LANGUAGE.md §5](DESIGN_LANGUAGE.md#5-motion).
 

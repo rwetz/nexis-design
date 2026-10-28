@@ -52,7 +52,7 @@ export function Field({ label, hint, error, required, inline = false, children, 
       <Label htmlFor={id} className={cn(inline && "pt-2")}>
         {label}
         {required && (
-          <span aria-hidden className="text-brand">
+          <span aria-hidden className="text-muted-foreground">
             *
           </span>
         )}

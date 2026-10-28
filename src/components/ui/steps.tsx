@@ -33,7 +33,7 @@ export function Steps({
         return (
           <React.Fragment key={label}>
             {i > 0 && (
-              <li aria-hidden className={cn("h-px w-6 flex-1 sm:w-10", i <= current ? "bg-brand/60" : "bg-border")} />
+              <li aria-hidden className={cn("h-px w-6 flex-1 sm:w-10", i <= current ? "bg-foreground/50" : "bg-border")} />
             )}
             <li className="flex items-center">
               <button
@@ -46,8 +46,8 @@ export function Steps({
                 <span
                   className={cn(
                     "grid size-6 shrink-0 place-items-center rounded-full tabular-nums text-caption font-medium transition-colors",
-                    state === "done" && "bg-brand/15 text-brand",
-                    state === "current" && "bg-brand text-brand-foreground",
+                    state === "done" && "bg-muted text-foreground",
+                    state === "current" && "bg-foreground text-background",
                     state === "todo" && "bg-muted text-muted-foreground",
                   )}
                 >

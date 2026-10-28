@@ -111,7 +111,7 @@ export default function App() {
                   onClick={() => setActive(id)}
                   className={cn(
                     "group/tab flex h-8 cursor-pointer items-center gap-2 rounded-t-lg pr-2 pl-3 text-ui",
-                    id === active ? "bg-background text-foreground shadow-[inset_0_2px_0_var(--brand)]" : "text-muted-foreground hover:text-foreground",
+                    id === active ? "bg-background text-foreground" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
                   <Icon name={id.endsWith(".md") ? "document" : "file-code"} size="xs" />
@@ -184,7 +184,7 @@ export default function App() {
                       onClick={() => setCursor(i)}
                       className="flex items-center gap-2 rounded-md px-2 py-1 text-left text-ui hover:bg-muted"
                     >
-                      <Icon name={l.includes("function") ? "symbol-function" : l.includes("type") ? "symbol-type" : "variable"} className="text-brand/80" />
+                      <Icon name={l.includes("function") ? "symbol-function" : l.includes("type") ? "symbol-type" : "variable"} className="text-muted-foreground" />
                       <span className="truncate font-mono">{l.replace(/^export /, "").split(/[ (=<]/)[1]}</span>
                     </button>
                   ))}
