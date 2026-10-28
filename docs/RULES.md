@@ -18,9 +18,8 @@ How to read it:
   @nexis/design, not in the app.
 
 Status: this ruleset was written in October 2026 after the Press audit
-(Press `docs/UX_PLAN.md`, `docs/NEXIS_DESIGN_ISSUES.md`). Rules marked
-**(planned)** describe the target; the code doesn't do them yet, and §13
-lists the work.
+(Press `docs/UX_PLAN.md`, `docs/NEXIS_DESIGN_ISSUES.md`). The code meets
+it except where a rule is marked **(planned)**; §13 lists what's left.
 
 ---
 
@@ -394,22 +393,22 @@ includes before and after screenshots at 100% and 150%.
 
 ---
 
-## 13. Work to make the planned rules true
+## 13. Work to make the rules true
 
-In @nexis/design, in this order (each one a commit, with the template and
-gallery updated in the same commit):
+Done on the `rules` branch, one commit each: Inter and the type tripwires
+(R1); the interface scale and its setting (R2); named spaces and chrome
+heights (R3); neutral selection and no rainbow (R6); popper selects with a
+visible hover and surfaces that focus themselves (R5); `SettingsLayout`,
+`SettingRow`, `PanelSection`, `ControlRow`, `ThumbnailGrid`, `Strip`,
+`ColorPicker` and `ListPresence` (R4, R7, R8); and the settings template
+rebuilt on them.
 
-1. Inter replaces Geist, Geist Mono for numbers, and Space Grotesk; remove
-   `font-heading`; tripwires for R1.1, R1.2, R1.4, R1.5.
-2. `useInterfaceScale` + the Interface size setting in every template (R2).
-3. Space tokens and the height table (R3), applied to `TitleBar`,
-   `StatusBar`, `Panel`, `Toolbar`.
-4. Accent and colour: neutral selection in `SidebarNav`, `Segmented`,
-   `GlidingTabs`, tabs; remove the rainbow and `AuroraBorder` (R6).
-5. Overlays: `Select` to popper with visible hover and type that follows
-   its trigger; `Sheet` and `Popover` focus their container (R5).
-6. New components: `SettingsLayout` + `SettingRow`, `PanelSection`,
-   `ControlRow`, `ThumbnailGrid`, `Strip`, `ColorPicker`, `Presence`.
-7. Templates rebuilt on them; the gallery shows each at 100% and 150%.
+Still to do:
+
+1. The workbench and dashboard templates' side panels on `PanelSection`
+   and `ControlRow`, and the start-screen pattern on `ThumbnailGrid`.
+2. `nexis-design-check`: the tripwires as a script an app runs on its own
+   source (R12.1).
+3. `docs/img` screenshots regenerated at 100% and 150% (`pnpm screenshots`).
 
 Then each app moves its pin and deletes its local versions of these.
