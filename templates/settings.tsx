@@ -28,11 +28,14 @@ import {
   Field,
   Icon,
   Input,
+  INTERFACE_SCALES,
+  interfaceScaleLabel,
   Kbd,
   KbdGroup,
   listBuiltinThemes,
   MOD_KEY,
   NumberInput,
+  parseInterfaceSize,
   SectionLabel,
   Segmented,
   Select,
@@ -175,6 +178,21 @@ export default function App() {
                         { id: "light", label: "Light", icon: "theme-light" },
                         { id: "dark", label: "Dark", icon: "theme-dark" },
                         { id: "system", label: "System", icon: "computer" },
+                      ]}
+                    />
+                  </Field>
+                  <Field
+                    label="Interface size"
+                    inline
+                    hint={`Auto follows the window's width (now ${interfaceScaleLabel(theme.interfaceScale)}). ${MOD_KEY}+= and ${MOD_KEY}+- step it, ${MOD_KEY}+0 resets.`}
+                  >
+                    <Segmented
+                      label="Interface size"
+                      value={String(theme.interfaceSize)}
+                      onChange={(v) => theme.setInterfaceSize(parseInterfaceSize(v))}
+                      segments={[
+                        { id: "auto", label: "Auto" },
+                        ...INTERFACE_SCALES.map((s) => ({ id: String(s), label: interfaceScaleLabel(s) })),
                       ]}
                     />
                   </Field>

@@ -221,7 +221,7 @@ import {
  * `<Icon name="..." />`, still sized from the scale, still weight-aware.
  */
 export type ArtProps = Omit<React.SVGProps<SVGSVGElement>, "ref"> & {
-  size?: number;
+  size?: number | string;
   weight?: IconWeight;
 };
 
@@ -466,7 +466,9 @@ export function Icon({
   ...rest
 }: IconProps) {
   const Glyph = REGISTRY[name];
-  const px = typeof size === "number" ? size : ICON_SIZE[size];
+  // In rem, so icons grow with the interface scale (RULES R2.1) like the text
+  // beside them; the scale above is in px at 100%.
+  const rem = `${(typeof size === "number" ? size : ICON_SIZE[size]) / 16}rem`;
   // An icon is decorative unless the call site gave it a name of its own.
   // Icon-only buttons label the *button*, so announcing the glyph too would
   // read the action twice.
@@ -476,7 +478,7 @@ export function Icon({
     rest.role !== undefined;
   return (
     <Glyph
-      size={px}
+      size={rem}
       weight={weight ?? (active && !FILL_CHANGES_SHAPE.has(name) ? "fill" : "regular")}
       aria-hidden={labelled ? undefined : true}
       focusable={false}

@@ -21,13 +21,16 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { flushSync } from "react-dom";
 import { IS_LINUX } from "../lib/platform";
 import { applyTheme, clearTheme } from "./applyTheme";
 import { RainbowDefs } from "./RainbowDefs";
+import { autoInterfaceScale, type InterfaceScale, type InterfaceSize, parseInterfaceSize, stepInterfaceScale } from "./interfaceScale";
 import { installRainbowAccent } from "./rainbowAccent";
 import { getBuiltinTheme, getDefaultTheme, migrateThemeId } from "./themes";
 import { DEFAULT_THEME_ID, type Theme } from "./types";
@@ -97,6 +100,7 @@ export type ThemePrefs = {
   themeId: string;
   contrast: ContrastPref;
   rainbowAccent: boolean;
+  interfaceSize: InterfaceSize;
 };
 
 type ThemeProviderProps = {
@@ -114,6 +118,12 @@ type ThemeProviderProps = {
   customThemes?: Theme[];
   /** Called after any preference changes, for apps that persist elsewhere. */
   onChange?: (prefs: ThemePrefs) => void;
+  /**
+   * Ctrl/Cmd += / - / 0 step the interface size and reset it to Auto
+   * (RULES R2.3). Turn off only if the app binds those keys to something
+   * that must win, and offer the setting anyway.
+   */
+  interfaceShortcuts?: boolean;
 };
 
 export type ThemeProviderState = {
@@ -141,6 +151,11 @@ export type ThemeProviderState = {
   setThemeId: (id: string) => void;
   setContrast: (contrast: ContrastPref) => void;
   setRainbowAccent: (on: boolean) => void;
+  /** The user's interface size: Auto (follows the window) or a fixed step. */
+  interfaceSize: InterfaceSize;
+  /** The scale in effect now, Auto resolved against the window's width. */
+  interfaceScale: InterfaceScale;
+  setInterfaceSize: (size: InterfaceSize) => void;
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState | null>(null);
@@ -159,12 +174,14 @@ export function ThemeProvider({
   storageKey = "nexis-design",
   customThemes = [],
   onChange,
+  interfaceShortcuts = true,
 }: ThemeProviderProps) {
   const K = {
     mode: `${storageKey}:mode`,
     theme: `${storageKey}:theme`,
     contrast: `${storageKey}:contrast`,
     rainbow: `${storageKey}:rainbow`,
+    size: `${storageKey}:ui-size`,
   };
 
   const [mode, setModeState] = useState<ThemeModePref>(() => {
@@ -186,6 +203,10 @@ export function ThemeProvider({
       : window.matchMedia("(prefers-color-scheme: dark)").matches,
   );
   const [paletteEpoch, setPaletteEpoch] = useState(0);
+  const [interfaceSize, setInterfaceSizeState] = useState<InterfaceSize>(() => parseInterfaceSize(read(K.size)));
+  const [autoScale, setAutoScale] = useState<InterfaceScale>(() =>
+    typeof window === "undefined" ? 1 : autoInterfaceScale(window.innerWidth),
+  );
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -263,12 +284,27 @@ export function ThemeProvider({
     };
   }, [rainbowActive]);
 
+  // Auto follows the window's CSS width. The scale is the root font size, so
+  // applying it never changes innerWidth and can't feed back on itself.
   useEffect(() => {
-    onChange?.({ mode, themeId, contrast, rainbowAccent });
+    if (interfaceSize !== "auto") return undefined;
+    const update = () => setAutoScale((prev) => autoInterfaceScale(window.innerWidth, prev));
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [interfaceSize]);
+  const interfaceScale: InterfaceScale = interfaceSize === "auto" ? autoScale : interfaceSize;
+  // Before paint, so a large window never shows one frame at 100%.
+  useLayoutEffect(() => {
+    document.documentElement.style.setProperty("--ui-scale", String(interfaceScale));
+  }, [interfaceScale]);
+
+  useEffect(() => {
+    onChange?.({ mode, themeId, contrast, rainbowAccent, interfaceSize });
     // onChange is deliberately not a dependency: an inline arrow would fire
     // this on every render of the parent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, themeId, contrast, rainbowAccent]);
+  }, [mode, themeId, contrast, rainbowAccent, interfaceSize]);
 
   const setMode = useCallback(
     (next: ThemeModePref) => {
@@ -302,6 +338,32 @@ export function ThemeProvider({
     [K.rainbow],
   );
 
+  const setInterfaceSize = useCallback(
+    (next: InterfaceSize) => {
+      setInterfaceSizeState(next);
+      write(K.size, String(next));
+    },
+    [K.size],
+  );
+
+  // Ctrl/Cmd += and - step from the scale in effect (so the first press from
+  // Auto lands one step from what's on screen); Ctrl/Cmd 0 goes back to Auto.
+  const scaleRef = useRef(interfaceScale);
+  scaleRef.current = interfaceScale;
+  useEffect(() => {
+    if (!interfaceShortcuts) return undefined;
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+      if (e.key === "=" || e.key === "+") setInterfaceSize(stepInterfaceScale(scaleRef.current, 1));
+      else if (e.key === "-" || e.key === "_") setInterfaceSize(stepInterfaceScale(scaleRef.current, -1));
+      else if (e.key === "0") setInterfaceSize("auto");
+      else return;
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [interfaceShortcuts, setInterfaceSize]);
+
   const value = useMemo<ThemeProviderState>(
     () => ({
       mode,
@@ -317,6 +379,9 @@ export function ThemeProvider({
       setThemeId,
       setContrast,
       setRainbowAccent,
+      interfaceSize,
+      interfaceScale,
+      setInterfaceSize,
     }),
     [
       mode,
@@ -332,6 +397,9 @@ export function ThemeProvider({
       setThemeId,
       setContrast,
       setRainbowAccent,
+      interfaceSize,
+      interfaceScale,
+      setInterfaceSize,
     ],
   );
 

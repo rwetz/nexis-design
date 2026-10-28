@@ -76,11 +76,15 @@ The family is used from a 1366×768 laptop to a maximized 4K monitor. A
 fixed 12px row is fine on the first and unreadable on the second, so the
 whole interface scales together.
 
-**R2.1 One scale for everything.** Every app sets `--ui-scale` on the root
-through `useInterfaceScale()` **(planned)**, which applies it as CSS `zoom`
-on `.zoom-content`. Type, spacing, icons, radii and hit targets all grow
-together, so proportions never change. Nothing reads the window size to pick
-font sizes by itself.
+**R2.1 One scale for everything.** `ThemeProvider` sets `--ui-scale` on the
+root, and `globals.css` makes it the root font size. Every size in rem
+(Tailwind's spacing and sizes, the type steps, `Icon`) grows with it, so
+type, spacing, icons, radii and hit targets keep their proportions, and
+portals (menus, dialogs, popovers) scale with the rest. Not CSS `zoom`:
+portals render outside any zoomed container. Not webview zoom: it changes
+the window's CSS width, which Auto follows. Sizes that must not scale (1px
+hairlines, a canvas) are in px. Nothing reads the window size to pick font
+sizes by itself. Read the scale with `useTheme().interfaceScale`.
 
 **R2.2 Auto steps.** In Auto (the default), the scale follows the window's
 width in CSS pixels, in fixed steps so it never drifts:
@@ -98,13 +102,17 @@ doesn't flicker between steps. The OS's own scale factor is already in CSS
 pixels, so a 4K screen at 150% OS scale (2560 CSS px) gets 125%.
 
 **R2.3 The setting.** Every app's Settings has **Interface size** under
-Appearance: `Auto`, `100%`, `112%`, `125%`, `150%` as a `Segmented`.
-`Ctrl+=` / `Ctrl+-` / `Ctrl+0` step through it and reset to Auto. It's
-stored with the app's other preferences.
+Appearance: `Auto`, `100%`, `112%`, `125%`, `150%` as a `Segmented` bound to
+`useTheme().interfaceSize` / `setInterfaceSize` (the settings template has
+it). `Ctrl+=` / `Ctrl+-` / `Ctrl+0` step it and reset to Auto; the provider
+binds them unless `interfaceShortcuts={false}`. It's stored under
+`<storageKey>:ui-size` and reported through `onChange`.
 
-**R2.4 Exempt regions.** Content that has its own zoom (a canvas, an image
-stage, a code editor, a terminal) sits in `.zoom-exempt` and handles device
-pixels itself. Everything around it scales.
+**R2.4 Content with its own zoom.** A canvas, an image stage, a code editor
+or a terminal sizes its content in px (or from its own zoom setting), so the
+interface scale leaves it alone; the chrome around it scales. `.zoom-content`
+/ `--app-zoom` remain for an app's own Ctrl± content zoom where it has one,
+and are separate from this.
 
 **R2.5 Design at 100%, check at all four.** Lay out at 100% and 1280×800.
 Then look at every screen at the sizes in §12. A layout that only works at

@@ -20,6 +20,16 @@ export {
 export { getFolderColor } from "./folderColor";
 export { RainbowDefs } from "./RainbowDefs";
 export { installRainbowAccent, RAINBOW_VARIANTS } from "./rainbowAccent";
+export {
+  INTERFACE_SCALES,
+  autoInterfaceScale,
+  stepInterfaceScale,
+  interfaceScaleLabel,
+  isInterfaceSize,
+  parseInterfaceSize,
+  type InterfaceScale,
+  type InterfaceSize,
+} from "./interfaceScale";
 export { DEFAULT_THEME_ID } from "./types";
 export type {
   Theme,
