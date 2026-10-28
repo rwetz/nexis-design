@@ -154,13 +154,13 @@ export default function App() {
         left={
           <>
             <StatusItem>
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-2">
                 <StatusDot tone={running ? "success" : "neutral"} live={running} /> {running ? "Streaming" : "Paused"}
               </span>
             </StatusItem>
             {errors > 0 && (
               <StatusItem onClick={() => setLevels({ debug: false, info: false, warn: false, error: true })}>
-                <Badge variant="destructive" className="h-4 px-1.5 text-micro">{errors} errors</Badge>
+                <Badge variant="destructive" className="h-4 px-2 text-micro">{errors} errors</Badge>
               </StatusItem>
             )}
           </>

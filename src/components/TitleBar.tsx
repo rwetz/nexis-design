@@ -52,8 +52,8 @@ export function TitleBar({ brand, title, center, actions, controls = "auto", cla
       data-tauri-drag-region
       data-slot="title-bar"
       className={cn(
-        "relative flex h-10 shrink-0 items-center gap-2 border-b border-border/60 bg-sidebar/60 select-none",
-        macInset ? "pl-20" : "pl-3",
+        "relative flex h-12 shrink-0 items-center gap-inline border-b border-border/60 bg-sidebar/60 select-none",
+        macInset ? "pl-20" : "pl-gutter",
         className,
       )}
     >

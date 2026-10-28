@@ -59,7 +59,7 @@ export function Panel({
       {hasHeader && (
         <header
           data-slot="panel-header"
-          className="flex h-10 shrink-0 items-center gap-2 border-b border-border/60 px-4"
+          className="flex h-12 shrink-0 items-center gap-inline border-b border-border/60 px-gutter"
         >
           {icon && <Icon name={icon} className="text-muted-foreground" />}
           {title !== undefined && (
@@ -74,7 +74,7 @@ export function Panel({
       )}
       <div
         data-slot="panel-body"
-        className={cn("min-h-0 flex-1", flush ? "" : "p-4", bodyClassName)}
+        className={cn("min-h-0 flex-1", flush ? "" : "p-gutter", bodyClassName)}
       >
         {children}
       </div>

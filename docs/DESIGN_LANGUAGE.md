@@ -210,8 +210,9 @@ change. It is the only module allowed to import `@phosphor-icons/react`
   ring (`ring-1 ring-foreground/6`, `/10` in dark). Shadows only on things
   that float; `backdrop-blur` only on things that float over content
   (dropped entirely on Linux: WebKitGTK re-composites it every frame).
-- **Rhythm:** title bar 40px, toolbar 48px, status bar 28px, panel header
-  40px, rows 28–36px, the 4px Tailwind grid between.
+- **Rhythm:** title bar 48px, toolbar 48px, status bar 28px, panel header
+  48px, rows 28–32px, the 4px grid between, and the named spaces
+  (`gutter`, `group`, `section`, `page`) for layout. RULES.md §3 is exact.
 
 ---
 

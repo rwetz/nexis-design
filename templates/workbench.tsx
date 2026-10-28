@@ -102,7 +102,7 @@ export default function App() {
         <ResizableHandle />
         <ResizablePanel defaultSize="58%" minSize="30%">
           <div className="flex h-full flex-col">
-            <div role="tablist" className="flex h-9 shrink-0 items-end gap-0.5 overflow-x-auto border-b border-border/60 bg-sidebar/40 px-1.5">
+            <div role="tablist" className="flex h-9 shrink-0 items-end gap-1 overflow-x-auto border-b border-border/60 bg-sidebar/40 px-2">
               {open.map((id) => (
                 <div
                   key={id}
@@ -110,7 +110,7 @@ export default function App() {
                   aria-selected={id === active}
                   onClick={() => setActive(id)}
                   className={cn(
-                    "group/tab flex h-8 cursor-pointer items-center gap-2 rounded-t-lg pr-1.5 pl-3 text-ui",
+                    "group/tab flex h-8 cursor-pointer items-center gap-2 rounded-t-lg pr-2 pl-3 text-ui",
                     id === active ? "bg-background text-foreground shadow-[inset_0_2px_0_var(--brand)]" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
@@ -182,7 +182,7 @@ export default function App() {
                       key={i}
                       type="button"
                       onClick={() => setCursor(i)}
-                      className="flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-ui hover:bg-muted"
+                      className="flex items-center gap-2 rounded-md px-2 py-1 text-left text-ui hover:bg-muted"
                     >
                       <Icon name={l.includes("function") ? "symbol-function" : l.includes("type") ? "symbol-type" : "variable"} className="text-brand/80" />
                       <span className="truncate font-mono">{l.replace(/^export /, "").split(/[ (=<]/)[1]}</span>

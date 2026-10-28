@@ -122,12 +122,12 @@ export default function App() {
                     <Input value={draft.name} onChange={(e) => set("name", e.target.value)} />
                   </Field>
                   <Field label="Autosave" inline hint="Save files when focus leaves the editor.">
-                    <div className="pt-1.5">
+                    <div className="pt-2">
                       <Switch checked={draft.autosave} onCheckedChange={(v) => set("autosave", v)} />
                     </div>
                   </Field>
                   <Field label="Restore session" inline hint="Reopen tabs and splits from last time.">
-                    <div className="pt-1.5">
+                    <div className="pt-2">
                       <Switch checked={draft.restore} onCheckedChange={(v) => set("restore", v)} />
                     </div>
                   </Field>
@@ -256,12 +256,12 @@ export default function App() {
                     />
                   </Field>
                   <Field label="Word wrap" inline>
-                    <div className="pt-1.5">
+                    <div className="pt-2">
                       <Switch checked={draft.wrap} onCheckedChange={(v) => set("wrap", v)} />
                     </div>
                   </Field>
                   <Field label="Vim mode" inline>
-                    <div className="pt-1.5">
+                    <div className="pt-2">
                       <Switch checked={draft.vim} onCheckedChange={(v) => set("vim", v)} />
                     </div>
                   </Field>
@@ -299,7 +299,7 @@ export default function App() {
                     ["New terminal", [MOD_KEY, "T"]],
                     ["Split right", [MOD_KEY, "\\"]],
                   ].map(([label, keys]) => (
-                    <div key={label as string} className="flex items-center justify-between py-2.5 text-sm">
+                    <div key={label as string} className="flex items-center justify-between py-3 text-sm">
                       {label}
                       <KbdGroup>
                         {(keys as string[]).map((k) => (

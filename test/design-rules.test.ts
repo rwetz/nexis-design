@@ -113,6 +113,13 @@ describe("design rules", () => {
     expect(offenders(EVERYTHING, /\bfont-(?:thin|extralight|light|bold|extrabold|black)\b/)).toEqual([]);
   });
 
+  it("layout keeps to the 4px grid: no half steps in templates (RULES R3.1)", () => {
+    // Half steps (6px, 10px) belong inside a control's own markup; layout
+    // that uses them drifts off the grid one call site at a time.
+    const HALF = /(?<![\w-])-?(?:p[xytblr]?|m[xytblr]?|gap(?:-[xy])?)-\d+\.5\b/;
+    expect(offenders(walk(join(ROOT, "templates"), [".tsx"]), HALF)).toEqual([]);
+  });
+
   it("no em dashes in text a person reads (strings, JSX text, docs)", () => {
     // The family's copy rule (AGENTS.md rule 13). Comments are exempt, so
     // code is parsed and only string literals, template text and JSX text

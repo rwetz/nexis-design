@@ -123,20 +123,23 @@ one scale is a bug.
 ## 3. Space
 
 **R3.1 The grid is 4px.** Every padding, gap, margin and fixed size is a
-multiple of 4. Tailwind's `0.5` steps (2px) are allowed only inside a
-control (an icon's nudge, a ring offset). Tripwired for `p-*`, `m-*` and
-`gap-*` with odd half steps (`1.5`, `2.5`, `3.5`).
+multiple of 4. Half steps (`p-1.5`, `gap-2.5`: 6px, 10px) are allowed only
+inside a control's own markup (a menu item's padding, an icon's nudge), so
+components may use them and layout may not. Tripwired in templates.
 
 **R3.2 Named spaces.** Layout uses these, not ad hoc numbers:
 
-| Token **(planned)** | Value | Use |
-|---|---|---|
-| `--space-inline` | 8px | between a control and its icon or label; between buttons in a group |
-| `--space-row` | 4px | between rows in a list or a control stack |
-| `--space-group` | 16px | between groups inside a panel or section |
-| `--space-section` | 32px | between sections of a page |
-| `--space-gutter` | 16px | a panel's inner side padding |
-| `--space-page` | 32px | a page's padding (Settings, start screen) |
+| Name | Value at 100% | Use | e.g. |
+|---|---|---|---|
+| `inline` | 8px | between a control and its icon or label; between buttons in a group | `gap-inline` |
+| `row` | 4px | between rows in a list or a control stack | `gap-row` |
+| `group` | 16px | between groups inside a panel or section | `gap-group` |
+| `section` | 32px | between sections of a page | `mt-section` |
+| `gutter` | 16px | a panel's inner side padding | `px-gutter` |
+| `page` | 32px | a page's padding (Settings, start screen) | `p-page` |
+
+They are `--spacing-*` theme variables, so every spacing utility takes them
+(`p-`, `px-`, `gap-`, `mt-`, `w-`), and they scale with R2.
 
 **R3.3 Heights.** Fixed heights are one of these:
 
@@ -150,7 +153,9 @@ control (an icon's nudge, a ring offset). Tripwired for `p-*`, `m-*` and
 | Row (list, tree, menu item) | 32px |
 | Dense row (tables of data, logs) | 28px |
 
-**R3.4 Panel gutters.** Every side panel has `--space-gutter` on both sides,
+`TitleBar`, `Toolbar` and `Panel`'s header are 48px; `StatusBar` is 28px.
+
+**R3.4 Panel gutters.** Every side panel has `gutter` on both sides,
 and its header row is 48px with the title on the gutter. Content never
 touches the panel edge except full-bleed thumbnails strips, which bleed by
 exactly the gutter (`-mx-4 px-4`).

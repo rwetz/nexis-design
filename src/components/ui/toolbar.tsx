@@ -18,7 +18,7 @@ export function Toolbar({ className, ...props }: React.ComponentProps<"div">) {
     <div
       role="toolbar"
       data-slot="toolbar"
-      className={cn("flex h-12 shrink-0 items-center gap-2 border-b border-border/60 px-4", className)}
+      className={cn("flex h-12 shrink-0 items-center gap-inline border-b border-border/60 px-gutter", className)}
       {...props}
     />
   );

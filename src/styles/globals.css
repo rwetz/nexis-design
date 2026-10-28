@@ -57,6 +57,15 @@
      * site onto the scale never changes its height. src/lib/utils.ts teaches
      * tailwind-merge these names so cn() treats them as sizes, not colours.
      * Guarded by test/design-rules.test.ts. */
+    /* Named spaces (docs/RULES.md R3.2): Tailwind makes p-gutter, gap-group,
+     * mt-section and the rest from these. Layout uses the names, so a panel's
+     * gutter or a page's padding is one decision, not one per call site. */
+    --spacing-inline: 0.5rem; /* control to its icon or label; buttons in a group */
+    --spacing-row: 0.25rem; /* between rows in a list or a control stack */
+    --spacing-group: 1rem; /* between groups inside a panel or section */
+    --spacing-section: 2rem; /* between sections of a page */
+    --spacing-gutter: 1rem; /* a panel's inner side padding */
+    --spacing-page: 2rem; /* a page's padding */
     --text-micro: 0.625rem; /* 10px at 100% */
     --text-caption: 0.6875rem; /* 11px */
     --text-ui: 0.75rem; /* 12px */
