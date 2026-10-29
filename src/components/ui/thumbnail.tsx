@@ -73,7 +73,7 @@ export function ThumbnailCard({
         )}
       >
         {image ? (
-          <img src={image} alt="" className="size-full object-cover" />
+          <img src={image} alt="" draggable={false} className="size-full object-cover" />
         ) : loading ? (
           <Skeleton className="size-full rounded-none" />
         ) : (
