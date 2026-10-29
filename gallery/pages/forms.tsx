@@ -6,6 +6,7 @@ import {
   AccordionTrigger,
   Button,
   Calendar,
+  Combobox,
   dates,
   DatePicker,
   Field,
@@ -34,6 +35,7 @@ export function FormsPage() {
   const [timeout, setTimeoutMs] = React.useState(2500);
   const [when, setWhen] = React.useState<CalendarDate | null>(dates.date(2026, 10, 14));
   const [cal, setCal] = React.useState<CalendarDate | null>(dates.date(2026, 10, 21));
+  const [crate, setCrate] = React.useState<string | null>("serde");
   const nameError = /^[a-z][a-z0-9-]*$/.test(name) ? null : "Lowercase letters, digits and dashes; start with a letter.";
 
   return (
@@ -53,6 +55,17 @@ export function FormsPage() {
               </InputGroupAddon>
               <InputGroupInput placeholder="owner/repo" defaultValue="rwetz/nexis-design" />
             </InputGroup>
+          </Field>
+          <Field label="Crate" hint="A long list you search: a Combobox, not a Select.">
+            <Combobox
+              value={crate}
+              onValueChange={setCrate}
+              clearable
+              className="w-full"
+              placeholder="Pick a crate"
+              searchPlaceholder="Search crates"
+              options={["serde", "tokio", "clap", "anyhow", "thiserror", "tracing", "reqwest", "rayon", "regex", "chrono", "uuid", "itertools", "once_cell", "bytes", "futures"].map((c) => ({ value: c, label: c }))}
+            />
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Template">

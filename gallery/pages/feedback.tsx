@@ -11,6 +11,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
+  ErrorBoundary,
   Icon,
   KbdHint,
   MOD_KEY,
@@ -19,11 +20,18 @@ import {
   ThoughtLine,
   toast,
 } from "@nexis/design";
+import * as React from "react";
 import { Demo, Grid, Page, Row } from "../kit";
 
 const STARTED = Date.now() - 47 * 1000;
 
+function Fragile({ broken }: { broken: boolean }) {
+  if (broken) throw new Error("Unexpected end of file at line 214");
+  return <p className="text-body text-muted-foreground">The log view renders its rows.</p>;
+}
+
 export function FeedbackPage() {
+  const [broken, setBroken] = React.useState(false);
   return (
     <Page
       title="Feedback"
@@ -80,6 +88,20 @@ export function FeedbackPage() {
       </Grid>
 
       <Grid cols={3}>
+        <Demo title="Crashed view" meta="ErrorBoundary">
+          <ErrorBoundary label="Log view" resetKey={broken} onError={() => {}} className="flex-none p-6">
+            <Fragile broken={broken} />
+          </ErrorBoundary>
+          <Row>
+            <Button size="sm" variant="secondary" onClick={() => setBroken(true)}>
+              Break the view
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setBroken(false)}>
+              Fix it
+            </Button>
+          </Row>
+        </Demo>
+
         <Demo title="Long-running work" meta="CallChip">
           <CallChip label="train · tiny-gpt" startedAtMs={STARTED} onEnd={() => toast("Stopped")} />
           <p className="text-sm text-muted-foreground">

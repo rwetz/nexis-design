@@ -38,7 +38,8 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "nexis-design-assets": "./bin/sync-assets.mjs"
+    "nexis-design-assets": "./bin/sync-assets.mjs",
+    "nexis-design-check": "./bin/nexis-design-check.mjs"
   },
   "files": [
     "src",

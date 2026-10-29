@@ -12,12 +12,13 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright-core";
 import { createServer } from "vite";
+import { chromiumPath } from "./browser.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = resolve(ROOT, "docs/img");
 mkdirSync(OUT, { recursive: true });
 
-const CHROMIUM = process.env.CHROMIUM ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+const CHROMIUM = chromiumPath();
 const W = 1440;
 const H = 900;
 

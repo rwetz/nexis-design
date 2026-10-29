@@ -25,6 +25,7 @@ export { TitleBar, ChromePreviewContext } from "./components/TitleBar";
 export { StatusBar, StatusItem } from "./components/StatusBar";
 export { WindowControls } from "./components/WindowControls";
 export { WindowResizeEdges } from "./components/WindowResizeEdges";
+export { ErrorBoundary } from "./components/ErrorBoundary";
 /** @deprecated Renamed to match Nexis; now Linux-only, as it should be. */
 export { WindowResizeEdges as ResizeHandles } from "./components/WindowResizeEdges";
 
@@ -49,6 +50,7 @@ export * from "./components/ui/card";
 export * from "./components/ui/chart";
 export * from "./components/ui/checkbox";
 export * from "./components/ui/collapsible";
+export * from "./components/ui/combobox";
 export * from "./components/ui/command-palette";
 export * from "./components/ui/command";
 export * from "./components/ui/context-menu";
@@ -116,6 +118,7 @@ export { formatElapsed } from "./lib/duration";
 export * from "./lib/format";
 export * from "./lib/sort";
 export * from "./lib/fuzzy";
+export { useLoad, type Load } from "./lib/use-load";
 export * as dates from "./lib/date";
 export type { CalendarDate } from "./lib/date";
 export { readAppTokens, readTerminalTokens, resolveCssColor } from "./styles/tokens";

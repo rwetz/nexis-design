@@ -7,7 +7,7 @@ about what is not done.
 
 - **In step with Nexis 1.31** for everything Nexis has: the 22 themes and the
   contrast tests, `applyTheme`, the stylesheet (motion tokens, high contrast,
-  rainbow accent, chrome, cursors), the icon registry, and 46 of its
+  chrome, cursors), the icon registry, and 46 of its
   `components/ui` files.
 - **New here:** 21 components Nexis has no shared version of (data table,
   tree, charts, calendar, sidebar nav, title/status bars, palette…), status
@@ -33,7 +33,7 @@ about what is not done.
 
 ## Phase 2: close the component gaps
 
-- Combobox (typeahead select), multi-select in `DataTable` and `Tree`, date
+- Multi-select in `DataTable` and `Tree`, date
   *range* picker, a virtualised table, chart legend and time axis.
 - `SurfaceLayer` (animated backgrounds) as an optional entry point
   (`@nexis/design/surface`) so it does not cost `ogl` to apps that skip it.
@@ -46,8 +46,10 @@ about what is not done.
   CI, so a change that moves pixels says so.
 - Accessibility pass with axe on every gallery page and template, both
   modes, high contrast.
-- Run the scaffold in CI: `new-app.sh` → `pnpm build` → `cargo check` on
-  Linux, macOS and Windows.
+- Run the scaffold in CI: `new-app.sh` → `pnpm verify` → `cargo check` on
+  Linux, macOS and Windows. (`pnpm test` already scaffolds all seven
+  templates and runs `nexis-design-check` on each; the production build and
+  the Rust half have never run in CI.)
 - Bundle size: the root barrel pulls every component; measure tree-shaking in
   a scaffolded app and split heavy entries (charts, virtual list) if needed.
 

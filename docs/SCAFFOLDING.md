@@ -16,9 +16,10 @@
 
 ```bash
 # from a checkout of nexis-design
-scripts/new-app.sh nexis-<thing> <template> [dir]
+scripts/new-app.sh nexis-<thing> <template> [dir] [--with store,dialog]
 cd ../nexis-<thing>
 pnpm install
+pnpm verify                                  # rules + Tauri wiring + tsc + vite build
 pnpm tauri icon src-tauri/icons/icon.png     # replace the placeholder first
 pnpm tauri dev
 ```
@@ -43,8 +44,9 @@ nexis-<thing>/
 ├─ AGENTS.md                   # points coding agents at this package's rules
 ├─ public/cursors/             # synced by postinstall, gitignored
 ├─ src/
-│  ├─ main.tsx                 # providers, borderless flag, show-after-paint
+│  ├─ main.tsx                 # providers, ErrorBoundary, borderless flag, show-after-paint
 │  ├─ App.tsx                  # the template
+│  ├─ backend.ts               # call(): the one door to Rust, with browser fallbacks
 │  ├─ AppLogo.tsx              # your mark, make it yours
 │  └─ styles.css               # @import "@nexis/design/styles/globals.css"
 └─ src-tauri/
@@ -53,7 +55,8 @@ nexis-<thing>/
    ├─ tauri.linux.conf.json    # same, sizes repeated (PITFALLS §1)
    ├─ capabilities/default.json
    ├─ icons/icon.png           # placeholder source for `tauri icon`
-   └─ src/lib.rs               # os plugin, NVIDIA/Wayland guard, GTK_CSD
+   └─ src/lib.rs               # os plugin, NVIDIA/Wayland guard, GTK_CSD, generate_handler!
+   └─ src/commands.rs          # app_info: the example command
 ```
 
 ---
@@ -81,7 +84,7 @@ pnpm add github:rwetz/nexis-design#<rev>
 pnpm add react react-dom radix-ui class-variance-authority clsx tailwind-merge \
   @phosphor-icons/react motion cmdk sonner react-resizable-panels @tanstack/react-virtual \
   @fontsource-variable/inter @fontsource-variable/geist-mono \
-  @tauri-apps/api @tauri-apps/plugin-os tailwindcss tw-animate-css shadcn
+  @tauri-apps/api @tauri-apps/plugin-os tailwindcss tw-animate-css
 pnpm add -D @tailwindcss/vite @vitejs/plugin-react
 ```
 

@@ -218,6 +218,26 @@ become a bottom dock (editors) or a sheet (everything else). A toolbar folds
 by its own width with container queries: labels go first, then secondary
 actions move into a More menu. Nothing ever overlaps.
 
+**R4.8 Forms.** A form is a column of `Field`s.
+
+- Label above the control in dialogs and wizards; `inline` (label left) in
+  settings pages. A `Dialog` has at most six fields (R5): more is a page or a
+  wizard.
+- Validate on blur the first time, then on every change once a field has an
+  error, so a message appears when the user leaves the field and disappears
+  the moment it is fixed. Never validate an untouched field.
+- The error goes in `Field error`, under the control, and says how to fix it
+  ("Use lowercase letters, digits and dashes"), never "Invalid".
+- The submit button is `brand`, names the verb ("Create project"), and is
+  disabled only while busy (`Spinner` in place of its icon, same width), never
+  because the form is invalid. Pressing it with errors focuses the first
+  invalid field.
+- Enter submits a `Dialog`; Escape cancels it, and asks first only when the
+  user has unsaved edits.
+- Controls by data: a number `NumberInput`, a date `DatePicker`, a colour
+  `ColorPicker`, a choice from more than 12 or one people search `Combobox`,
+  a choice from 6 to 12 `Select`, 2 to 5 `Segmented`, on/off `Switch`.
+
 ---
 
 ## 5. Overlays: which one
@@ -324,6 +344,27 @@ mean status and nothing else. An "edited" marker is a neutral dot
 icon buttons, `lg` (20) in empty states. Never mix two icon sizes in one
 row.
 
+**R7.3 Four states, every time.** A view that shows data from anywhere
+(a file, the backend, a network) is written with all four before it is called
+done, and the app can show each one:
+
+| State | Shows | Never |
+|---|---|---|
+| Loading | `Skeleton` in the shape of the content; the toolbar and nav stay put | a lone `Spinner` in an empty window, a layout that jumps when data lands |
+| Empty | `Empty` with one action that fills it ("Open a folder"). When a filter caused it: "No matches" and a button that clears the filter | a blank panel, a table with only headers |
+| Error | `Alert variant="destructive"` in place of the content, the message from the error, and a Retry button | a toast for a failed load, a console log, a blank panel |
+| Ready | the data | |
+
+A background failure the user did not start (autosave, a poll) is a `toast`;
+a failure of something they are looking at is the Error state. Anything that
+can throw while rendering external data sits under an `ErrorBoundary`.
+
+**R7.4 Undo before confirm.** A reversible action just happens and offers
+Undo in a `toast`. An irreversible one asks first with an `AlertDialog` that
+names what is lost and how much ("Delete 3 projects and their files?"), with
+a `destructive` button that repeats the verb ("Delete 3 projects"), and the
+focus on Cancel.
+
 ---
 
 ## 8. Motion
@@ -357,6 +398,14 @@ that flatters the result is a bug.
 marks, no "please". Buttons say the verb ("Export", not "OK"). Hints say
 what happens, in one sentence.
 
+**R10.2 Errors say what happened and what to do.** "Couldn't save notes.md.
+The disk is full. Free some space and try again." Name the thing, give the
+cause when it is known, give the next step. No "Error:", no codes without a
+sentence, no stack traces (they go to the log), no blame.
+
+**R10.3 Empty states and first runs** say what the view is for in one
+sentence and offer the one action. No tutorials in the empty state.
+
 ---
 
 ## 11. Templates
@@ -369,9 +418,13 @@ one, fix the template in the same commit as the rule.
 
 ## 12. Checking it
 
-**R12.1 Tripwires.** `pnpm test` runs `test/design-rules.test.ts` over
-every app source file. An app copies the test or depends on the package's
-`nexis-design-check` **(planned)** script.
+**R12.1 Tripwires.** This package's `pnpm test` runs
+`test/design-rules.test.ts`. An app runs the same rules, plus the Tauri
+wiring checks (docs/BACKEND.md), with `pnpm check` (the package's
+`nexis-design-check` bin); `pnpm verify` is check, typecheck and build, and
+the scaffold sets both up. A line that must break a rule on purpose carries
+`nexis-ok: <rule-id> <why>`. Use it rarely: an app full of them has stopped
+following the rules.
 
 **R12.2 Look at it.** Before calling UI work done, look at every screen at:
 
@@ -395,20 +448,37 @@ includes before and after screenshots at 100% and 150%.
 
 ## 13. Work to make the rules true
 
-Done on the `rules` branch, one commit each: Inter and the type tripwires
-(R1); the interface scale and its setting (R2); named spaces and chrome
-heights (R3); neutral selection and no rainbow (R6); popper selects with a
-visible hover and surfaces that focus themselves (R5); `SettingsLayout`,
-`SettingRow`, `PanelSection`, `ControlRow`, `ThumbnailGrid`, `Strip`,
-`ColorPicker` and `ListPresence` (R4, R7, R8); and the settings template
-rebuilt on them.
+Done: Inter and the type tripwires (R1); the interface scale and its setting
+(R2); named spaces and chrome heights (R3); neutral selection and no rainbow
+(R6); popper selects with a visible hover and surfaces that focus themselves
+(R5); `SettingsLayout`, `SettingRow`, `PanelSection`, `ControlRow`,
+`ThumbnailGrid`, `Strip`, `ColorPicker` and `ListPresence` (R4, R7, R8); the
+settings template rebuilt on them; `Combobox` and `ErrorBoundary` (R5, R7.3);
+`nexis-design-check` and the backend rules (R12.1, §14).
 
 Still to do:
 
 1. The workbench and dashboard templates' side panels on `PanelSection`
    and `ControlRow`, and the start-screen pattern on `ThumbnailGrid`.
-2. `nexis-design-check`: the tripwires as a script an app runs on its own
-   source (R12.1).
+2. R7.3 is ahead of the templates: none draws a loading (`Skeleton`) or an
+   error state, only `explorer` and `minimal` have an `Empty`, and
+   `dashboard` has one `Alert`. Their data is fixtures, so they never wait or
+   fail; an app replacing the fixtures adds the states itself with
+   BACKEND.md's `useLoad`.
 3. `docs/img` screenshots regenerated at 100% and 150% (`pnpm screenshots`).
 
 Then each app moves its pin and deletes its local versions of these.
+
+---
+
+## 14. The backend
+
+**R14.1 The Rust half has its own rules**, numbered `B` in
+[BACKEND.md](BACKEND.md): commands go through `src/backend.ts`, nothing slow
+runs on the main thread, plugins are wired in four places, permissions are
+the narrowest that work, data lives in the right place, long jobs report with
+events and can be cancelled. `pnpm check` fails on the ones it can see.
+
+**R14.2 The UI works with no backend.** Every view renders in a browser with
+`call`'s fallbacks, so it can be built, looked at headless and tested without
+a Tauri build.
