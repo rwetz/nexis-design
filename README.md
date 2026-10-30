@@ -194,3 +194,12 @@ so it is a breaking upgrade for 0.1 apps (`nexis-atlas` is one):
 [Apache-2.0](LICENSE), matching the rest of the family. Fonts are loaded from
 Fontsource under their own licenses (Geist and Geist Mono: OFL-1.1; Space
 Grotesk: OFL-1.1). Icons: Phosphor (MIT).
+
+---
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/heptagram-white.svg">
+    <img src="docs/brand/heptagram-black.svg" alt="heptagram" width="48">
+  </picture>
+</p>
