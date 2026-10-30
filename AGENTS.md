@@ -336,3 +336,12 @@ pnpm screenshots         # regenerate docs/img (all, or `pnpm screenshots app-` 
 - A new icon: a semantic name in `REGISTRY` (one name per idea).
 - Field notes: [docs/PITFALLS.md](docs/PITFALLS.md). What is next:
   [docs/ROADMAP.md](docs/ROADMAP.md).
+
+## Workspace conventions
+
+Added by the 2026-10-30 workspace audit. Workspace-level rules live in `Dev/AGENTS.md`; this section only records how they apply here.
+
+- **Registry.** This project has a row in `Dev/PROJECTS.md`. Update it in the same change as any move, rename or archive.
+- **File header.** New source files a human authors start with the Ryan Wetzstein box (project line: `Design`, year 2026) in the language's comment syntax, above imports and below any shebang. Skip generated files, lockfiles, JSON, Markdown and vendored code.
+- **README.** Ferrite-style README pattern (see `Dev/AGENTS.md`, Creating a new project, step 4) whenever this README is touched. Keep the heptagram footer.
+- **Jev.** Bounded judgments (pick one, score, yes/no) go through the TypeSafe skill or the contract in `apps/job-app-finder/src/job_app_finder/jev_fit.py`. Jev only ranks, routes or flags; irreversible actions stay behind human confirmation.
