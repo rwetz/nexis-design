@@ -1,8 +1,16 @@
-# nexis-design
+<p align="center">
+  <img src="assets/brand/nexis-logo.png" width="128" alt="Nexis logo">
+</p>
 
-```
-@nexis/design   coral on glass, one accent, a terminal's sense of time
-```
+<h1 align="center">nexis-design</h1>
+
+<p align="center">
+  <code>@nexis/design</code>: coral on glass, one accent, a terminal's sense of time. The design system for the <strong>Nexis</strong> family of Tauri desktop apps.
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-222B36?labelColor=101319" alt="License"></a>
+</p>
 
 The design system for the **Nexis** family of Tauri desktop apps: OKLCH
 tokens, 22 themes and the engine that swaps them at runtime, ~70 React
@@ -194,6 +202,12 @@ so it is a breaking upgrade for 0.1 apps (`nexis-atlas` is one):
 [Apache-2.0](LICENSE), matching the rest of the family. Fonts are loaded from
 Fontsource under their own licenses (Geist and Geist Mono: OFL-1.1; Space
 Grotesk: OFL-1.1). Icons: Phosphor (MIT).
+
+## Keys
+
+| Keys | |
+|---|---|
+| <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> | Command palette |
 
 ---
 
