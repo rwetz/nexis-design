@@ -97,6 +97,9 @@ function SelectContent({
   const [glide, setGlide] = React.useState<{
     top: number
     height: number
+    shown: boolean
+    /** Arriving from hidden: appear on the item instead of sliding to it. */
+    jump: boolean
   } | null>(null)
 
   // Radix owns the highlight: it writes `data-highlighted` onto whichever
@@ -115,7 +118,13 @@ function SelectContent({
       )
       // offsetTop is relative to the viewport because it is the nearest
       // positioned ancestor, so this stays correct as the list scrolls.
-      setGlide(el ? { top: el.offsetTop, height: el.offsetHeight } : null)
+      // With no highlight it fades where it is. Going back to the top would
+      // drag it across the list, and it could be seen resting between items.
+      setGlide((prev) =>
+        el
+          ? { top: el.offsetTop, height: el.offsetHeight, shown: true, jump: !prev?.shown }
+          : prev && { ...prev, shown: false },
+      )
     }
     const observer = new MutationObserver(sync)
     observer.observe(viewport, {
@@ -156,12 +165,13 @@ function SelectContent({
             aria-hidden
             data-slot="select-glide"
             className={cn(
-              "pointer-events-none absolute inset-x-1 top-0 z-0 rounded-2xl bg-muted transition-[translate,height,opacity]",
-              glide ? "opacity-100" : "opacity-0",
+              "pointer-events-none absolute inset-x-1 top-0 z-0 rounded-2xl bg-muted",
+              glide?.shown ? "opacity-100" : "opacity-0",
             )}
             style={{
               height: glide?.height ?? 0,
               translate: `0 ${glide?.top ?? 0}px`,
+              transitionProperty: glide?.jump ? "opacity" : "translate, height, opacity",
               transitionDuration: "var(--dur-panel)",
               transitionTimingFunction: "var(--ease-enter)",
             }}
