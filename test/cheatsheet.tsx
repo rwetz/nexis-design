@@ -184,8 +184,9 @@ export function Cheatsheet() {
       <DonutChart label="Build time" parts={[{ label: "Compile", value: 142 }, { label: "Link", value: 48 }]} highlight={0} format={(v) => `${v}s`} />
       <ProportionBar label="Storage" parts={[{ label: "Projects", value: 182 }, { label: "Media", value: 22 }]} highlight={0} legend={false} />
       <SkeletonGroup label="Loading services"><SkeletonRow /><SkeletonText lines={3} /><SkeletonCard aspect="portrait" /></SkeletonGroup>
-      <CardTilt />
-      <CollectionCard name="Desk setup" count={4} covers={[null]} />
+      <CardTilt foil={false} enter />
+      <CollectionCard name="Desk setup" count={4} covers={[null]} tone="var(--terminal-ansi-cyan)" />
+      <ProductCard title="Box set" media={<span />} aspect={1.5} onClick={() => {}} />
       <NexisMark className="size-[18px]" />
 
       {/* Motion moments */}

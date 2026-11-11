@@ -528,7 +528,11 @@ html *::-webkit-scrollbar {
  * the pointer; everything below is CSS. The face leans and lifts on a spring
  * that settles past its mark once, the light follows the pointer, and a
  * [data-foil] card catches a faint foil from the theme's ANSI roles. Content
- * cards only: never chrome, rows or controls. Off under reduced motion. */
+ * cards only: never chrome, rows or controls. Off under reduced motion.
+ *
+ * Everything that moves is gated on the root marks CardTilt sets while it is
+ * mounted (data-card-tilt, -foil, -enter), so unmounting it, or its foil and
+ * enter props, switch each part off everywhere at once. */
 .nexis-face {
   position: relative;
   transform: perspective(44rem) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
@@ -545,16 +549,21 @@ html *::-webkit-scrollbar {
     scale 380ms var(--ease-spring),
     box-shadow 240ms var(--ease-enter);
 }
-[data-tilt]:hover .nexis-face {
+:root[data-card-tilt] [data-tilt]:hover .nexis-face {
   translate: 0 -0.375rem;
   scale: 1.025;
   box-shadow: 0 1.25rem 2rem -1rem color-mix(in oklab, black 70%, transparent);
 }
-[data-tilt]:active .nexis-face {
+:root[data-card-tilt] [data-tilt]:active .nexis-face {
   scale: 0.975;
 }
-/* The sheen: a light under the pointer. */
-.nexis-face::after {
+/* The sheen: a light under the pointer. A flat card with no leaning face
+ * (one whose prices must not move) takes the light on itself. */
+[data-tilt]:not(:has(.nexis-face)) {
+  position: relative;
+}
+.nexis-face::after,
+[data-tilt]:not(:has(.nexis-face))::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -566,7 +575,8 @@ html *::-webkit-scrollbar {
   pointer-events: none;
   transition: opacity 260ms var(--ease-enter);
 }
-[data-tilting] .nexis-face::after {
+[data-tilting] .nexis-face::after,
+[data-tilting]:not(:has(.nexis-face))::after {
   opacity: 1;
 }
 /* The foil: one special card on a shelf, never a whole grid of them. */
@@ -582,7 +592,7 @@ html *::-webkit-scrollbar {
   pointer-events: none;
   transition: opacity 260ms var(--ease-enter);
 }
-[data-foil][data-tilting] .nexis-face::before {
+:root[data-card-foil] [data-foil][data-tilting] .nexis-face::before {
   opacity: 0.18;
 }
 
@@ -604,6 +614,12 @@ html *::-webkit-scrollbar {
   background:
     radial-gradient(circle at var(--mx, 50%) var(--my, 18%), color-mix(in oklab, var(--foreground) 10%, transparent), transparent 70%),
     linear-gradient(180deg, transparent, color-mix(in oklab, var(--card) 92%, transparent) 78%);
+}
+/* CollectionCard tone: the hand glows in its own colour. */
+[data-tone] .nexis-collection-tint {
+  background:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 18%), color-mix(in oklab, var(--collection-tone) 55%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in oklab, var(--collection-tone) 28%, transparent), color-mix(in oklab, var(--card) 92%, transparent) 78%);
 }
 .nexis-fan {
   position: absolute;
@@ -647,10 +663,18 @@ html *::-webkit-scrollbar {
     scale: 0.88;
   }
 }
-[data-slot="shelf"][data-seen] [data-slot="strip"] > * .nexis-face {
+/* Staggered by position, 45ms apart and capped at the eighth card, so any
+ * card component works without forwarding a style prop. */
+:root[data-card-enter] [data-slot="shelf"][data-seen] [data-slot="strip"] > * .nexis-face {
   animation: nexis-hop-in 620ms var(--ease-spring) backwards;
-  animation-delay: min(calc((var(--i, 0)) * 45ms), 315ms);
 }
+:root[data-card-enter] [data-slot="shelf"][data-seen] [data-slot="strip"] > :nth-child(2) .nexis-face { animation-delay: 45ms; }
+:root[data-card-enter] [data-slot="shelf"][data-seen] [data-slot="strip"] > :nth-child(3) .nexis-face { animation-delay: 90ms; }
+:root[data-card-enter] [data-slot="shelf"][data-seen] [data-slot="strip"] > :nth-child(4) .nexis-face { animation-delay: 135ms; }
+:root[data-card-enter] [data-slot="shelf"][data-seen] [data-slot="strip"] > :nth-child(5) .nexis-face { animation-delay: 180ms; }
+:root[data-card-enter] [data-slot="shelf"][data-seen] [data-slot="strip"] > :nth-child(6) .nexis-face { animation-delay: 225ms; }
+:root[data-card-enter] [data-slot="shelf"][data-seen] [data-slot="strip"] > :nth-child(7) .nexis-face { animation-delay: 270ms; }
+:root[data-card-enter] [data-slot="shelf"][data-seen] [data-slot="strip"] > :nth-child(n + 8) .nexis-face { animation-delay: 315ms; }
 
 @media (prefers-reduced-motion: reduce) {
   .nexis-face,
@@ -659,15 +683,16 @@ html *::-webkit-scrollbar {
     transform: none;
     transition: none;
   }
-  [data-tilt]:hover .nexis-face {
+  :root[data-card-tilt] [data-tilt]:hover .nexis-face {
     translate: none;
     scale: none;
   }
   .nexis-face::after,
+  [data-tilt]:not(:has(.nexis-face))::after,
   [data-foil] .nexis-face::before {
     display: none;
   }
-  [data-slot="shelf"][data-seen] [data-slot="strip"] > * .nexis-face {
+  :root[data-card-enter] [data-slot="shelf"][data-seen] [data-slot="strip"] > * .nexis-face {
     animation: none;
   }
 }

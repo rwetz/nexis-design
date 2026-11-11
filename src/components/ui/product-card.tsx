@@ -77,6 +77,7 @@ export function ProductCard({
   badges,
   action,
   aspect = "portrait",
+  media,
   dimmed = false,
   loading = false,
   placeholder,
@@ -100,7 +101,14 @@ export function ProductCard({
    * rendered outside the card's own button, so it can be clicked on its own.
    */
   action?: React.ReactNode;
-  aspect?: ThumbnailAspect;
+  /** The picture's shape: a named aspect, or a width-over-height ratio (`1.5`) for a face that follows its picture. */
+  aspect?: ThumbnailAspect | number;
+  /**
+   * The picture as your own element, in place of `image`: a cover with its
+   * own fallback, `referrerPolicy`, or a wide picture fitted over a blurred
+   * copy. Fills the face; `loading` and `placeholder` are ignored.
+   */
+  media?: React.ReactNode;
   /** Fades the picture: sold out, unavailable. */
   dimmed?: boolean;
   loading?: boolean;
@@ -111,9 +119,11 @@ export function ProductCard({
   /** A faint foil under the pointer, for the one special card on a shelf. Implies `tilt`. */
   foil?: boolean;
 }) {
-  // What fills the picture, in order of precedence: the image once there
-  // is one, else a skeleton while loading, else the placeholder (RULES R14.4).
-  const face: { kind: "image"; src: string } | { kind: "loading" } | { kind: "empty" } = image ? { kind: "image", src: image } : loading ? { kind: "loading" } : { kind: "empty" };
+  // What fills the picture, in order of precedence: the app's own media,
+  // then the image once there is one, else a skeleton while loading, else
+  // the placeholder (RULES R14.4).
+  const face: { kind: "media" } | { kind: "image"; src: string } | { kind: "loading" } | { kind: "empty" } =
+    media !== undefined && media !== null ? { kind: "media" } : image ? { kind: "image", src: image } : loading ? { kind: "loading" } : { kind: "empty" };
   return (
     <div
       data-slot="product-card"
@@ -127,10 +137,13 @@ export function ProductCard({
             "relative w-full overflow-hidden rounded-xl bg-muted ring-1 ring-foreground/8 group-hover/product:ring-foreground/25 group-has-[:focus-visible]/product:ring-2 group-has-[:focus-visible]/product:ring-ring",
             // A tilting card lifts on the spring (.nexis-face); a plain one lifts 2px (R8.1).
             tilt || foil ? "nexis-face" : "transition-[translate,box-shadow] group-hover/product:-translate-y-0.5",
-            ASPECT[aspect],
+            typeof aspect === "string" && ASPECT[aspect],
           )}
+          style={typeof aspect === "number" ? { aspectRatio: aspect } : undefined}
         >
-          {face.kind === "image" ? (
+          {face.kind === "media" ? (
+            <div className={cn("size-full", dimmed && "opacity-50")}>{media}</div>
+          ) : face.kind === "image" ? (
             <img src={face.src} alt="" loading="lazy" decoding="async" draggable={false} className={cn("size-full object-cover", dimmed && "opacity-50")} />
           ) : face.kind === "loading" ? (
             <Skeleton className="size-full rounded-none" />
@@ -181,7 +194,12 @@ export function Shelf({
   /** Right-aligned before the arrows: "See all". */
   action?: React.ReactNode;
   wheel?: "page" | "sideways";
-  /** The cards' pictures hop into place, one after another, the first time the shelf scrolls into view (R8.3). */
+  /**
+   * The cards' pictures (`.nexis-face`) hop into place, one after another,
+   * the first time the shelf scrolls into view (R8.3). The stagger is by
+   * position in CSS, so any card works. Needs `<CardTilt />` mounted (with
+   * `enter`, the default).
+   */
   enter?: boolean;
   children: React.ReactNode;
   className?: string;
@@ -222,7 +240,8 @@ export function Shelf({
   };
   return (
     <section ref={section} data-slot="shelf" className={cn("flex min-w-0 flex-col gap-3", className)}>
-      <div className="flex items-center gap-2">
+      {/* Above the strip, whose padding reaches up to give a lifted card room. */}
+      <div className="relative z-10 flex items-center gap-2">
         <h2 className="text-lg font-semibold">{title}</h2>
         {meta !== undefined && <span className="text-ui text-muted-foreground tabular-nums">{meta}</span>}
         <span className="flex-1" />
@@ -237,11 +256,7 @@ export function Shelf({
       <div ref={holder}>
         {/* Room above and below for a card that lifts on hover. */}
         <Strip className="-my-6 snap-x scroll-px-gutter gap-group py-6 *:snap-start">
-          {React.Children.map(children, (child, i) =>
-            React.isValidElement<{ style?: React.CSSProperties }>(child)
-              ? React.cloneElement(child, { style: { ...child.props.style, ["--i" as string]: i } })
-              : child,
-          )}
+          {children}
         </Strip>
       </div>
     </section>

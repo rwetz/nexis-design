@@ -248,3 +248,14 @@ as a path on the current drive, fails with
 hand, use a relative path, or `cygpath -m` for an absolute one
 (`C:/Users/...`). First seen in nexis-wishlist, now Vitrine
 (SCAFFOLD-ISSUES 1).
+
+## 17. After a pin bump, Vite dev serves the old package
+
+`vite` prebundles dependencies into `node_modules/.vite` and does not notice
+when a `file:` (or git) dependency changes underneath it. After moving the
+pin, `pnpm dev` loads a blank page with
+`does not provide an export named 'CardTilt'` (any new export), while
+`pnpm build` is fine. **Fix:** after bumping the pin, delete
+`node_modules/.vite`, or start once with `pnpm dev --force`. Every
+**Apps must** line in CHANGES.md assumes it. First seen in Vitrine
+(APP-FINDINGS Vitrine 8).

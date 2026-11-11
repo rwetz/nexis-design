@@ -428,7 +428,9 @@ rarity), never to a whole grid; `Shelf enter` hops the pictures in the first
 time the shelf scrolls into view. Never on chrome, rows, controls, data or
 anything live. Prices and titles never move, only pictures. A scrolling row
 leaves room for a lifted card (`Shelf` does). All of it is off under reduced
-motion and on touch. From Vitrine.
+motion and on touch. An app with levels of showmanship maps them onto
+whether `CardTilt` is mounted and its `foil` and `enter` props; every effect
+is gated on those, so there is nothing to override. From Vitrine.
 
 ---
 

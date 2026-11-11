@@ -98,11 +98,11 @@ export function CataloguePage() {
           {PRODUCTS.map((p) => card(p, "w-44 shrink-0"))}
         </Shelf>
       </Demo>
-      <Demo title="Collections" meta="a hand of covers that fans out under the pointer">
+      <Demo title="Collections" meta="a hand of covers, each in its own tone">
         <Shelf title="Your collections" meta={3}>
-          <CollectionCard name="Desk setup" count={4} covers={tones(["a", "d", "b", "f"])} />
-          <CollectionCard name="Kitchen" count={2} covers={tones(["c", "e"])} />
-          <CollectionCard name="Reading" count={3} covers={tones(["f", "b", "e"])} />
+          <CollectionCard name="Desk setup" count={4} covers={tones(["a", "d", "b", "f"])} tone="var(--terminal-ansi-yellow)" />
+          <CollectionCard name="Kitchen" count={2} covers={tones(["c", "e"])} tone="var(--terminal-ansi-red)" />
+          <CollectionCard name="Reading" count={3} covers={tones(["f", "b", "e"])} tone="var(--terminal-ansi-cyan)" />
         </Shelf>
       </Demo>
       <Demo title="Filtered grid" meta="FilterPanel · ActiveFilters · RangeInput" bodyClassName="flex-row items-start gap-section">

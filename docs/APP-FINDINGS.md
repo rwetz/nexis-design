@@ -44,6 +44,17 @@ The files named below are in `apps/vitrine`.
 | 7 | Testing | **`tiltFor` has no test.** Vitrine tested its copy (rests level at the middle, a corner leans the most, outside the card counts as its edge, a zero-size card does not divide by zero, `most = 0` does not lean) and dropped that test with the copy. | Move those cases into the package's tests. | Nothing. |
 | 8 | Pitfall | **A `file:` dependency's new exports are missing in `vite` dev until its prebundle is rebuilt.** After the pin moved, the dev page was blank: `does not provide an export named 'CardTilt'`. `pnpm build` was fine. | A line in PITFALLS and in the CHANGES.md "Apps must" boilerplate: after bumping, delete `node_modules/.vite` (or start Vite with `--force`). | Deleted `node_modules/.vite`. |
 
+### Vitrine status (2026-11-10, `vitrine-findings`)
+
+All eight fixed in the package: 1 `ProductCard media` and numeric `aspect`;
+2 `Shelf` header is `relative z-10`; 3 the stagger is `:nth-child` in CSS and
+the clone is gone; 4 `CollectionCard tone`; 5 the light on
+`[data-tilt]:not(:has(.nexis-face))`; 6 `CardTilt` sets `data-card-tilt`,
+`-foil`, `-enter` on the root and takes `foil` and `enter`, and the CSS is
+gated on them; 7 `tiltFor` cases in `test/logic.test.ts`; 8 PITFALLS §17 and
+the CHANGES.md boilerplate. Vitrine's workarounds can go when it moves its
+pin (CHANGES.md).
+
 ## BibleLM (2026-11-10, pinned at `cfb2b06`)
 
 BibleLM has its own design language now (the Scriptorium: blackletter,

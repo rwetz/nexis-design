@@ -281,7 +281,7 @@ const columns: Column<Row, "name" | "rps">[] = [
 <DonutChart label="Build time" parts={[{ label: "Compile", value: 142 }]} highlight={0} format={(v) => `${v}s`} />   // part of one whole, ≤5 parts (RULES §18)
 <ProportionBar label="Storage" parts={parts} highlight={0} legend={false} />
 <SkeletonGroup label="Loading services"><SkeletonRow /><SkeletonText lines={3} /><SkeletonCard aspect="portrait" /></SkeletonGroup>
-<CardTilt />   // once, near the root, in a browsing app (RULES R8.3); then <ProductCard tilt foil? …/>, <Shelf enter>, <CollectionCard name count covers />
+<CardTilt foil? enter? />   // once, near the root, in a browsing app (RULES R8.3); then <ProductCard tilt foil? media? aspect={1.5} …/>, <Shelf enter>, <CollectionCard name count covers tone? />
 <NexisMark className="size-[18px]" />   // the heptagram in currentColor (RULES §17)
 
 // Framing, motion

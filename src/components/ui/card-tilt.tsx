@@ -39,8 +39,28 @@ export function tiltFor(x: number, y: number, width: number, height: number, mos
 
 const VARS = ["--rx", "--ry", "--mx", "--my", "--px", "--py"] as const;
 
-/** Installs the one pointer listener that drives every `[data-tilt]` card. Render it once. */
-export function CardTilt() {
+/**
+ * Installs the one pointer listener that drives every `[data-tilt]` card.
+ * Render it once. While it is mounted it marks the root (`data-card-tilt`,
+ * and `data-card-foil`, `data-card-enter` per prop), and every effect in
+ * R8.3 is gated on those: unmount it, or pass `foil={false}` or
+ * `enter={false}`, and that part stops everywhere. An app with levels of
+ * showmanship (Vitrine's Calm, Lively, Over the top) maps them onto this.
+ */
+export function CardTilt({ foil = true, enter = true }: { foil?: boolean; enter?: boolean } = {}) {
+  React.useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.cardTilt = "";
+    if (foil) root.dataset.cardFoil = "";
+    else delete root.dataset.cardFoil;
+    if (enter) root.dataset.cardEnter = "";
+    else delete root.dataset.cardEnter;
+    return () => {
+      delete root.dataset.cardTilt;
+      delete root.dataset.cardFoil;
+      delete root.dataset.cardEnter;
+    };
+  }, [foil, enter]);
   React.useEffect(() => {
     if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -96,11 +116,15 @@ export function CollectionCard({
   name,
   count,
   covers,
+  tone,
   className,
+  style,
   ...props
 }: Omit<React.ComponentProps<"button">, "name"> & {
   name: string;
   count: number;
+  /** A colour for the hand's glow (any CSS colour, e.g. `var(--terminal-ansi-cyan)`), so a row of collections is not one grey. Defaults to a neutral light. */
+  tone?: string;
   /** Picture URLs, or nodes (a placeholder), first is the backdrop. Four are shown. */
   covers: readonly React.ReactNode[];
 }) {
@@ -114,6 +138,8 @@ export function CollectionCard({
       type="button"
       data-tilt="flat"
       data-slot="collection-card"
+      data-tone={tone ? "" : undefined}
+      style={tone ? ({ ...style, "--collection-tone": tone } as React.CSSProperties) : style}
       aria-label={`${name}, ${count} item${count === 1 ? "" : "s"}`}
       className={`group/collection w-72 shrink-0 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring ${className ?? ""}`}
       {...props}
