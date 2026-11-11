@@ -39,6 +39,7 @@ import {
   useCommandPaletteShortcut,
   VirtualList,
   WindowResizeEdges,
+  NexisMark,
 } from "@nexis/design";
 
 // The open documents are one state with one reducer (RULES R14): the active
@@ -88,7 +89,7 @@ export default function App() {
     <div className="flex h-full flex-col bg-background text-foreground">
       <WindowResizeEdges />
       <TitleBar
-        brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />}
+        brand={<NexisMark className="size-[18px]" />}
         title="Scribe"
         center={
           <button

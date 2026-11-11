@@ -34,8 +34,8 @@ which component does the job. The content is the family's own.
 | Layer | Answers | Sections |
 |---|---|---|
 | **Principles** (P1 to P7) | What matters, and how to decide when no rule fits | below |
-| **Foundations** | What every screen is made of | §1 Type, §2 Interface scale, §3 Space, §6 Colour, §8 Motion, §10 Words, §15 Accessibility |
-| **Patterns** | What kind of screen or moment this is | §4 Layout patterns, §5 Overlays, §16 Feedback and progress, §14 State |
+| **Foundations** | What every screen is made of | §1 Type, §2 Interface scale, §3 Space, §6 Colour, §8 Motion, §10 Words, §15 Accessibility, §17 Brand |
+| **Patterns** | What kind of screen or moment this is | §4 Layout patterns, §5 Overlays, §16 Feedback and progress, §14 State, §18 Charts |
 | **Components** | Which one thing does the job | §7 Controls, §9 Previews, §11 Templates, docs/COMPONENTS.md |
 | **Process** | How we know it is true | §12 Checking it, §13 Work to make the rules true |
 
@@ -419,6 +419,17 @@ items enter with `nexis-scene-enter`; removed ones leave with `ListPresence` +
 **R8.2 Highlights travel.** Menu and list highlights move between items
 (the glide rail), never jump.
 
+**R8.3 Showmanship, on content cards only, opt-in.** An app whose content is
+things to browse (a shop, a library, a collection) may mount `<CardTilt />`
+once: cards marked `data-tilt` (`ProductCard tilt`, `CollectionCard`) lean
+toward the pointer, lift on `--ease-spring` and catch a light (the sheen);
+`foil` adds a faint foil to the one special card on a shelf (a deal, a
+rarity), never to a whole grid; `Shelf enter` hops the pictures in the first
+time the shelf scrolls into view. Never on chrome, rows, controls, data or
+anything live. Prices and titles never move, only pictures. A scrolling row
+leaves room for a lifted card (`Shelf` does). All of it is off under reduced
+motion and on touch. From Vitrine.
+
 ---
 
 ## 9. Previews
@@ -436,6 +447,24 @@ that flatters the result is a bug.
 **R10.1** Sentence case, no em dashes (exists, tripwired), no exclamation
 marks, no "please". Buttons say the verb ("Export", not "OK"). Hints say
 what happens, in one sentence.
+
+**R10.2 Say it plainly, once.** Text a person reads (UI copy, toasts, empty
+states, and the AGENTS.md, README and comments a scaffold writes) states the
+fact and stops. Three habits of machine-written text are banned:
+
+| Habit | What it looks like | Write instead |
+|---|---|---|
+| **Synthetic profundity** | An ordinary fact dressed as a revelation: "Your files, finally free.", "Every pixel tells a story.", "This changes everything." | "Files sync in the background." |
+| **Action-explaining** | A sentence whose only job is to explain the one before it: "Export your data. This lets you take your data with you." | "Export your data as CSV." |
+| **AI-splaining** | Explaining what the reader already knows, or what the control already shows: "A toggle switch lets you turn a setting on or off.", "Click Save to save your changes." | Say what is not obvious, or nothing. |
+
+Also out: filler intensifiers and hype words ("seamless", "effortless",
+"powerful", "robust", "unlock", "elevate", "supercharge", "game-changer",
+"delve", "dive in", "journey"), framings like "It's not just X, it's Y",
+"In other words", "Simply put", "Let's", and a sentence that restates the
+heading above it. Tripwired over templates, the scaffold and the package's
+shipped strings (`test/design-rules.test.ts`); the habits a pattern cannot
+catch are a review item (§12).
 
 ---
 
@@ -588,6 +617,72 @@ in the panel), not only in a toast.
 
 **R16.4 Progress is honest.** A determinate bar only moves for real work
 done; it never fakes the last 10%. Unknown duration is indeterminate.
+
+---
+
+## 17. Brand
+
+**R17.1 One mark.** The family's mark is the heptagram (`Dev/brand/heptagram`).
+In the UI it is `<NexisMark />`: inline SVG, `currentColor`, `text-foreground`
+in chrome. Never a raster in the UI, never recoloured with a gradient or a
+per-app tint in chrome. The title bar's brand slot is the mark at 18px.
+
+**R17.2 Where it lives.** Every app's title bar shows its `AppLogo` (which
+starts as the mark); its icons are generated from one 1024² tile
+(`assets/brand/nexis-logo.png`, `pnpm icons`); its README starts with the
+tile at 128px and ends with the heptagram footer (`docs/brand/`). The
+gallery's favicon and overview use the tile.
+
+**R17.3 The tile.** The app icon is the mark in frost-to-glacier on an
+obsidian-to-slate glass tile, with a hairline rim: the Nexis Frosted Glass
+palette (`Dev/brand/heptagram/palettes/nexis-frosted-glass`). Brand hex lives
+in the brand files only, never in components (R6.1).
+
+**R17.4 An app's own mark** is drawn in the heptagram's language: flat,
+one stroke weight, geometric, `currentColor`, readable at 16px. It replaces
+`AppLogo` and the icon tile's mark; the tile itself stays, so the family
+reads as one on a dock or taskbar.
+
+**R17.5 When the mark changes**, it changes in `Dev/brand` first, then here
+(`assets/brand`, `NexisMark`, `templates/icons`), then in every app through
+`docs/CHANGES.md` (AGENTS.md §6). Never hand-edit an app's copy.
+
+---
+
+## 18. Charts: which one
+
+Pick the chart by the question the reader is asking, not by what looks
+fullest. One accent per chart: the series or part that matters is `brand`,
+everything else is muted (R6.2).
+
+| The question | Use | Never |
+|---|---|---|
+| One number now, and is it better or worse | `Stat` (with `delta`, `lowerIsBetter`) | a gauge |
+| How it moved over time | `LineChart`; `compare` for last week or a baseline | bars for a continuous series |
+| A trend in a row or a cell | `Sparkline` | a full chart in a table cell |
+| Which of these categories is biggest | `BarChart`, sorted, one `highlight` | a pie |
+| How one whole splits into 2 to 5 parts | `DonutChart` | more than 5 slices (they fold into Other), a 3D or exploded pie |
+| The same split in one line, or several wholes compared | `ProportionBar`, one per whole, stacked | side-by-side donuts |
+| When it happens (hour by day) | `Heatmap` | a line per day |
+| How full a fixed capacity is | `Meter` | a donut |
+| Progress of work | `Progress` (R16) | a chart |
+
+**R18.1 Pie means part of one whole.** A donut is right only when the parts
+add up to something the reader cares about (disk by file type, time by
+project), there are five or fewer, and the question is "which is the big
+one" rather than "how do these compare exactly". To compare sizes closely,
+or across wholes, use bars: angles are hard to compare and lengths are not.
+
+**R18.2 Labels, not colour.** Every part and every bar carries its name and
+value in text (the legend shows the share, rounded to add to 100), so a
+chart reads in grey, in high contrast and to a screen reader (`label` is
+required).
+
+**R18.3 Start at zero, keep it flat.** Bars and areas start at zero; no 3D,
+no shadows, no gradients in a series; gridlines are the hairline.
+
+**R18.4 No motion on data.** Charts draw once and redraw in place (§8):
+a tween shows values that never existed.
 
 ---
 

@@ -249,9 +249,10 @@
    * rather than as a generic pulsing dot. */
   --blink-cadence: 1060ms;
 
-  /* Indeterminate progress advances in four discrete quarter-turns. */
-  --tick-cadence: 640ms;
-  --tick-steps: 4;
+  /* Settles past its mark once, then rests: for a card lifting under the
+   * pointer only (R8.3). Data and chrome never overshoot. */
+  --ease-spring: linear(0, 0.18 7%, 0.62 16%, 1.1 27%, 1.23 34%, 1.21 40%, 1.04 54%, 0.97 63%, 0.98 73%, 1.01 85%, 1);
+  --loader-cadence: 1400ms; /* one lap of the loader's comet round the star */
 
   /* ── Terminal palette ──────────────────────────────────────────────────
    * The Nexis Default theme's terminal colours, and the fallback for any theme
@@ -429,25 +430,263 @@ html *::-webkit-scrollbar {
   animation-timing-function: var(--ease-exit);
 }
 
-/* ── Stepped spinner ────────────────────────────────────────────────────────
- * Indeterminate progress ticks through four quarter-turns rather than sweeping.
- * A terminal spinner has always been a character cycling in its cell — it can
- * only ever be discrete — and `steps()` is how that reads in a GUI. This is
- * also the single most-seen animation in the app, which is exactly why it
- * should not be Tailwind's stock `animate-spin`.
+/* ── Loader ─────────────────────────────────────────────────────────────────
+ * <Spinner>: a comet of light runs along the {7/2} heptagram (the brand
+ * mark's star) while the star turns slowly the other way. Linear and
+ * continuous, so it is fluid at the display's refresh rate; the old stepped
+ * quarter-turn read as low-resolution next to everything else that moves.
+ * The tail trails the head by sharing its leading edge: the tail's offset is
+ * the head's plus the difference in their lengths (26 - 9 = 17).
  *
- * `.nexis-spin` replaces `animate-spin` on the Spinner component and on the
- * refresh affordances that spin while a fetch is in flight. */
-@keyframes nexis-tick-spin {
+ * `.nexis-spin` is kept for an icon that turns while work is in flight (a
+ * refresh glyph): a smooth turn on the loader's cadence. Never Tailwind's
+ * `animate-spin` (tripwired). */
+@keyframes nexis-loader-head {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+@keyframes nexis-loader-tail {
+  from {
+    stroke-dashoffset: 17;
+  }
+  to {
+    stroke-dashoffset: -83;
+  }
+}
+
+@keyframes nexis-loader-turn {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.nexis-loader-head {
+  stroke-dasharray: 9 91;
+  animation: nexis-loader-head var(--loader-cadence) linear infinite;
+}
+
+.nexis-loader-tail {
+  stroke-dasharray: 26 74;
+  animation: nexis-loader-tail var(--loader-cadence) linear infinite;
+}
+
+.nexis-loader-turn {
+  transform-box: view-box;
+  transform-origin: center;
+  animation: nexis-loader-turn calc(var(--loader-cadence) * 7) linear infinite;
+}
+
+@keyframes nexis-spin-turn {
   to {
     transform: rotate(360deg);
   }
 }
 
 .nexis-spin {
-  animation: nexis-tick-spin var(--tick-cadence)
-    steps(var(--tick-steps), end) infinite;
+  animation: nexis-spin-turn var(--loader-cadence) linear infinite;
   transform-origin: 50% 50%;
+}
+
+/* ── Skeleton sheen ─────────────────────────────────────────────────────────
+ * A soft band of light crossing the placeholders, left to right. The
+ * gradient is attached to the viewport (background-attachment: fixed), so
+ * every skeleton on screen shows one continuous sweep rather than each
+ * block pulsing on its own clock. */
+@keyframes nexis-sheen {
+  from {
+    background-position: -60vw 0;
+  }
+  to {
+    background-position: 160vw 0;
+  }
+}
+
+.nexis-skeleton {
+  background-color: var(--muted);
+  background-image: linear-gradient(
+    100deg,
+    transparent 0%,
+    color-mix(in oklab, var(--foreground) 7%, transparent) 40%,
+    color-mix(in oklab, var(--foreground) 11%, transparent) 50%,
+    color-mix(in oklab, var(--foreground) 7%, transparent) 60%,
+    transparent 100%
+  );
+  background-size: 50vw 100%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  animation: nexis-sheen 1.8s var(--ease-enter) infinite;
+}
+
+/* ── Cards that answer the pointer (RULES R8.3, opt-in) ─────────────────────
+ * From Vitrine. `<CardTilt />` writes --rx/--ry (lean), --mx/--my (where the
+ * light is) and --px/--py (parallax, -1..1) on the [data-tilt] card under
+ * the pointer; everything below is CSS. The face leans and lifts on a spring
+ * that settles past its mark once, the light follows the pointer, and a
+ * [data-foil] card catches a faint foil from the theme's ANSI roles. Content
+ * cards only: never chrome, rows or controls. Off under reduced motion. */
+.nexis-face {
+  position: relative;
+  transform: perspective(44rem) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition:
+    transform 560ms var(--ease-spring),
+    translate 380ms var(--ease-spring),
+    scale 380ms var(--ease-spring),
+    box-shadow 240ms var(--ease-enter);
+}
+[data-tilting] .nexis-face {
+  transition:
+    transform 90ms linear,
+    translate 380ms var(--ease-spring),
+    scale 380ms var(--ease-spring),
+    box-shadow 240ms var(--ease-enter);
+}
+[data-tilt]:hover .nexis-face {
+  translate: 0 -0.375rem;
+  scale: 1.025;
+  box-shadow: 0 1.25rem 2rem -1rem color-mix(in oklab, black 70%, transparent);
+}
+[data-tilt]:active .nexis-face {
+  scale: 0.975;
+}
+/* The sheen: a light under the pointer. */
+.nexis-face::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), color-mix(in oklab, var(--foreground) 40%, transparent), transparent 62%);
+  mix-blend-mode: overlay;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 260ms var(--ease-enter);
+}
+[data-tilting] .nexis-face::after {
+  opacity: 1;
+}
+/* The foil: one special card on a shelf, never a whole grid of them. */
+[data-foil] .nexis-face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: linear-gradient(115deg, var(--terminal-ansi-red), var(--terminal-ansi-yellow), var(--terminal-ansi-green), var(--terminal-ansi-cyan), var(--terminal-ansi-blue), var(--terminal-ansi-magenta), var(--terminal-ansi-red)) var(--mx, 50%) var(--my, 50%) / 300% 300%;
+  mix-blend-mode: color-dodge;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 260ms var(--ease-enter);
+}
+[data-foil][data-tilting] .nexis-face::before {
+  opacity: 0.18;
+}
+
+/* A collection as a hand of cards (`CollectionCard`). */
+.nexis-collection-back {
+  position: absolute;
+  inset: -12%;
+  overflow: hidden;
+  filter: blur(1.5rem) saturate(1.4);
+  opacity: 0.6;
+}
+.nexis-collection-back > * {
+  width: 100%;
+  height: 100%;
+}
+.nexis-collection-tint {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at var(--mx, 50%) var(--my, 18%), color-mix(in oklab, var(--foreground) 10%, transparent), transparent 70%),
+    linear-gradient(180deg, transparent, color-mix(in oklab, var(--card) 92%, transparent) 78%);
+}
+.nexis-fan {
+  position: absolute;
+  inset: 0 0 4rem;
+}
+.nexis-fan-card {
+  position: absolute;
+  top: 1.25rem;
+  left: 50%;
+  z-index: var(--k);
+  width: var(--size, 42%);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 0.625rem;
+  background: var(--muted);
+  box-shadow:
+    0 0.5rem 1rem -0.25rem color-mix(in oklab, black 65%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--foreground) 14%, transparent);
+  transform: translateX(calc(-50% + var(--n) * var(--gap))) translateY(var(--drop)) rotate(calc(var(--n) * 6deg));
+  transform-origin: 50% 115%;
+  transition: transform 560ms var(--ease-spring);
+  transition-delay: calc(var(--k) * 22ms);
+}
+.nexis-fan-card > * {
+  width: 100%;
+  height: 100%;
+}
+[data-tilting] .nexis-fan-card {
+  transition: transform 140ms var(--ease-enter);
+  transition-delay: 0ms;
+  transform: translateX(calc(-50% + var(--n) * var(--gap) * 1.28 + var(--px, 0) * (var(--k) + 2) * 3px))
+    translateY(calc(var(--drop) - 0.375rem + var(--py, 0) * (var(--k) + 2) * 2px)) rotate(calc(var(--n) * 9deg));
+}
+
+/* A shelf's pictures hop into place the first time it scrolls into view
+ * (`Shelf enter`). Only the pictures: prices and titles never move. */
+@keyframes nexis-hop-in {
+  from {
+    opacity: 0;
+    translate: 0 1.75rem;
+    scale: 0.88;
+  }
+}
+[data-slot="shelf"][data-seen] [data-slot="strip"] > * .nexis-face {
+  animation: nexis-hop-in 620ms var(--ease-spring) backwards;
+  animation-delay: min(calc((var(--i, 0)) * 45ms), 315ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nexis-face,
+  [data-tilting] .nexis-face,
+  .nexis-fan-card {
+    transform: none;
+    transition: none;
+  }
+  [data-tilt]:hover .nexis-face {
+    translate: none;
+    scale: none;
+  }
+  .nexis-face::after,
+  [data-foil] .nexis-face::before {
+    display: none;
+  }
+  [data-slot="shelf"][data-seen] [data-slot="strip"] > * .nexis-face {
+    animation: none;
+  }
+}
+
+/* ── Flash ──────────────────────────────────────────────────────────────────
+ * The row a search hit or a palette command opened: a muted wash that fades
+ * once, so the eye finds it (RULES R4.2). Any element; set `data-flash`. */
+@keyframes nexis-flash {
+  0%,
+  35% {
+    background-color: var(--muted);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+[data-flash] {
+  border-radius: 0.5rem;
+  animation: nexis-flash 1.4s var(--ease-exit);
 }
 
 /* ── Caret blink ────────────────────────────────────────────────────────────
@@ -497,8 +736,16 @@ html *::-webkit-scrollbar {
   /* Both indicators still have to signal "busy" without moving. The spinner
    * holds a static glyph; the blink settles at a dimmed-but-visible opacity so
    * a live indicator is still distinguishable from an idle one. */
-  .nexis-spin {
+  .nexis-skeleton,
+  .nexis-spin,
+  .nexis-loader-turn,
+  .nexis-loader-tail {
     animation: none;
+  }
+  /* The comet parks on one line and breathes at the caret cadence: busy,
+   * without travel. */
+  .nexis-loader-head {
+    animation: nexis-caret-blink var(--blink-cadence) linear infinite;
   }
   .nexis-blink {
     animation: none;
@@ -578,11 +825,14 @@ html *::-webkit-scrollbar {
 .nexis-collapsible-content {
   overflow: hidden;
 }
+/* Height changes move the rows below, so they get a little longer than a
+ * popover's fade: --dur-window to open, --dur-panel to close (leaving is
+ * still faster than arriving). */
 .nexis-collapsible-content[data-state="open"] {
-  animation: nexis-collapsible-down var(--dur-panel) var(--ease-enter);
+  animation: nexis-collapsible-down var(--dur-window) var(--ease-enter);
 }
 .nexis-collapsible-content[data-state="closed"] {
-  animation: nexis-collapsible-up var(--dur-tap) var(--ease-exit);
+  animation: nexis-collapsible-up var(--dur-panel) var(--ease-exit);
 }
 
 /* ── Data moments ──────────────────────────────────────────────────────────

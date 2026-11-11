@@ -54,7 +54,7 @@ export function OverviewPage() {
   return (
     <Page title="" className="pt-10">
       <section className="flex flex-wrap items-center gap-6">
-        <img src="./brand/nexis-logo.png" alt="" className="size-16" />
+        <img src="./brand/nexis-logo.svg" alt="Nexis" className="size-16" />
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <h1 className="text-2xl font-semibold tracking-tight">Nexis Design</h1>
           <p className="max-w-[70ch] text-sm text-muted-foreground">

@@ -40,13 +40,13 @@ export function MotionPage() {
           <Curve d="M0,100 C20,100 0,0 100,0" label="--ease-enter" color="var(--brand)" />
           <Curve d="M0,100 C40,100 100,0 100,0" label="--ease-exit" color="var(--muted-foreground)" />
         </Demo>
-        <Demo title="Live indicators" meta="caret blink · stepped spin · thought line">
+        <Demo title="Live indicators" meta="caret blink · heptagram loader · thought line">
           <div className="flex flex-col gap-3 text-sm">
             <span className="flex items-center gap-2">
               <Blink className="inline-block h-4 w-2 rounded-[1px] bg-brand" /> caret cadence, 1060ms square wave
             </span>
             <span className="flex items-center gap-2">
-              <Spinner /> four quarter-turns, not a sweep
+              <Spinner /> a comet round the heptagram
             </span>
             <span className="flex items-center gap-2">
               <ThoughtLine width={40} /> a stream still arriving

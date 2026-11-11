@@ -33,6 +33,7 @@ import {
   Switch,
   TitleBar,
   useTheme,
+  NexisMark,
 } from "@nexis/design";
 
 const STEPS = ["Workspace", "Preset", "Theme", "Install"];
@@ -90,7 +91,7 @@ export default function App() {
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
-      <TitleBar title="Set up Nexis" brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />} />
+      <TitleBar title="Set up Nexis" brand={<NexisMark className="size-[18px]" />} />
       <div className="grid min-h-0 flex-1 place-items-center overflow-y-auto p-8">
         <div className="flex w-full max-w-xl flex-col gap-8">
           {phase.kind !== "done" && <Steps steps={STEPS} current={step} onSelect={goTo} />}

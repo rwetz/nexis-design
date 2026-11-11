@@ -1,9 +1,15 @@
 import {
   BarChart,
+  DonutChart,
   formatCompact,
   Heatmap,
   LineChart,
+  ProportionBar,
   Skeleton,
+  SkeletonCard,
+  SkeletonGroup,
+  SkeletonRow,
+  SkeletonText,
   Sparkline,
   Stat,
 } from "@nexis/design";
@@ -71,13 +77,52 @@ export function ChartsPage() {
             ))}
           </div>
         </Demo>
-        <Demo title="Skeletons" meta="loading placeholders">
-          <div className="flex flex-col gap-3">
-            <Skeleton className="h-20 w-full rounded-2xl" />
-            <Skeleton className="h-3 w-3/4" />
-            <Skeleton className="h-3 w-1/2" />
-            <Skeleton className="h-3 w-2/3" />
+        <Demo title="Proportion bar" meta="a split in one line">
+          <div className="flex flex-col gap-5">
+            <ProportionBar
+              label="Storage, this device"
+              highlight={0}
+              format={(v) => `${v} GB`}
+              parts={[
+                { label: "Projects", value: 182 },
+                { label: "Models", value: 96 },
+                { label: "Caches", value: 41 },
+                { label: "Media", value: 22 },
+              ]}
+            />
+            <ProportionBar label="Storage, laptop" legend={false} parts={[{ label: "Projects", value: 60 }, { label: "Models", value: 12 }, { label: "Caches", value: 30 }, { label: "Media", value: 8 }]} />
           </div>
+        </Demo>
+      </Grid>
+
+      <Grid cols={2}>
+        <Demo title="Donut" meta="one whole, five parts at most">
+          <DonutChart
+            label="Build time by stage"
+            highlight={0}
+            totalLabel="seconds"
+            format={(v) => `${v}s`}
+            parts={[
+              { label: "Compile", value: 142 },
+              { label: "Link", value: 48 },
+              { label: "Tests", value: 61 },
+              { label: "Bundle", value: 22 },
+              { label: "Sign", value: 6 },
+              { label: "Upload", value: 9 },
+            ]}
+          />
+        </Demo>
+        <Demo title="Skeletons" meta="in the content's shape">
+          <SkeletonGroup label="Loading services" className="grid grid-cols-[minmax(0,1fr)_minmax(0,9rem)] gap-group">
+            <div className="flex flex-col gap-1">
+              <SkeletonRow />
+              <SkeletonRow />
+              <SkeletonRow media="square" />
+              <SkeletonText lines={3} className="pt-3" />
+            </div>
+            <SkeletonCard aspect="portrait" />
+          </SkeletonGroup>
+          <Skeleton className="h-16 w-full" />
         </Demo>
       </Grid>
 

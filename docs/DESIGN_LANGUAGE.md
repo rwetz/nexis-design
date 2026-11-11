@@ -36,7 +36,7 @@ replacing its *look*. The table is the clearest statement of what is a rule
 | Neutral base palette | cool OKLCH greys, translucent glass | near-pure iron greys, opaque |
 | Tokens have one source of truth | `globals.css` + the theme engine → CSS variables | `tokens.rs` → `palette(cx)` |
 | Theme on screen before first paint | `index.html` bootstrap + hidden-until-painted window | theme installed before `open_window` |
-| A shared motion vocabulary | CSS tokens: `--dur-*`, `--ease-enter/exit`, caret blink, stepped spin | stepped clips at the refresh rate |
+| A shared motion vocabulary | CSS tokens: `--dur-*`, `--ease-enter/exit`, caret blink, the heptagram loader | stepped clips at the refresh rate |
 | Respect reduced motion | one `prefers-reduced-motion` rule + `useReducedMotion` on the rail | render the final state |
 | Self-drawn chrome on Win/Linux, native on macOS | 12px rounded transparent frame | square frame, text-mode controls |
 | Self-hosted fonts | Inter + Geist Mono (code only) | PxPlus VGA + JetBrains Mono |
@@ -232,7 +232,7 @@ sweep. Nothing overshoots: nothing in a tool should bounce.
 | `--dur-window` | 200ms | dialogs, sheets |
 | `--dur-scene` | 420ms | a data canvas or companion window arriving |
 | `--blink-cadence` | 1060ms | a VT100 caret: live indicators |
-| `--tick-cadence` × `--tick-steps` | 640ms × 4 | indeterminate progress |
+| `--loader-cadence` | 1400ms | one lap of the loader round the heptagram; the star turns once in seven |
 | `--live-cadence` | 1600ms | a long run's slow scan |
 
 `--default-transition-duration` / `-timing-function` point at `--dur-tap` /
@@ -244,11 +244,13 @@ exit curve.
 
 ### 5.2 The vocabulary
 
-- `.nexis-spin` (`<Spinner>`): four quarter-turns, stepped. Never
-  `animate-spin` (tripwired).
+- `<Spinner>` (`.nexis-loader`): a comet of light running along the {7/2}
+  heptagram while the star turns slowly the other way; vector, continuous,
+  `currentColor`. `.nexis-spin` is a smooth turn for an icon that spins
+  while work is in flight. Never `animate-spin` (tripwired).
 - `.nexis-blink` (`<StatusDot live>`, `<Blink>`): near-square wave at caret
-  cadence. Never `animate-pulse` for status (skeletons keep it: a
-  placeholder is a different idiom).
+  cadence. Never `animate-pulse` for status; skeletons have their own sheen
+  (`.nexis-skeleton`), a placeholder being a different idiom.
 - `<ThoughtLine>`: a stream still arriving. **Live only**; never from stored
   state.
 - Moments (`components/motion.tsx`): `<SceneEnter>` (a scene arrives once),
@@ -401,7 +403,7 @@ An app belongs to the family when it has:
 2. All 22 themes working, light and dark, plus high contrast on top.
 3. Inter for everything read, Geist Mono for code only (RULES R1).
 4. `<Icon name>` only; five sizes; no emoji.
-5. The motion tokens; stepped spin; caret blink; gliding rails; reduced
+5. The motion tokens; the heptagram loader; caret blink; gliding rails; reduced
    motion respected.
 6. Self-drawn chrome on Windows/Linux, native on macOS; 12px corners; resize
    edges on Linux; no flash on launch.

@@ -29,6 +29,7 @@ import {
   useCommandPaletteShortcut,
   useTheme,
   WindowResizeEdges,
+  NexisMark,
 } from "@nexis/design";
 
 export default function App() {
@@ -39,7 +40,7 @@ export default function App() {
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <WindowResizeEdges />
-      <TitleBar brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />} title="My App" />
+      <TitleBar brand={<NexisMark className="size-[18px]" />} title="My App" />
       <main className="grid min-h-0 flex-1 place-items-center">
         <Empty>
           <EmptyHeader>

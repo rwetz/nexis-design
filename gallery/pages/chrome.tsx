@@ -6,6 +6,7 @@ import {
   StatusItem,
   TitleBar,
   Input,
+  NexisMark,
 } from "@nexis/design";
 import { Demo, Grid, Page } from "../kit";
 
@@ -17,7 +18,7 @@ function MacBar() {
         <span className="size-3 rounded-full bg-[#febc2e]" />
         <span className="size-3 rounded-full bg-[#28c840]" />
       </span>
-      <img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />
+      <NexisMark className="size-[18px]" />
       <span className="text-body font-medium">Atlas</span>
       <span className="flex-1" />
       <Button size="icon-xs" variant="ghost" aria-label="Search">
@@ -37,7 +38,7 @@ export function ChromePage() {
         <div className="mx-auto flex h-[360px] w-full max-w-4xl flex-col overflow-hidden rounded-[12px] bg-background shadow-2xl ring-1 ring-foreground/10">
           <TitleBar
             controls="preview"
-            brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />}
+            brand={<NexisMark className="size-[18px]" />}
             title="Pulse"
             center={
               <div className="relative w-full max-w-xs">
@@ -82,7 +83,7 @@ export function ChromePage() {
       <Grid cols={2}>
         <Demo title="Title bar · Windows / Linux" meta="drawn controls on the right">
           <div className="overflow-hidden rounded-xl ring-1 ring-border">
-            <TitleBar controls="preview" brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />} title="Atlas" />
+            <TitleBar controls="preview" brand={<NexisMark className="size-[18px]" />} title="Atlas" />
           </div>
           <p className="text-ui text-muted-foreground">
             Close hovers destructive; min and max hover neutral. The whole bar is a drag region except the controls in it.

@@ -151,13 +151,13 @@ export function DataPage() {
 
       <Grid cols={2}>
         <Demo title="Items" meta="list rows with media and actions">
-          <ItemGroup className="gap-2">
+          <ItemGroup className="divide-y divide-border/60">
             {[
               { name: "Ada Lovelace", role: "Reviewer", presence: "online" as const },
               { name: "Grace Hopper", role: "Maintainer", presence: "away" as const },
               { name: "Alan Turing", role: "Contributor", presence: "offline" as const },
             ].map((p) => (
-              <Item key={p.name} variant="outline" size="sm">
+              <Item key={p.name} size="sm" className="rounded-none px-1">
                 <ItemMedia>
                   <Avatar name={p.name} presence={p.presence} />
                 </ItemMedia>

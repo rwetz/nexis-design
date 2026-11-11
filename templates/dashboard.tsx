@@ -53,6 +53,7 @@ import {
   useCommandPaletteShortcut,
   useTheme,
   WindowResizeEdges,
+  NexisMark,
 } from "@nexis/design";
 
 type Range = "1h" | "24h" | "7d";
@@ -80,7 +81,7 @@ export default function App() {
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <WindowResizeEdges />
-      <TitleBar brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />} title="Pulse" />
+      <TitleBar brand={<NexisMark className="size-[18px]" />} title="Pulse" />
       <div className="flex min-h-0 flex-1">
         <SidebarNav
           value={page}

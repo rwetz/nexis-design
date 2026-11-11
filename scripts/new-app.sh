@@ -252,17 +252,14 @@ if (IN_TAURI) {
 TSX
 } > "$dir/src/main.tsx"
 
-# The app's own mark, in the family grammar (docs/ASSETS.md): a rounded tile
-# in currentColor with the mark knocked out in var(--background).
+# The app's own mark (RULES §17). It starts as the family's heptagram, in
+# currentColor; an app with a mark of its own draws it here.
 { header "//"; cat <<'TSX'
 
+import { NexisMark } from "@nexis/design";
+
 export function AppLogo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-      <rect width="48" height="48" rx="12" fill="currentColor" />
-      <path d="M14 34V14h6l8 12V14h6v20h-6l-8-12v12z" fill="var(--background)" />
-    </svg>
-  );
+  return <NexisMark className={className} />;
 }
 TSX
 } > "$dir/src/AppLogo.tsx"
@@ -275,9 +272,10 @@ title="$(grep -o 'title="[^"]*"' "$src" | head -1 | sed 's/title="//; s/"$//')"
   echo "//"
   echo "// Started from the @nexis/design \`$template\` template."
   # Drop the template's own 4-line banner box.
+  # The template's Nexis mark becomes this app's own mark (RULES §17).
   tail -n +5 "$src" | sed \
-    -e "s#<img src=\"./brand/nexis-logo.png\" alt=\"\" className=\"size-\[18px\]\" />#<AppLogo className=\"size-[18px] text-brand\" />#g" \
-    -e "s#<img src=\"./brand/nexis-logo.png\" alt=\"\" className=\"\([^\"]*\)\" />#<AppLogo className=\"\1 text-brand\" />#g"
+    -e "s#<NexisMark className=\"\([^\"]*\)\" />#<AppLogo className=\"\1\" />#g" \
+    -e "/^  NexisMark,\$/d"
 } > "$dir/src/App.tsx"
 if [[ -n "$title" ]]; then
   sed -i "s/title=\"$title\"/title=\"$display\"/" "$dir/src/App.tsx"
@@ -424,6 +422,7 @@ JSON
 # first try (Windows needs icon.ico before it compiles anything). Replace
 # icon.png and run `pnpm icons`.
 cp "$here/assets/brand/nexis-logo.png" "$dir/src-tauri/icons/icon.png"
+mkdir -p "$dir/assets" && cp "$here/assets/brand/nexis-logo.svg" "$dir/assets/logo.svg"
 cp "$here/templates/icons/"* "$dir/src-tauri/icons/"
 
 # The workspace's brand mark, for the README footer.

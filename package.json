@@ -56,7 +56,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "screenshots": "node scripts/screenshots.mjs",
-    "new-app": "bash scripts/new-app.sh"
+    "new-app": "bash scripts/new-app.sh",
+    "consumers": "node scripts/consumers.mjs"
   },
   "peerDependencies": {
     "@fontsource-variable/geist-mono": "^5.3.0",

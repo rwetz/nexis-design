@@ -8,6 +8,12 @@
  * Stacked disclosure sections. Radix Accordion underneath; the open/close
  * uses the same `.nexis-collapsible-content` keyframes as `Collapsible`, so
  * there is one height animation in the family, on the house curve.
+ *
+ * Radix's AccordionContent already sets `--radix-collapsible-content-height`
+ * (the measured px) and defines `--radix-accordion-content-height` from it.
+ * Do not map one onto the other here: that made the two variables refer to
+ * each other, both resolved to nothing, the height keyframes were invalid,
+ * and the content snapped open with only the fade.
  */
 
 import type * as React from "react";
@@ -47,7 +53,7 @@ function AccordionTrigger({
       >
         <Icon
           name="chevron-right"
-          className="text-muted-foreground transition-transform group-data-[state=open]/acc:rotate-90"
+          className="text-muted-foreground transition-transform duration-(--dur-panel) ease-(--ease-enter) group-data-[state=open]/acc:rotate-90"
         />
         <span className="flex-1">{children}</span>
         {meta !== undefined && <span className="text-ui font-normal text-muted-foreground">{meta}</span>}
@@ -61,7 +67,6 @@ function AccordionContent({ className, children, ...props }: React.ComponentProp
     <AccordionPrimitive.Content
       data-slot="accordion-content"
       className="nexis-collapsible-content"
-      style={{ ["--radix-collapsible-content-height" as string]: "var(--radix-accordion-content-height)" }}
       {...props}
     >
       <div className={cn("pb-3 pl-6 text-sm text-muted-foreground", className)}>{children}</div>

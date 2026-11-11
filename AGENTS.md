@@ -278,6 +278,11 @@ const columns: Column<Row, "name" | "rps">[] = [
 <LineChart label="Latency" values={v} compare={baseline} labels={l} format={(v) => `${v}ms`} height={180} />
 <BarChart label="Deploys" bars={[{ label: "Mon", value: 12 }]} highlight={3} />
 <Sparkline values={v} width={96} tone="brand|muted" />   <Heatmap label="Load" rows={rows0to1} rowLabels={[…]} colLabels={[…]} />
+<DonutChart label="Build time" parts={[{ label: "Compile", value: 142 }]} highlight={0} format={(v) => `${v}s`} />   // part of one whole, ≤5 parts (RULES §18)
+<ProportionBar label="Storage" parts={parts} highlight={0} legend={false} />
+<SkeletonGroup label="Loading services"><SkeletonRow /><SkeletonText lines={3} /><SkeletonCard aspect="portrait" /></SkeletonGroup>
+<CardTilt />   // once, near the root, in a browsing app (RULES R8.3); then <ProductCard tilt foil? …/>, <Shelf enter>, <CollectionCard name count covers />
+<NexisMark className="size-[18px]" />   // the heptagram in currentColor (RULES §17)
 
 // Framing, motion
 <Panel title="Services" meta="8" actions={…} flush>…</Panel>   <SectionLabel>Danger zone</SectionLabel>
@@ -363,6 +368,31 @@ pnpm typecheck && pnpm test
 pnpm screenshots         # regenerate docs/img (all, or `pnpm screenshots app-` for a subset)
 ```
 
+### A fix lands everywhere
+
+A fix or a change here is not done when it merges: it is done when every
+app has it. Existing apps pin a commit, so nothing reaches them by itself.
+
+1. **Fix it here, never only in an app.** An app that finds a bug in a
+   component logs it (SCAFFOLD-ISSUES.md or APP-FINDINGS.md) and fixes it in
+   this package; a local workaround is temporary and named as one.
+2. **Future apps in the same change.** Templates, `new-app.sh`, the
+   `nexis-scaffold` skill, RULES.md and the cheat sheet are updated in the
+   same commit as the component, so the next scaffold starts with the fix.
+3. **Say what it asks of apps.** Add an entry to
+   [docs/CHANGES.md](docs/CHANGES.md) with an **Apps must** line: bump the
+   pin, delete this local copy, rename that token. A rule change also gets a
+   tripwire where one is possible, and apps run the same tripwires.
+4. **Then carry it to every existing app.** After merging, run
+   `pnpm consumers`: it lists each app, its pin, how far behind `main` it
+   is, and the package components it still shadows with its own copy. Each
+   app gets its own branch and PR that bumps the pin and does its **Apps
+   must** lines. An unpinned app is pinned first. Nexis, the source of most
+   components, takes the same fix in its own copy until it consumes this
+   package (ROADMAP Phase 1).
+5. **Nothing is silently left behind.** An app that cannot take a change yet
+   gets a line under that change in CHANGES.md saying why.
+
 - **Nexis is the source.** The theme files, `applyTheme`, `globals.css`,
   `icon.tsx` and most of `components/ui` are ports of Nexis's own. Change them
   in Nexis first (or in both, in the same breath), not here alone: drift
@@ -379,6 +409,8 @@ pnpm screenshots         # regenerate docs/img (all, or `pnpm screenshots app-` 
   and copy the file in; it must pass `themes.contrast.test.ts`. Add its folder
   colour to `theme/folderColor.ts`.
 - A new icon: a semantic name in `REGISTRY` (one name per idea).
+- What changed and what it asks of apps: [docs/CHANGES.md](docs/CHANGES.md);
+  who uses the package: `pnpm consumers`.
 - Field notes: [docs/PITFALLS.md](docs/PITFALLS.md); what apps found that belongs back here: [docs/APP-FINDINGS.md](docs/APP-FINDINGS.md). What is next:
   [docs/ROADMAP.md](docs/ROADMAP.md).
 
