@@ -26,6 +26,24 @@ BibleLM can drop its workarounds (the cast in `SettingsTree`, its own
 `SettingsTree` and registry, the wrapping `div`s, `fetchData`) once it moves
 its pin past this change.
 
+## Vitrine (2026-11-10, brought up to `23e14a7`)
+
+Vitrine's storefront and card showmanship were promoted into the package
+(`ProductCard`, `Shelf`, `FilterPanel`, `CardTilt`, `CollectionCard`). Moving
+Vitrine onto them (branch `nexis-design-sync` in `apps/vitrine`) found these.
+The files named below are in `apps/vitrine`.
+
+| # | Kind | Finding | Fix in nexis-design | Vitrine meanwhile |
+|---|---|---|---|---|
+| 1 | Component | **`ProductCard` takes only an image URL and three aspects.** Vitrine's covers need their own element: `referrerPolicy="no-referrer"` (stores refuse hotlinked pictures that send a referrer), a fallback once the picture fails, a wide box set fitted whole over a blurred copy of itself, and a face whose ratio follows the picture. | A `media` slot (any node) beside `image`, or `imgProps`, and an `aspect` that also takes a number. | Its own `ProductCard` in `src/shop.tsx`, built on `CardBadge`, `PriceTag`, `.nexis-face` and `data-tilt`/`data-foil`. |
+| 2 | Component | **`Shelf`'s strip covers its own arrow buttons.** The strip's `-my-6 py-6` (room for a lifted card) reaches up over the bottom of the header row, which is not positioned, so the arrows cannot be clicked near their bottom edge (`elementFromPoint` returns the strip). | Make the header row `relative z-10`. | `className="[&>div:first-child]:relative [&>div:first-child]:z-10"` on `Shelf`. |
+| 3 | Component | **`Shelf enter` staggers through a `style` prop.** It clones each child with `--i` in `style`, so an app component that does not pass `style` to its root gets every card hopping at once, with no error. | Say so in the `Shelf` comment and COMPONENTS.md, or stagger from CSS (`:nth-child`, or `sibling-index()` where supported) and drop the clone. | `ProductCard`, `CollectionCard` and the Main Street shopfront forward `style`. |
+| 4 | Component | **`CollectionCard` has no colour of its own.** Vitrine tinted each hand with a colour from its name, so a row of collections is not one grey. | A `tone` prop (any CSS colour) for the tint, defaulting to today's neutral. | `className="vitrine-collection"` and a `.vitrine-collection .nexis-collection-tint` rule in `src/fun.css`, from `--awning`. |
+| 5 | Component | **The light needs a leaning face.** A `data-tilt="flat"` card with no `.nexis-face` (Vitrine's glance cards, which show prices and must not move) gets no light under the pointer. | Draw the light on `[data-tilt]:not(:has(.nexis-face))::after` too, or a `data-tilt="light"` mode. | Its own `[data-tilt="light"]` rules in `src/fun.css`. |
+| 6 | Pattern | **`CardTilt` is the only switch for an app with levels.** Unmounting it stops the lean and the light, but the hover lift, the foil and `Shelf enter` are CSS that runs wherever `data-tilt` or `data-seen` is set. Vitrine's Calm has no lift or hop, and only Over the top shines. | Have `CardTilt` mark the root while mounted (`data-card-tilt`) and gate the lift, foil and hop on it, or take `foil` and `enter` levels as props. | Overrides in `src/fun.css` keyed on `:root[data-fun]`. |
+| 7 | Testing | **`tiltFor` has no test.** Vitrine tested its copy (rests level at the middle, a corner leans the most, outside the card counts as its edge, a zero-size card does not divide by zero, `most = 0` does not lean) and dropped that test with the copy. | Move those cases into the package's tests. | Nothing. |
+| 8 | Pitfall | **A `file:` dependency's new exports are missing in `vite` dev until its prebundle is rebuilt.** After the pin moved, the dev page was blank: `does not provide an export named 'CardTilt'`. `pnpm build` was fine. | A line in PITFALLS and in the CHANGES.md "Apps must" boilerplate: after bumping, delete `node_modules/.vite` (or start Vite with `--force`). | Deleted `node_modules/.vite`. |
+
 ## BibleLM (2026-11-10, pinned at `cfb2b06`)
 
 BibleLM has its own design language now (the Scriptorium: blackletter,
