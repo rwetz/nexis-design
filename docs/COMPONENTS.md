@@ -85,8 +85,8 @@ shared version yet.
 | `Timeline` | new | time column, tone dots, `live` newest |
 | `Empty*` | Nexis | empty states that say what to do next |
 | `Skeleton`, `SkeletonText`, `SkeletonRow`, `SkeletonCard`, `SkeletonGroup` | Nexis | placeholders in the content's shape; one viewport-wide sheen, still under reduced motion; `SkeletonGroup` announces "Loading" |
-| `ProductCard`, `PriceTag`, `CardBadge`, `Shelf` | Vitrine | catalogue cards with price, solid badges over art and one action (`tilt`, `foil`); a titled sideways row that lets the page scroll (`enter` hops it in) |
-| `CardTilt`, `CollectionCard`, `tiltFor` | Vitrine | one pointer listener that makes `[data-tilt]` cards lean, lift and catch a light (R8.3); a collection as a fanned hand of covers |
+| `ProductCard`, `PriceTag`, `CardBadge`, `Shelf` | Vitrine | catalogue cards with price, solid badges over art and one action (`tilt`, `foil`, `media` for your own picture element, `aspect` as a name or a ratio); a titled sideways row that lets the page scroll (`enter` hops it in, by position) |
+| `CardTilt`, `CollectionCard`, `tiltFor` | Vitrine | one pointer listener that makes `[data-tilt]` cards lean, lift and catch a light (R8.3); `foil` and `enter` props for apps with levels, every effect gated on it being mounted; a collection as a fanned hand of covers (`tone` for its glow) |
 | `FilterPanel`, `ActiveFilters`, `RangeInput` | Vitrine | faceted filters (options with counts, numeric ranges that may be empty), chips for what is on |
 
 ### Charts

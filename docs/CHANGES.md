@@ -8,7 +8,31 @@ free: `new-app.sh` pins the commit it runs from.
 `pnpm consumers` lists every app, its pin, how far behind it is, and which
 package components it still shadows with its own copy.
 
-## Unreleased (`fluid-loader-ci`)
+Every **Apps must** starts the same way: bump the pin, `pnpm install`, then
+delete `node_modules/.vite` (or run `pnpm dev --force` once) so Vite does not
+keep serving the old package (PITFALLS §17).
+
+## Unreleased (`vitrine-findings`)
+
+- **From moving Vitrine onto the package** (APP-FINDINGS, Vitrine 1 to 8):
+  `ProductCard media` (your own picture element) and a numeric `aspect`;
+  `Shelf`'s header sits above the strip's hover room, so its arrows click;
+  `Shelf enter` staggers by position in CSS, no longer through a `style`
+  prop; `CollectionCard tone`; flat `[data-tilt]` cards with no leaning face
+  catch the light; `CardTilt` marks the root while mounted and takes `foil`
+  and `enter`, and the lift, foil and hop are gated on it; `tiltFor` is
+  tested; PITFALLS §17 (stale Vite prebundle).
+
+**Apps must:** Vitrine can drop its workarounds: the `Shelf` header
+override, the `style` forwarding added for the stagger, the
+`.vitrine-collection` tint rule (use `tone`), its own `[data-tilt="light"]`
+rules, and the `:root[data-fun]` overrides (map Calm, Lively and Over the
+top onto mounting `CardTilt` and its `foil` and `enter`). Its `ProductCard`
+can move onto the package's with `media={<Cover … />}` and a numeric
+`aspect`. An app that used `Shelf enter` without `CardTilt` mounted now
+needs it mounted.
+
+## 2026-11-10 (`fluid-loader-ci`, merged as `23e14a7`)
 
 - **Loader.** `Spinner` is now the heptagram loader: a comet running along
   the {7/2} star, continuous at the display's refresh rate, vector,
@@ -60,6 +84,9 @@ own mark per R17.4) and regenerate its icons from the new tile. Replace
 `useCardPhysics`, `.fun-face` and the fan CSS with `CardTilt`,
 `ProductCard tilt` and `CollectionCard`, keeping its Showmanship levels as
 whether `CardTilt` is mounted. Run the R10.2 tripwire over the app's copy.
+
+- **Vitrine: done** in rwetz/vitrine#3 (on top of #2), 2026-11-10. Still
+  behind: BibleLM, Nexis, nexis-press, nexis-lens, nexis-epoch.
 
 ## 2026-11-10 (`scaffold-sweep`, merged as `a786979`)
 

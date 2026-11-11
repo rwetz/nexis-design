@@ -17,6 +17,7 @@ import { findSettings, locateSetting, type SettingsChapter } from "../src/lib/se
 import { filterCount, rangeBounds } from "../src/components/ui/filter-panel";
 import { tabsReducer } from "../templates/workbench";
 import { foldParts, roundedShares } from "../src/components/ui/part-chart";
+import { tiltFor } from "../src/components/ui/card-tilt";
 
 describe("dates", () => {
   it("clamps month arithmetic instead of overflowing", () => {
@@ -230,5 +231,18 @@ describe("part-to-whole charts", () => {
   it("rounds shares to exactly 100", () => {
     expect(roundedShares([1, 1, 1])).toEqual([34, 33, 33]);
     expect(roundedShares([0, 0])).toEqual([0, 0]);
+  });
+});
+
+describe("tiltFor", () => {
+  // Moved from Vitrine with the card physics (APP-FINDINGS Vitrine 7).
+  it("rests level at the middle and leans most at a corner", () => {
+    expect(tiltFor(50, 50, 100, 100)).toMatchObject({ rx: 0, ry: 0, mx: 50, my: 50, px: 0, py: 0 });
+    expect(tiltFor(0, 0, 100, 100, 9)).toMatchObject({ rx: 9, ry: -9, mx: 0, my: 0, px: -1, py: -1 });
+  });
+  it("treats a pointer outside the card as its edge, survives a zero-size card, and does not lean at most = 0", () => {
+    expect(tiltFor(-40, 500, 100, 100, 9)).toEqual(tiltFor(0, 100, 100, 100, 9));
+    expect(Object.values(tiltFor(10, 10, 0, 0)).every(Number.isFinite)).toBe(true);
+    expect(tiltFor(0, 0, 100, 100, 0)).toMatchObject({ rx: 0, ry: 0 });
   });
 });
