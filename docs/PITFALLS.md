@@ -206,3 +206,22 @@ them), so an upgrading app keeps its users' choice. The app's `index.html`
 bootstrap must read the *new* key, or the first launch after the upgrade
 flashes the wrong mode.
 
+## 14. A missing data file is `200 text/html`, not a 404
+
+An app that ships static data in `public/` and fetches it (`fetch("/data/x.json")`)
+expects a 404 for a file that is not there. The Vite dev server answers with
+the app's own `index.html` and `200` (its SPA fallback; checked in BibleLM:
+`200`, `text/html`), and BibleLM's desktop build hung the same way. `res.ok` is
+true, so the error surfaces later in `JSON.parse`, often in a `.then` that
+nobody catches, and the view waits on it forever.
+
+**Fix:** treat an HTML content type as missing in one fetch helper every
+loader uses:
+
+```ts
+const missing = !res.ok || (res.headers.get("content-type") ?? "").includes("text/html");
+if (missing) throw new Error(`${path}: missing`);
+```
+
+and put the parse inside the same promise chain as the fetch, so one `.catch`
+covers both. First seen in BibleLM (`APP-FINDINGS.md`, finding 8).

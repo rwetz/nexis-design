@@ -287,6 +287,9 @@ ultraviolet synthwave tokyo-night catppuccin nord gruvbox rose-pine`.
   any other folder (PITFALLS §8).
 - **`link:` the package and `tsc` reports two Reacts** → use `file:`
   (PITFALLS §10).
+- **A view that fetches a data file spins forever** → a missing file came
+  back as the app's own page, `200 text/html`; check the content type
+  (PITFALLS §14).
 - Pick a template that is close and delete; do not build a shell from
   scratch.
 
@@ -334,5 +337,5 @@ pnpm screenshots         # regenerate docs/img (all, or `pnpm screenshots app-` 
   and copy the file in; it must pass `themes.contrast.test.ts`. Add its folder
   colour to `theme/folderColor.ts`.
 - A new icon: a semantic name in `REGISTRY` (one name per idea).
-- Field notes: [docs/PITFALLS.md](docs/PITFALLS.md). What is next:
+- Field notes: [docs/PITFALLS.md](docs/PITFALLS.md); what apps found that belongs back here: [docs/APP-FINDINGS.md](docs/APP-FINDINGS.md). What is next:
   [docs/ROADMAP.md](docs/ROADMAP.md).

@@ -151,6 +151,8 @@ pnpm screenshots               # regenerate every image in this README from the 
   came from, and the rules for writing one.
 - [SCAFFOLDING.md](docs/SCAFFOLDING.md): a new app, step by step.
 - [PITFALLS.md](docs/PITFALLS.md): field notes; read before scaffolding.
+- [APP-FINDINGS.md](docs/APP-FINDINGS.md): what apps in the family found
+  that belongs back in the package.
 - [ASSETS.md](docs/ASSETS.md): cursors, and why logos are per app.
 - [ROADMAP.md](docs/ROADMAP.md): what "one design layer for the family"
   still needs.
