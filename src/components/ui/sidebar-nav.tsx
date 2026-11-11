@@ -11,7 +11,9 @@
  * The selection is a single highlight that glides between items
  * (`useGlidingRail`, vertical) with a short accent bar on its leading edge —
  * the same rail Nexis's Settings nav uses. `collapsed` shrinks it to an icon
- * rail; labels move into tooltips.
+ * rail; labels move into tooltips and the buttons' accessible names, and a
+ * `meta` shows as a small badge on the icon (a number) or a dot (anything
+ * else).
  */
 
 import * as React from "react";
@@ -90,6 +92,7 @@ export function SidebarNav<Id extends string>({
                   ref={(el) => rail.registerItem(item.id, el)}
                   type="button"
                   aria-current={on ? "page" : undefined}
+                  aria-label={collapsed ? railLabel(item) : undefined}
                   onClick={() => onChange(item.id)}
                   onPointerEnter={() => rail.setHoverId(item.id)}
                   className={cn(
@@ -98,7 +101,10 @@ export function SidebarNav<Id extends string>({
                     on ? "font-medium text-sidebar-accent-foreground" : "text-sidebar-foreground/70 hover:text-sidebar-foreground",
                   )}
                 >
-                  <Icon name={item.icon} size="md" active={on} />
+                  <span className="relative inline-flex">
+                    <Icon name={item.icon} size="md" active={on} />
+                    {collapsed && item.meta !== undefined && item.meta !== null && item.meta !== false && <RailBadge meta={item.meta} />}
+                  </span>
                   {!collapsed && <span className="flex-1 truncate text-left">{item.label}</span>}
                   {!collapsed && item.meta !== undefined && (
                     <span className="text-caption tabular-nums text-muted-foreground">{item.meta}</span>
@@ -118,5 +124,27 @@ export function SidebarNav<Id extends string>({
       </div>
       {footer && <div className="shrink-0 border-t border-sidebar-border p-2">{footer}</div>}
     </nav>
+  );
+}
+
+/** "Cart, 3" for a counted item on the icon rail, so the count is heard too. */
+function railLabel(item: SidebarNavItem): string {
+  const m = item.meta;
+  return typeof m === "number" || typeof m === "string" ? `${item.label}, ${m}` : item.label;
+}
+
+/** A count on the rail's icon, or a dot when the meta is not a short value. */
+function RailBadge({ meta }: { meta: React.ReactNode }) {
+  const short = typeof meta === "number" ? (meta > 99 ? "99+" : String(meta)) : typeof meta === "string" && meta.length <= 3 ? meta : null;
+  if (short === "0") return null;
+  return short ? (
+    <span
+      aria-hidden
+      className="absolute -top-1.5 -right-2 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-foreground px-1 text-micro leading-none font-semibold text-background tabular-nums"
+    >
+      {short}
+    </span>
+  ) : (
+    <span aria-hidden className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-foreground" />
   );
 }

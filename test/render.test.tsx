@@ -5,7 +5,7 @@
 import { render } from "@testing-library/react";
 import type * as React from "react";
 import { describe, expect, it } from "vitest";
-import { ThemeProvider, TooltipProvider } from "../src";
+import { SidebarNav, ThemeProvider, TooltipProvider } from "../src";
 import Console from "../templates/console";
 import Dashboard from "../templates/dashboard";
 import Explorer from "../templates/explorer";
@@ -87,5 +87,16 @@ describe("0.1.x compatibility", () => {
     );
     expect(seen).toEqual({ themeId: "glacier", mode: "light" });
     localStorage.clear();
+  });
+});
+
+describe("SidebarNav collapsed", () => {
+  it("keeps an accessible name, count included, on each icon button (SCAFFOLD-ISSUES 16)", () => {
+    function Nav() {
+      return <SidebarNav collapsed value="home" onChange={() => {}} sections={[{ items: [{ id: "home", label: "Home", icon: "home" }, { id: "cart", label: "Cart", icon: "cart", meta: 3 }] }]} />;
+    }
+    const { getByRole } = mount(Nav);
+    expect(getByRole("button", { name: "Home" })).toBeInTheDocument();
+    expect(getByRole("button", { name: "Cart, 3" })).toBeInTheDocument();
   });
 });

@@ -1,5 +1,5 @@
 // ╔══════════════════════════════════════╗
-// ║  @nexis/design — app template        ║
+// ║  @nexis/design · app template        ║
 // ║  wizard                              ║
 // ╚══════════════════════════════════════╝
 //
@@ -8,8 +8,14 @@
 // Start here for: installers, onboarding, setup and export flows.
 //
 // Next is disabled until the page is valid, and the reason is shown under
-// the field that blocks it — never a toast after the click. Back is always
-// allowed and never loses what was typed.
+// the field that blocks it, never a toast after the click. Back is allowed
+// on every form page and never loses what was typed; once the install
+// starts there is no going back (RULES R14.2: the phase is one value).
+//
+// The flow is one explicit state, `Phase`: a form page, installing (with its
+// progress), or done. Which step the `Steps` bar shows, which buttons exist
+// and what Next does are all read from it, so "installing on the theme
+// page" or "done at 40%" cannot be written down.
 
 import * as React from "react";
 import {
@@ -30,6 +36,16 @@ import {
 } from "@nexis/design";
 
 const STEPS = ["Workspace", "Preset", "Theme", "Install"];
+const PAGES = ["workspace", "preset", "theme"] as const;
+type Page = (typeof PAGES)[number];
+
+type Phase =
+  | { kind: "form"; page: Page }
+  | { kind: "installing"; progress: number }
+  | { kind: "done" };
+
+/** The step the `Steps` bar shows for a phase. */
+const stepOf = (p: Phase) => (p.kind === "form" ? PAGES.indexOf(p.page) : p.kind === "installing" ? 3 : 4);
 
 const PRESETS: { id: string; name: string; icon: IconName; blurb: string }[] = [
   { id: "bare", name: "Bare bones", icon: "terminal", blurb: "Terminal and editor. Nothing else." },
@@ -39,33 +55,48 @@ const PRESETS: { id: string; name: string; icon: IconName; blurb: string }[] = [
 
 export default function App() {
   const theme = useTheme();
-  const [step, setStep] = React.useState(0);
+  const [phase, setPhase] = React.useState<Phase>({ kind: "form", page: "workspace" });
   const [name, setName] = React.useState("");
   const [path, setPath] = React.useState("~/code");
   const [preset, setPreset] = React.useState("standard");
   const [git, setGit] = React.useState(true);
-  const [progress, setProgress] = React.useState(0);
 
   const nameError = name.length === 0 ? null : /^[a-z][a-z0-9-]{1,30}$/.test(name) ? null : "2–31 lowercase letters, digits or dashes.";
-  const valid = [name.length > 0 && !nameError && path.length > 0, !!preset, true, progress >= 100][step];
+  const pageValid: Record<Page, boolean> = { workspace: name.length > 0 && !nameError && path.length > 0, preset: !!preset, theme: true };
 
+  // The fixture install: replace with the real job's progress events.
+  const progress = phase.kind === "installing" ? phase.progress : null;
   React.useEffect(() => {
-    if (step !== 3 || progress >= 100) return;
-    const id = setTimeout(() => setProgress((p) => Math.min(100, p + 7)), 120);
+    if (progress === null || progress >= 100) return;
+    const id = setTimeout(() => setPhase({ kind: "installing", progress: Math.min(100, progress + 7) }), 120);
     return () => clearTimeout(id);
-  }, [step, progress]);
+  }, [progress]);
 
-  const done = step === 4;
+  // Every transition, in one place.
+  const next = () =>
+    setPhase((p) => {
+      if (p.kind === "form") {
+        const i = PAGES.indexOf(p.page);
+        return i < PAGES.length - 1 ? { kind: "form", page: PAGES[i + 1] } : { kind: "installing", progress: 0 };
+      }
+      if (p.kind === "installing" && p.progress >= 100) return { kind: "done" };
+      return p;
+    });
+  const back = () => setPhase((p) => (p.kind === "form" && p.page !== "workspace" ? { kind: "form", page: PAGES[PAGES.indexOf(p.page) - 1] } : p));
+  const goTo = (i: number) => setPhase((p) => (p.kind === "form" && i < PAGES.indexOf(p.page) ? { kind: "form", page: PAGES[i] } : p));
+
+  const step = stepOf(phase);
+  const canNext = phase.kind === "form" ? pageValid[phase.page] : phase.kind === "installing" && phase.progress >= 100;
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <TitleBar title="Set up Nexis" brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />} />
       <div className="grid min-h-0 flex-1 place-items-center overflow-y-auto p-8">
         <div className="flex w-full max-w-xl flex-col gap-8">
-          {!done && <Steps steps={STEPS} current={step} onSelect={(i) => i < step && setStep(i)} />}
+          {phase.kind !== "done" && <Steps steps={STEPS} current={step} onSelect={goTo} />}
 
           <div key={step} className="nexis-scene-enter flex min-h-[300px] flex-col gap-5">
-            {step === 0 && (
+            {phase.kind === "form" && phase.page === "workspace" && (
               <>
                 <Header title="Name your workspace" sub="You can rename it later. It is used for the folder and the window title." />
                 <Field label="Name" required error={nameError} hint="Lowercase, digits and dashes.">
@@ -80,7 +111,7 @@ export default function App() {
               </>
             )}
 
-            {step === 1 && (
+            {phase.kind === "form" && phase.page === "preset" && (
               <>
                 <Header title="Pick a preset" sub="Packs can be added or removed at any time from Settings." />
                 <Stagger className="grid grid-cols-3 gap-3">
@@ -105,7 +136,7 @@ export default function App() {
               </>
             )}
 
-            {step === 2 && (
+            {phase.kind === "form" && phase.page === "theme" && (
               <>
                 <Header title="Choose a theme" sub="It applies now, so you can see it. Seventeen more in Settings." />
                 <div className="grid grid-cols-3 gap-2">
@@ -132,18 +163,18 @@ export default function App() {
               </>
             )}
 
-            {step === 3 && (
+            {phase.kind === "installing" && (
               <>
-                <Header title={progress < 100 ? "Installing…" : "Ready"} sub={`${preset} preset · ${name || "workspace"}`} />
-                <Progress value={progress} />
-                <div className="font-mono text-ui text-muted-foreground">
-                  {progress < 30 ? "creating folders" : progress < 60 ? "fetching packs" : progress < 100 ? "writing settings" : "done"}
-                  <span className="tabular-nums"> · {progress}%</span>
+                <Header title={phase.progress < 100 ? "Installing…" : "Ready"} sub={`${preset} preset · ${name || "workspace"}`} />
+                <Progress value={phase.progress} />
+                <div className="text-ui text-muted-foreground">
+                  {phase.progress < 30 ? "creating folders" : phase.progress < 60 ? "fetching packs" : phase.progress < 100 ? "writing settings" : "done"}
+                  <span className="tabular-nums"> · {phase.progress}%</span>
                 </div>
               </>
             )}
 
-            {done && (
+            {phase.kind === "done" && (
               <ResultArrival className="flex flex-col items-center gap-4 rounded-3xl bg-card p-10 text-center ring-1 ring-border">
                 <span className="grid size-14 place-items-center rounded-full bg-success/15 text-success">
                   <Icon name="check" size="xl" />
@@ -157,13 +188,13 @@ export default function App() {
             )}
           </div>
 
-          {!done && (
+          {phase.kind !== "done" && (
             <div className="flex items-center justify-between">
-              <Button variant="ghost" disabled={step === 0} onClick={() => setStep((s) => s - 1)}>
+              <Button variant="ghost" disabled={phase.kind !== "form" || phase.page === "workspace"} onClick={back}>
                 Back
               </Button>
-              <Button variant="brand" disabled={!valid} onClick={() => setStep((s) => s + 1)}>
-                {step === 3 ? "Finish" : "Next"}
+              <Button variant="brand" disabled={!canNext} onClick={next}>
+                {phase.kind === "installing" ? "Finish" : "Next"}
                 <Icon name="arrow-right" />
               </Button>
             </div>

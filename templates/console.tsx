@@ -1,5 +1,5 @@
 // ╔══════════════════════════════════════╗
-// ║  @nexis/design — app template        ║
+// ║  @nexis/design · app template        ║
 // ║  console                             ║
 // ╚══════════════════════════════════════╝
 //
@@ -51,9 +51,13 @@ export default function App() {
   const [levels, setLevels] = React.useState<Record<Level, boolean>>({ debug: false, info: true, warn: true, error: true });
   const [filter, setFilter] = React.useState("");
   const [follow, setFollow] = React.useState(true);
-  const [running, setRunning] = React.useState(true);
+  // The worker is one state (RULES R14): its start time exists only while it
+  // runs, so a resumed worker restarts its clock instead of carrying the old one.
+  const [worker, setWorker] = React.useState<{ state: "running"; since: number } | { state: "stopped" }>(() => ({ state: "running", since: Date.now() - 3 * 60 * 1000 }));
+  const running = worker.state === "running";
+  const start = () => setWorker({ state: "running", since: Date.now() });
+  const stop = () => setWorker({ state: "stopped" });
   const [cmd, setCmd] = React.useState("");
-  const [started] = React.useState(() => Date.now() - 3 * 60 * 1000);
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   useCommandPaletteShortcut(() => setPaletteOpen((o) => !o));
 
@@ -103,10 +107,10 @@ export default function App() {
           <Switch size="sm" checked={follow} onCheckedChange={setFollow} /> Follow
         </label>
         <ToolbarSpacer />
-        {running ? (
-          <CallChip label="worker · ingest" startedAtMs={started} onEnd={() => { setRunning(false); toast("Stopped worker"); }} />
+        {worker.state === "running" ? (
+          <CallChip label="worker · ingest" startedAtMs={worker.since} onEnd={() => { stop(); toast("Stopped worker"); }} />
         ) : (
-          <Button size="sm" variant="brand" onClick={() => setRunning(true)}>
+          <Button size="sm" variant="brand" onClick={start}>
             <Icon name="play" /> Start
           </Button>
         )}
@@ -181,14 +185,14 @@ export default function App() {
           { id: "clear", label: "Clear log", group: "Log", icon: "delete", run: () => setLines([]) },
           { id: "errors", label: "Show only errors", group: "Log", icon: "alert-circle", run: () => setLevels({ debug: false, info: false, warn: false, error: true }) },
           { id: "all", label: "Show all levels", group: "Log", icon: "list-bullet", run: () => setLevels({ debug: true, info: true, warn: true, error: true }) },
-          { id: "toggle", label: running ? "Pause stream" : "Resume stream", group: "Worker", icon: running ? "pause" : "play", run: () => setRunning((r) => !r) },
+          { id: "toggle", label: running ? "Pause stream" : "Resume stream", group: "Worker", icon: running ? "pause" : "play", run: () => (running ? stop() : start()) },
         ]}
       />
     </div>
   );
 }
 
-// ── Fixture data — replace with your source ─────────────────────────────────
+// ── Fixture data: replace with your source ──────────────────────────────────
 
 const SRC = ["http", "worker", "cache", "db", "lsp", "ingest"];
 const MSG: Record<Level, string[]> = {

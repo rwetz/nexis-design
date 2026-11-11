@@ -1,9 +1,9 @@
 // ╔══════════════════════════════════════╗
-// ║  @nexis/design — app template        ║
+// ║  @nexis/design · app template        ║
 // ║  workbench                           ║
 // ╚══════════════════════════════════════╝
 //
-// Shape: resizable split — file tree · tabs of open documents · a virtualised
+// Shape: resizable split: file tree · tabs of open documents · a virtualised
 // document · an inspector.
 // Start here for: editors, notes, IDE-likes, asset browsers, API clients,
 // git clients.
@@ -17,6 +17,10 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
   cn,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
   fmtShortcut,
   GlidingTabs,
   Icon,
@@ -37,28 +41,48 @@ import {
   WindowResizeEdges,
 } from "@nexis/design";
 
+// The open documents are one state with one reducer (RULES R14): the active
+// tab is always one of the open ones, or null when none are open, and the
+// cursor belongs to the active document. Two useStates kept in step by hand
+// let "active" point at a closed tab.
+type Tabs = { open: string[]; active: string | null; cursor: number };
+type TabAction = { type: "open"; id: string } | { type: "activate"; id: string } | { type: "close"; id: string } | { type: "cursor"; line: number };
+
+export function tabsReducer(s: Tabs, a: TabAction): Tabs {
+  switch (a.type) {
+    case "open":
+      return { open: s.open.includes(a.id) ? s.open : [...s.open, a.id], active: a.id, cursor: a.id === s.active ? s.cursor : 0 };
+    case "activate":
+      return s.open.includes(a.id) && a.id !== s.active ? { ...s, active: a.id, cursor: 0 } : s;
+    case "close": {
+      const open = s.open.filter((x) => x !== a.id);
+      if (s.active !== a.id) return { ...s, open };
+      const i = s.open.indexOf(a.id);
+      return { open, active: open[Math.min(i, open.length - 1)] ?? null, cursor: 0 };
+    }
+    case "cursor":
+      return { ...s, cursor: a.line };
+  }
+}
+
 export default function App() {
   const [expanded, setExpanded] = React.useState<Set<string>>(() => new Set(["src", "src/components"]));
-  const [open, setOpen] = React.useState<string[]>(["src/components/Panel.tsx", "src/theme/applyTheme.ts", "README.md"]);
-  const [active, setActive] = React.useState(open[0]);
-  const [cursor, setCursor] = React.useState(12);
+  const [tabs, dispatch] = React.useReducer(tabsReducer, {
+    open: ["src/components/Panel.tsx", "src/theme/applyTheme.ts", "README.md"],
+    active: "src/components/Panel.tsx",
+    cursor: 12,
+  });
+  const { open, active, cursor } = tabs;
   const [inspector, setInspector] = React.useState<"outline" | "info">("outline");
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   useCommandPaletteShortcut(() => setPaletteOpen((o) => !o));
 
   const openFile = (id: string) => {
-    if (!FILES[id]) return;
-    setOpen((o) => (o.includes(id) ? o : [...o, id]));
-    setActive(id);
+    if (FILES[id]) dispatch({ type: "open", id });
   };
-  const close = (id: string) => {
-    setOpen((o) => {
-      const next = o.filter((x) => x !== id);
-      if (active === id) setActive(next[next.length - 1] ?? "");
-      return next;
-    });
-  };
-  const lines = FILES[active] ?? [];
+  const close = (id: string) => dispatch({ type: "close", id });
+  const language = active === null ? null : active.endsWith(".md") ? "Markdown" : "TypeScript React";
+  const lines = active === null ? [] : (FILES[active] ?? []);
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
@@ -108,7 +132,7 @@ export default function App() {
                   key={id}
                   role="tab"
                   aria-selected={id === active}
-                  onClick={() => setActive(id)}
+                  onClick={() => dispatch({ type: "activate", id })}
                   className={cn(
                     "group/tab flex h-8 cursor-pointer items-center gap-2 rounded-t-lg pr-2 pl-3 text-ui",
                     id === active ? "bg-background text-foreground" : "text-muted-foreground hover:text-foreground",
@@ -130,6 +154,15 @@ export default function App() {
                 </div>
               ))}
             </div>
+            {active === null ? (
+              <Empty className="flex-1">
+                <EmptyHeader>
+                  <EmptyTitle>No file open</EmptyTitle>
+                  <EmptyDescription>Pick one in the tree, or press {fmtShortcut(MOD_KEY, "P")}.</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+            <>
             <div className="flex h-7 shrink-0 items-center gap-1 px-4 text-ui text-muted-foreground">
               {active.split("/").map((p, i, a) => (
                 <React.Fragment key={i}>
@@ -145,7 +178,7 @@ export default function App() {
               className="min-h-0 flex-1 pb-6"
               renderRow={(i) => (
                 <div
-                  onClick={() => setCursor(i)}
+                  onClick={() => dispatch({ type: "cursor", line: i })}
                   className={cn("flex h-full items-center font-mono text-ui", i === cursor && "bg-muted/60")}
                 >
                   <span className={cn("w-14 shrink-0 pr-4 text-right tabular-nums", i === cursor ? "text-foreground" : "text-muted-foreground/50")}>
@@ -155,6 +188,8 @@ export default function App() {
                 </div>
               )}
             />
+            </>
+            )}
           </div>
         </ResizablePanel>
         <ResizableHandle />
@@ -181,7 +216,7 @@ export default function App() {
                     <button
                       key={i}
                       type="button"
-                      onClick={() => setCursor(i)}
+                      onClick={() => dispatch({ type: "cursor", line: i })}
                       className="flex items-center gap-2 rounded-md px-2 py-1 text-left text-ui hover:bg-muted"
                     >
                       <Icon name={l.includes("function") ? "symbol-function" : l.includes("type") ? "symbol-type" : "variable"} className="text-muted-foreground" />
@@ -193,7 +228,7 @@ export default function App() {
               <PropertyList
                 items={[
                   { label: "Lines", value: lines.length, mono: true },
-                  { label: "Language", value: active.endsWith(".md") ? "Markdown" : "TypeScript" },
+                  { label: "Language", value: language ?? "None" },
                   { label: "Encoding", value: "UTF-8" },
                   { label: "Modified", value: "2 min ago" },
                 ]}
@@ -213,11 +248,15 @@ export default function App() {
         }
         right={
           <>
-            <StatusItem live>
-              Ln {cursor + 1}, Col 1
-            </StatusItem>
-            <StatusItem>UTF-8</StatusItem>
-            <StatusItem>{active.endsWith(".md") ? "Markdown" : "TypeScript React"}</StatusItem>
+            {active !== null && (
+              <>
+                <StatusItem live>
+                  Ln {cursor + 1}, Col 1
+                </StatusItem>
+                <StatusItem>UTF-8</StatusItem>
+                <StatusItem>{language}</StatusItem>
+              </>
+            )}
           </>
         }
       />
@@ -227,14 +266,14 @@ export default function App() {
         commands={[
           ...Object.keys(FILES).map((f) => ({ id: f, label: f, group: "Files", icon: "file" as const, run: () => openFile(f) })),
           { id: "save", label: "Save", group: "File", icon: "save", shortcut: fmtShortcut(MOD_KEY, "S"), run: () => toast.success("Saved") },
-          { id: "close", label: "Close tab", group: "File", icon: "close", shortcut: fmtShortcut(MOD_KEY, "W"), run: () => close(active) },
+          { id: "close", label: "Close tab", group: "File", icon: "close", shortcut: fmtShortcut(MOD_KEY, "W"), run: () => active !== null && close(active) },
         ]}
       />
     </div>
   );
 }
 
-/** A deliberately tiny highlighter — swap in CodeMirror for a real editor
+/** A deliberately tiny highlighter; swap in CodeMirror for a real editor
  * (and import globals.ide.css). */
 function Code({ line }: { line: string }) {
   const parts = line.split(/(\b(?:export|function|return|const|type|import|from|if|else)\b|"[^"]*"|\/\/.*$)/g);
@@ -255,7 +294,7 @@ function Code({ line }: { line: string }) {
   );
 }
 
-// ── Fixture data — replace with your source ─────────────────────────────────
+// ── Fixture data: replace with your source ──────────────────────────────────
 
 const PANEL = `import type * as React from "react";
 import { Icon, type IconName } from "../../icon/icon";

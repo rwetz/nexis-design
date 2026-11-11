@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { deltaTone } from "../src/components/ui/stat";
 import { meterTone } from "../src/components/ui/meter";
 import { pageWindow } from "../src/components/ui/pagination";
@@ -12,6 +12,10 @@ import { fuzzyFilter, fuzzyMatch } from "../src/lib/fuzzy";
 import { compareValues, nextSort, sortRows } from "../src/lib/sort";
 import { formatBytes, formatCompact, formatDelta } from "../src/lib/format";
 import { formatElapsed } from "../src/lib/duration";
+import { fetchJson, MissingDataError } from "../src/lib/fetch";
+import { findSettings, locateSetting, type SettingsChapter } from "../src/lib/settings-registry";
+import { filterCount, rangeBounds } from "../src/components/ui/filter-panel";
+import { tabsReducer } from "../templates/workbench";
 
 describe("dates", () => {
   it("clamps month arithmetic instead of overflowing", () => {
@@ -161,5 +165,58 @@ describe("format", () => {
     expect(formatDelta(-0.5)).toBe("−0.5%");
     expect(formatElapsed(192_000)).toBe("3:12");
     expect(formatElapsed(3 * 3600_000 + 12 * 60_000)).toBe("3h 12m");
+  });
+});
+
+describe("settings registry", () => {
+  const REG: SettingsChapter[] = [
+    { id: "look", label: "Appearance", groups: [{ id: "theme", label: "Theme", settings: [{ label: "Dark mode follows system" }, { label: "Mode", keywords: ["dark"] }] }] },
+  ];
+  it("ranks label prefix, then label contains, then keywords", () => {
+    expect(findSettings("mode", REG).map((h) => h.setting.label)).toEqual(["Mode", "Dark mode follows system"]);
+    expect(findSettings("dark", REG).map((h) => h.setting.label)).toEqual(["Dark mode follows system", "Mode"]);
+    expect(findSettings("  ", REG)).toEqual([]);
+  });
+  it("locates a setting before a group before a chapter", () => {
+    expect(locateSetting("mode", REG)?.setting?.label).toBe("Mode");
+    expect(locateSetting("theme", REG)?.group?.id).toBe("theme");
+    expect(locateSetting("appear", REG)?.chapter.id).toBe("look");
+  });
+});
+
+describe("filters", () => {
+  it("counts options and each non-empty range bound", () => {
+    expect(filterCount({ options: { a: ["x", "y"] }, ranges: { price: { min: "5", max: " " } } })).toBe(3);
+    expect(rangeBounds({ min: "", max: "abc" })).toEqual({ min: null, max: null });
+    expect(rangeBounds({ min: "0", max: "12.5" })).toEqual({ min: 0, max: 12.5 });
+  });
+});
+
+describe("fetchData", () => {
+  const respond = (body: string, type: string, status = 200) =>
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(body, { status, headers: { "content-type": type } }));
+  afterEach(() => vi.restoreAllMocks());
+  it("treats the SPA fallback page as a missing file (PITFALLS §14)", async () => {
+    respond("<!doctype html>", "text/html");
+    await expect(fetchJson("/data/x.json")).rejects.toBeInstanceOf(MissingDataError);
+  });
+  it("rejects a non-OK status and returns parsed JSON otherwise", async () => {
+    respond("{}", "application/json", 404);
+    await expect(fetchJson("/data/x.json")).rejects.toBeInstanceOf(MissingDataError);
+    respond('{"a":1}', "application/json");
+    await expect(fetchJson("/data/x.json")).resolves.toEqual({ a: 1 });
+  });
+});
+
+describe("workbench tabs", () => {
+  // Regression: two useStates let the active tab outlive its tab (RULES R14).
+  const s0 = { open: ["a", "b", "c"], active: "b", cursor: 9 };
+  it("closing the active tab activates its neighbour, and none leaves nothing active", () => {
+    expect(tabsReducer(s0, { type: "close", id: "b" })).toEqual({ open: ["a", "c"], active: "c", cursor: 0 });
+    expect(tabsReducer(s0, { type: "close", id: "a" })).toMatchObject({ open: ["b", "c"], active: "b", cursor: 9 });
+    expect(tabsReducer({ open: ["a"], active: "a", cursor: 3 }, { type: "close", id: "a" })).toEqual({ open: [], active: null, cursor: 0 });
+  });
+  it("cannot activate a tab that is not open", () => {
+    expect(tabsReducer(s0, { type: "activate", id: "zzz" })).toBe(s0);
   });
 });

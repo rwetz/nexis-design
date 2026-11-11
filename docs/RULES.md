@@ -23,6 +23,69 @@ it except where a rule is marked **(planned)**; §13 lists what's left.
 
 ---
 
+## How the rules are organised
+
+Four layers, from why to what. The shape follows Apple's Human Interface
+Guidelines (principles, then foundations, then patterns, then components),
+because it answers the question an agent actually has in the order it has
+it: what matters here, what is it made of, what kind of screen is this, and
+which component does the job. The content is the family's own.
+
+| Layer | Answers | Sections |
+|---|---|---|
+| **Principles** (P1 to P7) | What matters, and how to decide when no rule fits | below |
+| **Foundations** | What every screen is made of | §1 Type, §2 Interface scale, §3 Space, §6 Colour, §8 Motion, §10 Words, §15 Accessibility |
+| **Patterns** | What kind of screen or moment this is | §4 Layout patterns, §5 Overlays, §16 Feedback and progress, §14 State |
+| **Components** | Which one thing does the job | §7 Controls, §9 Previews, §11 Templates, docs/COMPONENTS.md |
+| **Process** | How we know it is true | §12 Checking it, §13 Work to make the rules true |
+
+Rule numbers (`R4.2`) are stable: sections were added, never renumbered, so
+an old commit or test that cites a rule still points at it.
+
+## Principles
+
+Each principle is a test a screen must pass, the question to ask when no
+rule covers the case, and the rules that carry it out. When two principles
+pull apart, the one higher in this list wins.
+
+**P1 Predictable.** What is on screen is one state, and the same action in
+the same state does the same thing. A screen never shows two things that
+cannot both be true (saving and saved, a selection in a list that no longer
+has it). *Ask: can this screen be in a state its code did not name?*
+Carried by §14 State, R5.4, R8.2.
+
+**P2 Clear.** Every element says what it is and what it does without
+explanation: legible type, verbs on buttons, icons with names, one
+expression per idea. *Ask: would someone new know what this does before
+clicking it?* Carried by §1, §7, §10, R7.2.
+
+**P3 Hierarchy.** The most important thing reads first, by size, weight and
+position, not by colour. One primary action per region. *Ask: squint at the
+screen; is the first thing you see the thing that matters?* Carried by R1.4,
+R1.5, R6.2, §7 (primary action).
+
+**P4 Deference.** The chrome steps back so the content leads: neutral
+surfaces, one accent, hairlines over boxes, no decoration that carries no
+meaning. *Ask: if this element were removed, would anyone miss what it
+said?* Carried by §6, R3.4, R4.1, R4.2 (rows not cards).
+
+**P5 Consistency.** The same idea looks and behaves the same everywhere in
+the family: one overlay per job, one control per idea, the same heights and
+spaces. An app learned once is learned for all of them. *Ask: is there
+already a component or a rule for this?* Carried by §3, §5, §7, §11.
+
+**P6 Responsive feedback.** Every action answers at once, and work in
+progress says how far along it is. Motion marks events, never live data.
+*Ask: after a click, how does the person know it worked?* Carried by §8,
+§16, R7 (busy, long work).
+
+**P7 Adaptable.** It works at every window size and interface scale, by
+keyboard alone, in every theme and high contrast, with reduced motion.
+*Ask: does it still work at 1024 px, at 150%, without a mouse, in light
+mode?* Carried by §2, R4.7, §12, §15.
+
+---
+
 ## 1. Type
 
 **R1.1 One face.** Every app uses **Inter** (variable, `font-sans`) for
@@ -187,6 +250,15 @@ the current view has facts to show; otherwise it's absent, not empty.
 - Groups have an overline (`SectionLabel`) and `--space-section` above.
 - Destructive settings go last, in a group of their own, with a
   `destructive` outline button that opens an `AlertDialog`.
+- **The deep case** (more than about eight sections): the flat nav stops
+  working, and so does one long page. Use `SettingsTree` as the nav:
+  chapters with a mark, their groups on a spine under each, a search box
+  above it that narrows the tree to matching settings (the group as `meta`,
+  Enter opens the first). Drive the tree, the search and the palette's
+  "Settings: ..." commands from one registry (`findSettings`,
+  `locateSetting`, `settingsTreeNodes`), so they never disagree; a palette
+  command opens the chapter and flashes the row (`SettingRow` takes `id`
+  and `data-*`).
 
 **R4.3 Side panel (inspector).** A column of `PanelSection`s:
 header row (overline title + icon-sm actions), body with `--space-gutter`.
@@ -207,16 +279,24 @@ too narrow to spend 24px on hierarchy).
 `grid-template-columns: repeat(auto-fill, minmax(min, 1fr))` with a min of
 9rem for cards and 6rem for swatches, and a max column count so a wide
 window gets bigger cards, not twenty columns. Titles get two lines before
-truncating.
+truncating. `aspect` fits the picture: `square` (icons, swatches),
+`portrait` (covers, posters), `landscape` (screenshots, video). Things with
+a price use `ProductCard`; its badges are solid chips (`CardBadge`) because
+they sit on artwork.
 
 **R4.6 Horizontal strips.** A sideways-scrolling row of cards uses `Strip`:
 no scrollbar, vertical wheel scrolls it, edges fade where
-there's more.
+there's more. A titled row among others on a scrolling page is a `Shelf`:
+arrows beside the title, and the vertical wheel keeps scrolling the page
+(a page of stacked strips must never trap the reader).
 
 **R4.7 Narrow windows.** Below 1024 CSS px (after scale), side panels
 become a bottom dock (editors) or a sheet (everything else). A toolbar folds
-by its own width with container queries: labels go first, then secondary
-actions move into a More menu. Nothing ever overlaps.
+by its own width with container queries (`Toolbar` is the `toolbar`
+container: `@max-3xl/toolbar:hidden`): labels go first, then secondary
+actions step aside into a More menu or the command palette. The search field
+shrinks (`min-w-0 shrink`) rather than pushing actions off. Nothing ever
+overlaps or wraps to a second row.
 
 ---
 
@@ -390,6 +470,124 @@ don't.
 
 **R12.3 Screenshots in the PR.** A change to a component or a template
 includes before and after screenshots at 100% and 150%.
+
+---
+
+## 14. State
+
+Most interface bugs are a screen in a state nobody named: a spinner that
+never stops because `loading` and `error` were both set, a tab bar whose
+active tab was closed, a page 7 of a search that has two pages. They come
+from **implicit state machines**: a flow spread over several `useState`s
+and booleans that are meant to change together and sometimes don't. These
+rules make the machine explicit, so the impossible states cannot be written
+down. (P1)
+
+**R14.1 One value per concern.** Each independent thing a screen tracks is
+one state variable (the query, the sort, the selected row). Two values that
+constrain each other are one concern.
+
+**R14.2 A flow is a union, not flags.** Anything with phases (a request, a
+job, a wizard, an install, a connection, a draft being saved) is one
+discriminated union with a `kind` (or `phase`, `state`) field, and the data
+that only exists in a phase lives inside that phase:
+
+```ts
+type Job = { state: "idle" } | { state: "running"; since: number; progress: number } | { state: "failed"; error: string } | { state: "done"; result: Result };
+```
+
+Never `loading` + `error` + `data` side by side; never a step index plus a
+progress number that means "installing" when the index is 3. Booleans are
+fine for one yes/no that constrains nothing else (`follow`, `wrap`).
+Examples: the `wizard` template's `Phase`, the `console` template's worker,
+`Select`'s highlight.
+
+**R14.3 Never copy state into state.** A value computed from props or other
+state is computed while rendering (`useMemo` if it is costly), not stored.
+State that must reset when something changes is stored with the thing it
+belongs to and compared while rendering (the `explorer` template's page is
+kept with its filter key; `SettingsTree`'s open chapters with their
+chapter), or reset in the handler that made the change. An effect whose
+only job is to set state from other state renders a frame of the old state
+and is a bug. Tripwired.
+
+**R14.4 Precedence is written down.** When several props can each decide
+what one region shows (`image`, `loading`, `placeholder`), derive a single
+value naming the case, in one place, with the order in a comment
+(`ThumbnailCard`'s `face`). A component's visual state is one prop with
+named values, not several booleans that can contradict each other.
+
+**R14.5 Transitions in one place.** When a state has more than two
+transitions, they live in a reducer or a small set of named functions
+(`next`, `back`, `close`) beside the type, never spread through `onClick`s.
+An updater function (`setX(prev => ...)`) returns the next value and does
+nothing else: no calls to other setters inside it (React may run it twice).
+
+**R14.6 No sentinels.** "Nothing" is `null` (or a `{ kind: "none" }`), never
+`""`, `-1` or `0`. The type checker then makes every reader handle it, and
+the screen gets a designed empty state instead of a crash or a blank.
+
+**R14.7 Test the machine, not the screen.** A reducer or transition
+function is plain code: a regression in one gets one table test of the
+transition that broke (`test/logic.test.ts`, workbench tabs), not a
+rendered-component test.
+
+---
+
+## 15. Accessibility
+
+The rules that make P7 true by default. Most are in the components already;
+these say what an app must not undo.
+
+**R15.1 Every control has a name.** A control with no visible text names
+itself with `aria-label` (icon buttons, a collapsed `SidebarNav`, a swatch).
+The name includes a count shown only as a badge ("Cart, 3").
+
+**R15.2 Keyboard first.** Everything a pointer can do, the keyboard can:
+Tab reaches every control in reading order, arrows move inside a composite
+(tree, tabs, segmented, menu), Enter and Space act, Escape closes the top
+overlay. Every action is also in the `CommandPalette`.
+
+**R15.3 Focus is visible and never lost.** `focus-visible` rings only
+(R7). Closing an overlay returns focus to its trigger; removing the focused
+row moves focus to its neighbour, not to the page.
+
+**R15.4 Contrast holds in every theme.** Text meets 4.5:1 and large text and
+icons 3:1 against their surface, in all 22 themes and high contrast
+(`themes.contrast.test.ts`). Never convey state by colour alone: a tone
+comes with an icon, a word or a shape.
+
+**R15.5 Reduced motion.** Under `prefers-reduced-motion`, travel becomes an
+instant move or a crossfade (`railSpring`, `useReducedMotion`); nothing
+that carries meaning depends on the movement.
+
+---
+
+## 16. Feedback and progress
+
+How long something takes decides how it answers (P6).
+
+| Takes | Shows |
+|---|---|
+| under 100 ms | the result, nothing in between |
+| 100 ms to 1 s | the control's own busy state: `Spinner` in place of its icon, the width kept |
+| 1 s to 10 s, in place | `Progress` if it can count, `Skeleton` in the content's shape if it is loading content |
+| longer, or started and left running | `CallChip` in the toolbar, then a `toast` when it lands |
+
+**R16.1 Answer the click.** A press shows its pressed state at once; a
+result that will take time shows the busy state within 100 ms.
+
+**R16.2 Undo beats confirm.** A reversible action happens at once and
+offers Undo in its toast. Only an action that cannot be undone asks first,
+with an `AlertDialog` naming what will be lost (R5 table).
+
+**R16.3 Say what happened.** A toast says what happened in the past tense
+("Exported 3 files"), not that something "was successful". An error says
+what failed and what to do next, in the place it happened (under the field,
+in the panel), not only in a toast.
+
+**R16.4 Progress is honest.** A determinate bar only moves for real work
+done; it never fakes the last 10%. Unknown duration is indeterminate.
 
 ---
 

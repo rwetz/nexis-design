@@ -54,16 +54,44 @@ function isModePref(v: unknown): v is ThemeModePref {
  * — the window dies on every theme switch. The crossfade is cosmetic, so
  * Linux gets an instant swap. See docs/PITFALLS.md §3.
  */
+let pendingTransition: (() => void)[] | null = null;
+
 function withViewTransition(mutate: () => void): void {
+  type Transition = { ready?: Promise<unknown>; finished?: Promise<unknown>; updateCallbackDone?: Promise<unknown> };
   const doc = document as Document & {
-    startViewTransition?: (cb: () => void) => unknown;
+    startViewTransition?: (cb: () => void) => Transition | undefined;
   };
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reduce || IS_LINUX || typeof doc.startViewTransition !== "function") {
     mutate();
     return;
   }
-  doc.startViewTransition(() => flushSync(mutate));
+  // Changes made in the same tick (a scheme sets theme and mode together)
+  // share one transition. Two would abort each other: the browser skips the
+  // first and rejects its promises ("Transition was skipped"), which BibleLM
+  // logged on every scheme change (APP-FINDINGS 11).
+  if (pendingTransition) {
+    pendingTransition.push(mutate);
+    return;
+  }
+  const batch = [mutate];
+  pendingTransition = batch;
+  const run = () => {
+    pendingTransition = null;
+    flushSync(() => batch.forEach((m) => m()));
+  };
+  let t: Transition | undefined;
+  try {
+    t = doc.startViewTransition(run);
+  } catch {
+    run();
+    return;
+  }
+  // The crossfade is cosmetic: a skipped or interrupted one is not an error.
+  const ignore = () => {};
+  t?.ready?.catch(ignore);
+  t?.finished?.catch(ignore);
+  t?.updateCallbackDone?.catch(ignore);
 }
 
 const SYSTEM_CONTRAST_QUERY = "(prefers-contrast: more)";

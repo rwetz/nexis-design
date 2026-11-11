@@ -22,6 +22,10 @@ import {
   Pagination,
   Segmented,
   SidebarNav,
+  SettingsTree,
+  findSettings,
+  settingsTreeNodes,
+  type SettingsChapter,
   Steps,
   Tabs,
   TabsContent,
@@ -33,6 +37,39 @@ import {
   Badge,
 } from "@nexis/design";
 import { Demo, Grid, Page, Row } from "../kit";
+
+const SETTINGS: SettingsChapter[] = [
+  { id: "general", label: "General", mark: "I", groups: [{ id: "startup", label: "Startup", settings: [{ label: "Open at login" }, { label: "Restore windows" }] }, { id: "updates", label: "Updates", settings: [{ label: "Check for updates" }] }] },
+  { id: "appearance", label: "Appearance", mark: "II", groups: [{ id: "theme", label: "Theme", settings: [{ label: "Mode", keywords: ["dark", "light"] }, { label: "Accent" }] }, { id: "type", label: "Type", settings: [{ label: "Interface size", keywords: ["zoom"] }] }, { id: "motion", label: "Motion", settings: [{ label: "Reduce motion" }] }] },
+  { id: "editor", label: "Editor", mark: "III", groups: [{ id: "keys", label: "Keys", settings: [{ label: "Key bindings" }] }, { id: "format", label: "Formatting", settings: [{ label: "Format on save" }] }] },
+  { id: "privacy", label: "Privacy", mark: "IV", groups: [{ id: "data", label: "Your data", settings: [{ label: "Export", keywords: ["backup"] }] }] },
+];
+
+function SettingsTreeDemo() {
+  const [[chapter, section], setAt] = React.useState<[string, string | null]>(["appearance", "theme"]);
+  const [q, setQ] = React.useState("");
+  const hits = findSettings(q, SETTINGS);
+  // While searching, the tree shows only chapters with hits, each hit under its chapter with its group as meta.
+  const nodes = q.trim()
+    ? SETTINGS.filter((c) => hits.some((h) => h.chapter.id === c.id)).map((c) => ({
+        id: c.id,
+        label: c.label,
+        mark: c.mark,
+        children: hits.filter((h) => h.chapter.id === c.id).map((h) => ({ id: `${h.group.id}~${h.setting.label}`, label: h.setting.label, meta: h.group.label })),
+      }))
+    : settingsTreeNodes(SETTINGS);
+  return (
+    <div className="flex w-64 flex-col gap-3">
+      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Find a setting" className="h-8" aria-label="Find a setting" onKeyDown={(e) => {
+        if (e.key === "Enter" && hits[0]) {
+          setAt([hits[0].chapter.id, hits[0].group.id]);
+          setQ("");
+        }
+      }} />
+      <SettingsTree nodes={nodes} chapter={chapter} section={section} openAll={!!q.trim()} onSelect={(c, s) => setAt([c, s?.split("~")[0] ?? null])} />
+    </div>
+  );
+}
 
 export function NavigationPage() {
   const [nav, setNav] = React.useState("overview");
@@ -200,6 +237,9 @@ export function NavigationPage() {
           </div>
         </Demo>
       </Grid>
+      <Demo title="Settings tree" meta="R4.2, the deep case · one registry drives tree, search and palette · try “dark”">
+        <SettingsTreeDemo />
+      </Demo>
     </Page>
   );
 }

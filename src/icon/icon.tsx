@@ -206,6 +206,11 @@ import {
   UploadSimpleIcon,
   TrayIcon,
   StarIcon,
+  ShoppingCartIcon,
+  ShoppingBagIcon,
+  HeartIcon,
+  StorefrontIcon,
+  PackageIcon,
 } from "@phosphor-icons/react";
 
 
@@ -426,6 +431,14 @@ const REGISTRY = {
   "upload": UploadSimpleIcon,
   "inbox": TrayIcon,
   "star": StarIcon,
+  // Shopping and inventory (SCAFFOLD-ISSUES 18). "cart" is what is about to
+  // be bought, "bag" a purchase or order, "heart" a favourite (distinct
+  // from "star", a rating), "store" a seller, "package" a shipment or item.
+  "cart": ShoppingCartIcon,
+  "bag": ShoppingBagIcon,
+  "heart": HeartIcon,
+  "store": StorefrontIcon,
+  "package": PackageIcon,
 } as const satisfies Record<string, IconGlyph>;
 
 export type IconName = keyof typeof REGISTRY;

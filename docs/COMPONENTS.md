@@ -61,14 +61,15 @@ shared version yet.
 
 | Component | Origin | Notes |
 |---|---|---|
-| `SidebarNav` | new | brand, sections, counts, footer, collapse to an icon rail; the selection glides with an accent bar |
+| `SidebarNav` | new | brand, sections, counts, footer, collapse to an icon rail (labels become accessible names, counts become badges); the selection glides with an accent bar |
+| `SettingsTree` | BibleLM | deep settings nav (R4.2): chapters with a mark, groups on a spine, two gliding rails, WAI-ARIA tree keys; pair with `findSettings`/`locateSetting`/`settingsTreeNodes` |
 | `Tabs` | Nexis | |
 | `GlidingTabs` | Nexis | sub-tabs inside a panel, gliding pill |
 | `Breadcrumb` | Nexis | |
-| `Toolbar`, `ToolbarSpacer`, `ToolbarSeparator` | new | the fixed-height row atop a content area |
+| `Toolbar`, `ToolbarSpacer`, `ToolbarSeparator` | new | the fixed-height row atop a content area; a `toolbar` size container for narrow widths |
 | `Pagination` | new | ellipsis only where it hides two or more pages |
 | `Steps` | new | done steps stay clickable; ahead is muted |
-| `useGlidingRail`, `RailIndicator` | Nexis | build your own travelling selection |
+| `useGlidingRail`, `RailIndicator` | Nexis | build your own travelling selection; `setContainer` lets two rails share a container; nothing positioned between items and container |
 
 ### Data
 
@@ -83,6 +84,8 @@ shared version yet.
 | `Timeline` | new | time column, tone dots, `live` newest |
 | `Empty*` | Nexis | empty states that say what to do next |
 | `Skeleton` | Nexis | |
+| `ProductCard`, `PriceTag`, `CardBadge`, `Shelf` | Vitrine | catalogue cards with price, solid badges over art and one action; a titled sideways row that lets the page scroll |
+| `FilterPanel`, `ActiveFilters`, `RangeInput` | Vitrine | faceted filters (options with counts, numeric ranges that may be empty), chips for what is on |
 
 ### Charts
 
@@ -137,7 +140,9 @@ animate an element out.
 `cn` · platform facts (`IN_TAURI`, `IS_MAC`, `USE_CUSTOM_WINDOW_CONTROLS`,
 `MOD_KEY`, `fmtShortcut`, …) · `ease`, `dur`, `railSpring` · `formatElapsed`,
 `formatBytes`, `formatCompact`, `formatDelta` · `nextSort`, `sortRows`,
-`compareValues` · `fuzzyMatch`, `fuzzyFilter` · `dates` (`CalendarDate`
+`compareValues` · `fuzzyMatch`, `fuzzyFilter` · `fetchData`, `fetchJson`
+(a missing data file rejects, PITFALLS §14) · `findSettings`, `locateSetting`,
+`settingsTreeNodes` (one settings registry) · `dates` (`CalendarDate`
 arithmetic) · `readAppTokens`, `readTerminalTokens`, `resolveCssColor`.
 
 ## Behaviour every interactive component carries

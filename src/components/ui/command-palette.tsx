@@ -93,9 +93,13 @@ export function CommandPalette({
   placeholder?: string;
 }) {
   const [query, setQuery] = React.useState("");
-  React.useEffect(() => {
+  // A closed palette has no query. Adjusted while rendering (RULES R14.3),
+  // so a reopened palette never shows a frame of the last search.
+  const [wasOpen, setWasOpen] = React.useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (!open) setQuery("");
-  }, [open]);
+  }
   const groups = React.useMemo(() => rankCommands(commands, query), [commands, query]);
 
   return (

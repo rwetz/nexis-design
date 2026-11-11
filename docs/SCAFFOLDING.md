@@ -19,9 +19,10 @@
 scripts/new-app.sh nexis-<thing> <template> [dir]
 cd ../nexis-<thing>
 pnpm install
-pnpm tauri icon src-tauri/icons/icon.png     # replace the placeholder first
 pnpm tauri dev
 ```
+
+Later, with your own `src-tauri/icons/icon.png`: `pnpm icons`.
 
 Templates: `dashboard`, `workbench`, `settings`, `explorer`, `console`,
 `wizard`, `minimal`: see them all with `pnpm dev` in this repo, and pick by
@@ -30,17 +31,28 @@ the shape of the app ([AGENTS.md §1](../AGENTS.md#1-start-an-app)).
 The script pins `@nexis/design` to the commit your checkout is on
 (`github:rwetz/nexis-design#<rev>`), the rev must be pushed for the install
 to resolve. `NEXIS_PATH=$(pwd)` installs from the local checkout instead
-(as a copy: PITFALLS §10).
+(as a copy: PITFALLS §10), written as a path relative to the app
+(`file:../nexis-design`) so Windows pnpm can read it from Git Bash too
+(PITFALLS §16).
+
+The dev port is derived from the app name (1420 to 1819), so two Nexis apps
+can run side by side; `NEXIS_PORT=<port>` picks one. It lives in two places,
+`vite.config.ts` and `devUrl` in `src-tauri/tauri.conf.json`: change both
+together.
 
 What you get:
 
 ```
 nexis-<thing>/
 ├─ index.html                  # no-flash mode bootstrap
-├─ package.json                # @nexis/design + its peers; postinstall syncs cursors
+├─ package.json                # @nexis/design + its peers; postinstall syncs cursors; `pnpm icons`
 ├─ pnpm-workspace.yaml         # pnpm 11 build approval (PITFALLS §6)
-├─ vite.config.ts              # react + tailwind; Tauri's fixed port
+├─ vite.config.ts              # react + tailwind; the app's fixed dev port
+├─ .gitignore                  # node_modules, dist, target, gen, mobile icon sets
 ├─ AGENTS.md                   # points coding agents at this package's rules
+├─ CLAUDE.md                   # @AGENTS.md
+├─ README.md                   # Ferrite-style skeleton with the brand footer
+├─ docs/brand/                 # heptagram marks for the footer
 ├─ public/cursors/             # synced by postinstall, gitignored
 ├─ src/
 │  ├─ main.tsx                 # providers, borderless flag, show-after-paint
@@ -52,7 +64,7 @@ nexis-<thing>/
    ├─ tauri.windows.conf.json  # undecorated + transparent
    ├─ tauri.linux.conf.json    # same, sizes repeated (PITFALLS §1)
    ├─ capabilities/default.json
-   ├─ icons/icon.png           # placeholder source for `tauri icon`
+   ├─ icons/                   # placeholder desktop set + icon.png source; `pnpm icons`
    └─ src/lib.rs               # os plugin, NVIDIA/Wayland guard, GTK_CSD
 ```
 
@@ -114,6 +126,16 @@ export default defineConfig({
   server: { port: 1420, strictPort: true, watch: { ignored: ["**/src-tauri/**"] } },
 });
 ```
+
+The port must match `devUrl` in `tauri.conf.json`. Pick one per app (the
+script derives it from the name); two apps on 1420 cannot run together, and
+a Vite left over from an aborted `pnpm tauri dev` blocks the next start.
+
+Long-running dev helpers started by `pnpm dev` (a local API server, a
+watcher) must exit when their parent does. When `pnpm tauri dev` fails, Tauri
+kills `pnpm dev` but not its grandchildren, which keep the ports. Use a
+runner that forwards signals and kills its group (`concurrently -k`), or
+have the helper watch its parent (`process.ppid`) and exit when it is gone.
 
 ## Step 5: `index.html` no-flash bootstrap
 
@@ -203,8 +225,12 @@ Register `tauri_plugin_os::init()`, `IN_TAURI`, `IS_MAC` and
 ## Step 8: Icons and logo ⚠
 
 ```bash
-pnpm tauri icon path/to/your-1024.png
+cp path/to/your-1024.png src-tauri/icons/icon.png && pnpm icons
 ```
+
+`pnpm icons` runs `tauri icon` and removes the Android and iOS sets it also
+writes. The scaffold ships placeholder desktop icons, so the first build
+works before you draw yours.
 
 ⚠ Before the first `cargo check`: `generate_context!` fails if the files in
 `bundle.icon` (or `../dist`) do not exist (PITFALLS §7). Draw `AppLogo.tsx` in

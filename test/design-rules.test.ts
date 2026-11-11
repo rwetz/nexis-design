@@ -171,7 +171,27 @@ describe("design rules", () => {
         if (line.includes(EM)) hits.push(`${rel}:${i + 1}: ${line.trim().slice(0, 80)}`);
       });
     }
+    // The scaffold writes files a person reads (AGENTS.md, README, code), so
+    // the whole script is checked, comments included (SCAFFOLD-ISSUES 5).
+    readFileSync(join(ROOT, "scripts/new-app.sh"), "utf8").split("\n").forEach((line, i) => {
+      if (line.includes(EM)) hits.push(`scripts/new-app.sh:${i + 1}: ${line.trim().slice(0, 80)}`);
+    });
     expect(hits, "use a colon, comma, parentheses, a period, a middle dot or an en dash (AGENTS.md rule 13)").toEqual([]);
+  });
+
+  it("state is not copied into state by an effect (RULES R14.3)", () => {
+    // `useEffect(() => setX(...), [y])` and `useEffect(() => { if (c) setX(...) }, [y])`
+    // render once with stale state and then again. Derive the value while
+    // rendering, key the state to what it depends on, or set it in the event
+    // handler that changed `y`. Effects that subscribe to something outside
+    // React (timers, observers, the window) are fine and do not match.
+    const ONE_LINER = /useEffect\(\(\) => set[A-Z]/;
+    const GUARDED = /useEffect\(\(\) => \{\s*if \([^)]*\) set[A-Z]\w*\([^;]*\);\s*\}, \[/;
+    const hits: string[] = [];
+    for (const [rel, src] of SHIPPED) {
+      if (ONE_LINER.test(src) || GUARDED.test(src)) hits.push(rel);
+    }
+    expect(hits).toEqual([]);
   });
 
   it("indeterminate progress steps; nothing uses animate-spin", () => {

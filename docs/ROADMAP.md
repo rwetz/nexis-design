@@ -42,6 +42,10 @@ about what is not done.
 
 ## Phase 3: quality and trust
 
+- A release workflow template for family apps that uploads whole asset
+  folders with `if-no-files-found: error` (APP-FINDINGS 9).
+- The `settings` template's deep variant: `SettingsTree` and one settings
+  registry (APP-FINDINGS 2, 3).
 - Visual regression: diff `pnpm screenshots` against the committed images in
   CI, so a change that moves pixels says so.
 - Accessibility pass with axe on every gallery page and template, both
