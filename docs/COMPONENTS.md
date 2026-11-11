@@ -27,7 +27,7 @@ shared version yet.
 | `Kbd`, `KbdGroup`, `KbdHint` | Nexis | key chips; hint fades in where relevant |
 | `Meter` | new | a reading with thresholds (warn 75%, danger 90%); never tweens |
 | `Progress` | Nexis | work toward done |
-| `Spinner` | Nexis | stepped, four quarter-turns |
+| `Spinner` | Nexis | the heptagram loader: a comet round the {7/2} star, continuous, `currentColor` |
 | `ThoughtLine` | Nexis | a stream still arriving: live only |
 | `CallChip` | Nexis | a long run the user started: elapsed + stop |
 
@@ -66,6 +66,7 @@ shared version yet.
 | `Tabs` | Nexis | |
 | `GlidingTabs` | Nexis | sub-tabs inside a panel, gliding pill |
 | `Breadcrumb` | Nexis | |
+| `NexisMark` | new | the heptagram, inline SVG in `currentColor` (RULES §17) |
 | `Toolbar`, `ToolbarSpacer`, `ToolbarSeparator` | new | the fixed-height row atop a content area; a `toolbar` size container for narrow widths |
 | `Pagination` | new | ellipsis only where it hides two or more pages |
 | `Steps` | new | done steps stay clickable; ahead is muted |
@@ -83,8 +84,9 @@ shared version yet.
 | `Avatar`, `AvatarStack` | new | initials on neutral, presence dot |
 | `Timeline` | new | time column, tone dots, `live` newest |
 | `Empty*` | Nexis | empty states that say what to do next |
-| `Skeleton` | Nexis | |
-| `ProductCard`, `PriceTag`, `CardBadge`, `Shelf` | Vitrine | catalogue cards with price, solid badges over art and one action; a titled sideways row that lets the page scroll |
+| `Skeleton`, `SkeletonText`, `SkeletonRow`, `SkeletonCard`, `SkeletonGroup` | Nexis | placeholders in the content's shape; one viewport-wide sheen, still under reduced motion; `SkeletonGroup` announces "Loading" |
+| `ProductCard`, `PriceTag`, `CardBadge`, `Shelf` | Vitrine | catalogue cards with price, solid badges over art and one action (`tilt`, `foil`); a titled sideways row that lets the page scroll (`enter` hops it in) |
+| `CardTilt`, `CollectionCard`, `tiltFor` | Vitrine | one pointer listener that makes `[data-tilt]` cards lean, lift and catch a light (R8.3); a collection as a fanned hand of covers |
 | `FilterPanel`, `ActiveFilters`, `RangeInput` | Vitrine | faceted filters (options with counts, numeric ranges that may be empty), chips for what is on |
 
 ### Charts
@@ -96,6 +98,7 @@ shared version yet.
 | `BarChart` | new | one `highlight`ed bar in the accent |
 | `Sparkline` | new | `brand` or `muted` |
 | `Heatmap` | new | accent mixed into muted in OKLab |
+| `DonutChart`, `ProportionBar`, `foldParts`, `roundedShares` | new | part of one whole (RULES §18): five parts at most, the rest fold into Other; the part that matters in the accent, a foreground ramp for the rest; shares that add to 100 |
 
 ### Layout and framing
 

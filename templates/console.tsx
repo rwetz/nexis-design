@@ -34,6 +34,7 @@ import {
   useCommandPaletteShortcut,
   VirtualList,
   WindowResizeEdges,
+  NexisMark,
 } from "@nexis/design";
 
 type Level = "debug" | "info" | "warn" | "error";
@@ -83,7 +84,7 @@ export default function App() {
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <WindowResizeEdges />
-      <TitleBar brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />} title="Tail" />
+      <TitleBar brand={<NexisMark className="size-[18px]" />} title="Tail" />
       <Toolbar>
         <div className="relative w-64">
           <Icon name="filter" className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />

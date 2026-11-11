@@ -54,6 +54,7 @@ import {
   useCommandPaletteShortcut,
   WindowResizeEdges,
   Checkbox,
+  NexisMark,
 } from "@nexis/design";
 
 type Status = "open" | "in-progress" | "done";
@@ -101,7 +102,7 @@ export default function App() {
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <WindowResizeEdges />
-      <TitleBar brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />} title="Ledger" />
+      <TitleBar brand={<NexisMark className="size-[18px]" />} title="Ledger" />
       <Toolbar>
         <div className="relative w-72 min-w-32 shrink">
           <Icon name="search" className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
@@ -182,7 +183,7 @@ export default function App() {
             </Button>
           </Empty>
         ) : view === "grid" ? (
-          <div className="h-full overflow-y-auto nexis-scrollbar pb-4">
+          <div className="-mx-1 h-full overflow-y-auto px-1 pt-1 pb-4 nexis-scrollbar">
             <ThumbnailGrid min="11rem">
               {rows.map((r) => (
                 <ThumbnailCard

@@ -35,7 +35,7 @@ export function CardBadge({ className, ...props }: React.ComponentProps<"span">)
   return (
     <span
       data-slot="card-badge"
-      className={cn("rounded-full bg-background px-2 py-0.5 text-caption font-medium text-foreground shadow-sm tabular-nums", className)}
+      className={cn("rounded-full bg-background px-2 py-0.5 text-caption font-medium text-foreground shadow-sm", className)}
       {...props}
     />
   );
@@ -80,6 +80,8 @@ export function ProductCard({
   dimmed = false,
   loading = false,
   placeholder,
+  tilt = false,
+  foil = false,
   className,
   ...props
 }: Omit<React.ComponentProps<"button">, "title"> & {
@@ -104,16 +106,27 @@ export function ProductCard({
   loading?: boolean;
   /** Shown with no picture and not loading. Defaults to an image icon. */
   placeholder?: React.ReactNode;
+  /** Lean toward the pointer, lift, and catch a light (RULES R8.3). Needs `<CardTilt />` mounted once. */
+  tilt?: boolean;
+  /** A faint foil under the pointer, for the one special card on a shelf. Implies `tilt`. */
+  foil?: boolean;
 }) {
   // What fills the picture, in order of precedence: the image once there
   // is one, else a skeleton while loading, else the placeholder (RULES R14.4).
   const face: { kind: "image"; src: string } | { kind: "loading" } | { kind: "empty" } = image ? { kind: "image", src: image } : loading ? { kind: "loading" } : { kind: "empty" };
   return (
-    <div data-slot="product-card" className={cn("group/product relative flex min-w-0 flex-col", className)}>
+    <div
+      data-slot="product-card"
+      data-tilt={tilt || foil ? "9" : undefined}
+      data-foil={foil || undefined}
+      className={cn("group/product relative flex min-w-0 flex-col", className)}
+    >
       <button type="button" className="flex min-w-0 flex-col gap-2 text-left outline-none" {...props}>
         <div
           className={cn(
-            "relative w-full overflow-hidden rounded-xl bg-muted ring-1 ring-foreground/8 transition-[translate,box-shadow] group-hover/product:-translate-y-0.5 group-hover/product:ring-foreground/25 group-has-[:focus-visible]/product:ring-2 group-has-[:focus-visible]/product:ring-ring",
+            "relative w-full overflow-hidden rounded-xl bg-muted ring-1 ring-foreground/8 group-hover/product:ring-foreground/25 group-has-[:focus-visible]/product:ring-2 group-has-[:focus-visible]/product:ring-ring",
+            // A tilting card lifts on the spring (.nexis-face); a plain one lifts 2px (R8.1).
+            tilt || foil ? "nexis-face" : "transition-[translate,box-shadow] group-hover/product:-translate-y-0.5",
             ASPECT[aspect],
           )}
         >
@@ -158,6 +171,7 @@ export function Shelf({
   meta,
   action,
   wheel = "page",
+  enter = false,
   children,
   className,
 }: {
@@ -167,11 +181,29 @@ export function Shelf({
   /** Right-aligned before the arrows: "See all". */
   action?: React.ReactNode;
   wheel?: "page" | "sideways";
+  /** The cards' pictures hop into place, one after another, the first time the shelf scrolls into view (R8.3). */
+  enter?: boolean;
   children: React.ReactNode;
   className?: string;
 }) {
   const holder = React.useRef<HTMLDivElement>(null);
+  const section = React.useRef<HTMLElement>(null);
   const label = typeof title === "string" ? title : "shelf";
+  React.useEffect(() => {
+    const el = section.current;
+    if (!el || !enter || typeof IntersectionObserver === "undefined") return undefined;
+    const seen = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          el.dataset.seen = "";
+          seen.disconnect();
+        }
+      },
+      { threshold: 0.12 },
+    );
+    seen.observe(el);
+    return () => seen.disconnect();
+  }, [enter]);
   React.useEffect(() => {
     const el = holder.current;
     if (!el || wheel !== "page") return undefined;
@@ -189,7 +221,7 @@ export function Shelf({
     strip.scrollBy({ left: direction * Math.max(320, strip.clientWidth * 0.8), behavior: reduce ? "auto" : "smooth" });
   };
   return (
-    <section data-slot="shelf" className={cn("flex min-w-0 flex-col gap-3", className)}>
+    <section ref={section} data-slot="shelf" className={cn("flex min-w-0 flex-col gap-3", className)}>
       <div className="flex items-center gap-2">
         <h2 className="text-lg font-semibold">{title}</h2>
         {meta !== undefined && <span className="text-ui text-muted-foreground tabular-nums">{meta}</span>}
@@ -204,7 +236,13 @@ export function Shelf({
       </div>
       <div ref={holder}>
         {/* Room above and below for a card that lifts on hover. */}
-        <Strip className="-my-2 snap-x scroll-px-gutter gap-group py-2 *:snap-start">{children}</Strip>
+        <Strip className="-my-6 snap-x scroll-px-gutter gap-group py-6 *:snap-start">
+          {React.Children.map(children, (child, i) =>
+            React.isValidElement<{ style?: React.CSSProperties }>(child)
+              ? React.cloneElement(child, { style: { ...child.props.style, ["--i" as string]: i } })
+              : child,
+          )}
+        </Strip>
       </div>
     </section>
   );

@@ -35,6 +35,7 @@ import {
   ToolbarSeparator,
   ToolbarSpacer,
   Badge,
+  NexisMark,
 } from "@nexis/design";
 import { Demo, Grid, Page, Row } from "../kit";
 
@@ -92,7 +93,7 @@ export function NavigationPage() {
               collapsed={collapsed}
               brand={
                 <>
-                  <img src="./brand/nexis-logo.png" alt="" className="size-5" />
+                  <NexisMark className="size-5" />
                   {!collapsed && <span className="text-sm font-medium">Pulse</span>}
                 </>
               }

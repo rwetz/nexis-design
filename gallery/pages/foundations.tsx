@@ -27,7 +27,7 @@ const MOTION = [
   ["--dur-window", "200ms", "dialogs, sheets"],
   ["--dur-scene", "420ms", "a data scene arriving"],
   ["--blink-cadence", "1060ms", "a VT100 caret: live indicators"],
-  ["--tick-cadence", "640ms × 4 steps", "indeterminate progress"],
+  ["--loader-cadence", "1400ms", "one lap of the loader round the heptagram"],
   ["--live-cadence", "1600ms", "a long run's slow scan"],
 ] as const;
 

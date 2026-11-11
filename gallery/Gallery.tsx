@@ -29,6 +29,8 @@ import {
   SelectValue,
   listNexisThemes,
   listCommunityThemes,
+  NexisMark,
+  CardTilt,
 } from "@nexis/design";
 import { APPS, type AppId } from "./apps";
 import { ChartsPage } from "./pages/charts";
@@ -237,9 +239,10 @@ export function Gallery() {
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
+      <CardTilt />
       <TitleBar
         controls="preview"
-        brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />}
+        brand={<NexisMark className="size-[18px]" />}
         title={
           <span>
             Nexis Design <span className="text-muted-foreground">· {page.label}</span>

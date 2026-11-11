@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/nexis-logo.png" width="128" alt="Nexis logo">
+  <img src="assets/brand/nexis-logo.svg" width="128" alt="Nexis Design logo: the heptagram on a frosted-glass tile">
 </p>
 
 <h1 align="center">nexis-design</h1>

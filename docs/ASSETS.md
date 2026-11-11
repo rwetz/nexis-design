@@ -36,24 +36,27 @@ To add a cursor: drop `foo.png` (32×32) in the folder, add its hotspot to
 `hotspots.json`, and add a `.cursor-foo { cursor: url('/cursors/foo.png') x y, foo }`
 rule (plus any role selector) in `globals.css`.
 
-## `assets/brand/`: the gallery's, not yours
+## `assets/brand/`: the heptagram
 
-`assets/brand/nexis-logo.png` is Nexis's own icon. The gallery and the README
-screenshots use it, and `scripts/new-app.sh` copies it to
-`src-tauri/icons/icon.png` as a **placeholder** for `pnpm tauri icon`. It is
-not synced into apps, and shipping an app with it is shipping Nexis's mark.
+The family's one mark is the heptagram (`Dev/brand/heptagram`, RULES §17).
 
-## Logos and app icons: per app, not here
+| File | What |
+|---|---|
+| `nexis-mark-white.svg`, `nexis-mark-black.svg` | The mark alone, for dark and light grounds |
+| `nexis-logo.svg` | The app-icon tile: the mark in frost-to-glacier on an obsidian-to-slate glass tile (Nexis Frosted Glass palette) |
+| `nexis-logo.png` | That tile at 1024², the source for `pnpm tauri icon` |
 
-Each app owns its own mark. The old blueprint shipped a shared `logo.png`,
-`AppLogo.tsx` and installer header; they were Nexis's own and are not part of
-this package. For a new app:
+In the UI the mark is `<NexisMark />`, an inline SVG in `currentColor`, never
+the PNG: it is sharp at 18px and follows light and dark. The PNG and the tile
+SVG are for icons, favicons and READMEs. `templates/icons/` is the platform
+set generated from the PNG, copied into every scaffolded app.
 
-- **`src/AppLogo.tsx`** (`new-app.sh` writes a starter), an inline SVG in the family grammar:
-  48×48 viewBox, `rx=12` tile filled with `currentColor`, flat geometric marks
-  drawn in `var(--background)` so they punch through in both modes (see
-  PITFALLS.md §5).
-- **`public/logo.png`** (512×512) where a raster is needed.
+## Logos and app icons
+
+- **`src/AppLogo.tsx`** (`new-app.sh` writes it): starts as `<NexisMark />`.
+  An app with a mark of its own draws it here in `currentColor`, in the same
+  flat, single-weight line language as the heptagram (PITFALLS.md §5).
+- **`assets/logo.svg`**: the README's logo, starting as the tile.
 - **App icons**: generate the platform set from one 1024² source with
   `pnpm tauri icon <source>.png`.
 - **Windows installer header**: supply your own image for

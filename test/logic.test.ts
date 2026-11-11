@@ -16,6 +16,7 @@ import { fetchJson, MissingDataError } from "../src/lib/fetch";
 import { findSettings, locateSetting, type SettingsChapter } from "../src/lib/settings-registry";
 import { filterCount, rangeBounds } from "../src/components/ui/filter-panel";
 import { tabsReducer } from "../templates/workbench";
+import { foldParts, roundedShares } from "../src/components/ui/part-chart";
 
 describe("dates", () => {
   it("clamps month arithmetic instead of overflowing", () => {
@@ -218,5 +219,16 @@ describe("workbench tabs", () => {
   });
   it("cannot activate a tab that is not open", () => {
     expect(tabsReducer(s0, { type: "activate", id: "zzz" })).toBe(s0);
+  });
+});
+
+describe("part-to-whole charts", () => {
+  it("folds past five parts into Other, largest first, dropping empty ones", () => {
+    const parts = [1, 9, 3, 7, 5, 2, 0].map((v, i) => ({ label: `p${i}`, value: v }));
+    expect(foldParts(parts).map((p) => [p.label, p.value])).toEqual([["p1", 9], ["p3", 7], ["p4", 5], ["p2", 3], ["Other", 3]]);
+  });
+  it("rounds shares to exactly 100", () => {
+    expect(roundedShares([1, 1, 1])).toEqual([34, 33, 33]);
+    expect(roundedShares([0, 0])).toEqual([0, 0]);
   });
 });

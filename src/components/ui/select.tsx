@@ -17,13 +17,18 @@ type SelectSize = "sm" | "default"
 const SelectSizeContext = React.createContext<{
   size: SelectSize
   setSize: (s: SelectSize) => void
-}>({ size: "default", setSize: () => {} })
+  /** The trigger, and whether the menu was last driven by a pointer. */
+  trigger: React.RefObject<HTMLButtonElement | null>
+  byPointer: React.RefObject<boolean>
+}>({ size: "default", setSize: () => {}, trigger: { current: null }, byPointer: { current: false } })
 
 function Select({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
   const [size, setSize] = React.useState<SelectSize>("default")
-  const value = React.useMemo(() => ({ size, setSize }), [size])
+  const trigger = React.useRef<HTMLButtonElement | null>(null)
+  const byPointer = React.useRef(false)
+  const value = React.useMemo(() => ({ size, setSize, trigger, byPointer }), [size])
   return (
     <SelectSizeContext.Provider value={value}>
       <SelectPrimitive.Root data-slot="select" {...props} />
@@ -58,17 +63,26 @@ function SelectTrigger({
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: SelectSize
 }) {
-  const { setSize } = React.useContext(SelectSizeContext)
+  const { setSize, trigger, byPointer } = React.useContext(SelectSizeContext)
   React.useLayoutEffect(() => setSize(size), [size, setSize])
   return (
     <SelectPrimitive.Trigger
+      {...props}
+      ref={trigger}
+      onPointerDown={(e) => {
+        byPointer.current = true
+        props.onPointerDown?.(e)
+      }}
+      onKeyDown={(e) => {
+        byPointer.current = false
+        props.onKeyDown?.(e)
+      }}
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex w-fit items-center justify-between gap-1.5 rounded-3xl border border-transparent bg-input/50 px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow,background-color] outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "flex w-fit items-center justify-between gap-1.5 rounded-3xl border border-transparent bg-input/50 px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow,background-color] outline-none focus-visible:ring-2 focus-visible:ring-ring/60 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
-      {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
@@ -93,6 +107,7 @@ function SelectContent({
   sideOffset = 4,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
+  const { trigger, byPointer } = React.useContext(SelectSizeContext)
   const [viewport, setViewport] = React.useState<HTMLDivElement | null>(null)
   // The highlight's one state (RULES R14): never shown yet; appearing on an
   // item (no slide, it was hidden); gliding between items; or fading out
@@ -150,6 +165,24 @@ function SelectContent({
         align={align}
         sideOffset={position === "popper" ? sideOffset : undefined}
         {...props}
+        // Focus goes back to the trigger on close. After a pointer pick it
+        // goes back without the focus ring, which otherwise outlined the
+        // trigger in the accent until the next click; after a keyboard pick
+        // the ring stays, where it belongs (RULES R15.3).
+        onPointerMove={(e) => {
+          byPointer.current = true
+          props.onPointerMove?.(e)
+        }}
+        onKeyDown={(e) => {
+          if (e.key !== "Escape") byPointer.current = false
+          props.onKeyDown?.(e)
+        }}
+        onCloseAutoFocus={(e) => {
+          props.onCloseAutoFocus?.(e)
+          if (e.defaultPrevented || !byPointer.current || !trigger.current) return
+          e.preventDefault()
+          trigger.current.focus({ preventScroll: true, focusVisible: false } as FocusOptions)
+        }}
       >
         <SelectScrollUpButton />
         <SelectPrimitive.Viewport

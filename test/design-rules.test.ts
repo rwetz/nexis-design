@@ -30,6 +30,21 @@ function markdown(dir: string): [string, string][] {
   return out;
 }
 
+/** The text a person reads in a source file: string literals, template text and JSX text, with their line. */
+function readableText(rel: string, src: string): [number, string][] {
+  const kind = rel.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+  const sf = ts.createSourceFile(rel, src, ts.ScriptTarget.Latest, true, kind);
+  const out: [number, string][] = [];
+  const visit = (node: ts.Node) => {
+    if (node.kind === ts.SyntaxKind.JsxText || ts.isStringLiteralLike(node) || ts.isTemplateLiteralToken(node)) {
+      out.push([sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1, node.getText(sf)]);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+  return out;
+}
+
 const SHIPPED = [...walk(join(ROOT, "src")), ...walk(join(ROOT, "templates"))];
 const EVERYTHING = [...SHIPPED, ...walk(join(ROOT, "gallery"))];
 
@@ -150,21 +165,9 @@ describe("design rules", () => {
     const hits: string[] = [];
     for (const [rel, src] of EVERYTHING) {
       if (!/\.tsx?$/.test(rel) || !src.includes(EM)) continue;
-      const kind = rel.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
-      const sf = ts.createSourceFile(rel, src, ts.ScriptTarget.Latest, true, kind);
-      const visit = (node: ts.Node) => {
-        const isText =
-          node.kind === ts.SyntaxKind.JsxText ||
-          ts.isStringLiteralLike(node) ||
-          ts.isTemplateLiteralToken(node);
-        const text = isText ? node.getText(sf) : "";
-        if (text.includes(EM)) {
-          const line = sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1;
-          hits.push(`${rel}:${line}: ${text.trim().slice(0, 80)}`);
-        }
-        ts.forEachChild(node, visit);
-      };
-      visit(sf);
+      for (const [line, text] of readableText(rel, src)) {
+        if (text.includes(EM)) hits.push(`${rel}:${line}: ${text.trim().slice(0, 80)}`);
+      }
     }
     for (const [rel, src] of markdown(ROOT)) {
       src.split("\n").forEach((line, i) => {
@@ -177,6 +180,28 @@ describe("design rules", () => {
       if (line.includes(EM)) hits.push(`scripts/new-app.sh:${i + 1}: ${line.trim().slice(0, 80)}`);
     });
     expect(hits, "use a colon, comma, parentheses, a period, a middle dot or an en dash (AGENTS.md rule 13)").toEqual([]);
+  });
+
+  it("copy says it plainly: no hype words or machine-written framings (RULES R10.2)", () => {
+    // Synthetic profundity, action-explaining and AI-splaining are mostly a
+    // review item, but their tell-tale words are not. Checked in what ships
+    // and what the scaffold writes; the gallery's Rules page is exempt, since
+    // its Don't examples break rules on purpose.
+    const HYPE =
+      /\b(seamless(ly)?|effortless(ly)?|supercharge[sd]?|game[- ]chang(er|ing)|unlock(s|ing)?|elevate[sd]?|delve[sd]?|dive in|deep dive|journey|robust|powerful|revolutioni[sz]e[sd]?|cutting[- ]edge|next[- ]level|in other words|simply put|it'?s not just|let'?s (dive|explore|get started|take a look))\b/i;
+    const hits: string[] = [];
+    for (const [rel, src] of EVERYTHING) {
+      if (!/\.tsx?$/.test(rel) || rel.endsWith("gallery/pages/rules.tsx")) continue;
+      for (const [line, text] of readableText(rel, src)) {
+        const m = text.match(HYPE);
+        if (m) hits.push(`${rel}:${line}: "${m[0]}" in ${text.trim().slice(0, 70)}`);
+      }
+    }
+    readFileSync(join(ROOT, "scripts/new-app.sh"), "utf8").split("\n").forEach((line, i) => {
+      const m = line.match(HYPE);
+      if (m) hits.push(`scripts/new-app.sh:${i + 1}: "${m[0]}"`);
+    });
+    expect(hits, "say the fact plainly (RULES R10.2)").toEqual([]);
   });
 
   it("state is not copied into state by an effect (RULES R14.3)", () => {
@@ -194,8 +219,9 @@ describe("design rules", () => {
     expect(hits).toEqual([]);
   });
 
-  it("indeterminate progress steps; nothing uses animate-spin", () => {
-    // `.nexis-spin` ticks four quarter-turns at --tick-cadence; animate-spin
+  it("indeterminate progress is the house loader; nothing uses animate-spin", () => {
+    // `<Spinner>` is the heptagram loader and `.nexis-spin` a smooth turn on
+    // --loader-cadence; animate-spin
     // is the stock sweep every shadcn app has.
     expect(offenders(SHIPPED, /\banimate-spin\b/, (_r, line) => /^\s*(\/\/|\*)/.test(line))).toEqual([]);
   });

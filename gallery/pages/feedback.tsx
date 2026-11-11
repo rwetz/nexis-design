@@ -92,7 +92,7 @@ export function FeedbackPage() {
               <ThoughtLine width={40} /> Reasoning
             </span>
             <span className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Spinner /> Stepped spinner
+              <Spinner /> Heptagram loader
             </span>
           </Row>
           <Progress value={38} />

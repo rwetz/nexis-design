@@ -9,7 +9,9 @@ import {
   ActiveFilters,
   Button,
   CardBadge,
+  CollectionCard,
   EMPTY_FILTERS,
+  SkeletonCard,
   type Facet,
   FilterPanel,
   type FilterState,
@@ -78,18 +80,32 @@ export function CataloguePage() {
           </Button>
         )
       }
+      tilt
+      foil={p.id === "d"}
       onClick={() => {}}
     />
   );
 
+  const tones = (ids: string[]) => ids.map((id) => <Art key={id} tone={PRODUCTS.find((p) => p.id === id)!.tone} />);
+
   return (
-    <Page title="Catalogue" lede="Cards with prices, shelves and faceted filters, for shops, libraries and inventories. Badges over artwork are solid chips; hover and selection stay neutral, and the one accent is left for the app's primary action.">
-      <Demo title="Shelf" meta="ProductCard · PriceTag · CardBadge · the wheel keeps scrolling the page">
-        <Shelf title="Price drops" meta={PRODUCTS.length} action={<Button variant="ghost" size="sm">See all</Button>}>
+    <Page
+      title="Catalogue"
+      lede="Cards with prices, shelves, collections and faceted filters, for shops, libraries and inventories. Cards lean toward the pointer and catch a light (opt-in, RULES R8.3); the one deal on the shelf catches a foil. Badges over artwork are solid chips, and the accent is left for the app's primary action."
+    >
+      <Demo title="Shelf" meta="tilt · sheen · one foil · hops in on first view">
+        <Shelf enter title="Price drops" meta={PRODUCTS.length} action={<Button variant="ghost" size="sm">See all</Button>}>
           {PRODUCTS.map((p) => card(p, "w-44 shrink-0"))}
         </Shelf>
       </Demo>
-      <Demo title="Filtered grid" meta="FilterPanel · ActiveFilters · RangeInput (empty is no bound)" bodyClassName="flex-row items-start gap-section">
+      <Demo title="Collections" meta="a hand of covers that fans out under the pointer">
+        <Shelf title="Your collections" meta={3}>
+          <CollectionCard name="Desk setup" count={4} covers={tones(["a", "d", "b", "f"])} />
+          <CollectionCard name="Kitchen" count={2} covers={tones(["c", "e"])} />
+          <CollectionCard name="Reading" count={3} covers={tones(["f", "b", "e"])} />
+        </Shelf>
+      </Demo>
+      <Demo title="Filtered grid" meta="FilterPanel · ActiveFilters · RangeInput" bodyClassName="flex-row items-start gap-section">
         <FilterPanel facets={facets} value={filters} onChange={setFilters} className="w-56 shrink-0" />
         <div className="flex min-w-0 flex-1 flex-col gap-group">
           <ActiveFilters facets={facets} value={filters} onChange={setFilters} />
@@ -99,21 +115,33 @@ export function CataloguePage() {
         </div>
       </Demo>
       <Grid cols={2}>
-        <Demo title="ThumbnailCard aspects" meta="square · portrait · landscape">
-          <ThumbnailGrid min="6rem" maxColumns={3}>
+        <Demo title="Card shapes" meta="ThumbnailCard aspect · and loading">
+          <ThumbnailGrid min="6rem" maxColumns={4}>
             {(["square", "portrait", "landscape"] as const).map((a, i) => (
               <ThumbnailCard key={a} title={a} meta="aspect" aspect={a} placeholder={<Art tone={PRODUCTS[i].tone} />} overlay={i === 1 ? <CardBadge>New</CardBadge> : undefined} />
             ))}
+            <SkeletonCard aspect="portrait" />
           </ThumbnailGrid>
         </Demo>
-        <Demo title="Icons" meta="cart · bag · heart · store · package">
-          <div className="flex gap-section text-muted-foreground">
+        <Demo title="Icons" meta="for shops and inventories">
+          <div className="grid grid-cols-5 gap-2">
             {(["cart", "bag", "heart", "store", "package"] as const).map((n) => (
-              <span key={n} className="flex flex-col items-center gap-2 text-caption">
-                <Icon name={n} size="lg" />
+              <span key={n} className="flex flex-col items-center gap-2 rounded-xl bg-muted/40 py-4 text-caption text-muted-foreground">
+                <Icon name={n} size="lg" className="text-foreground" />
                 {n}
               </span>
             ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="brand" size="sm">
+              <Icon name="cart" /> Add to cart
+            </Button>
+            <Button variant="secondary" size="sm">
+              <Icon name="heart" /> Save
+            </Button>
+            <Button variant="ghost" size="sm">
+              <Icon name="store" /> Visit store
+            </Button>
           </div>
         </Demo>
       </Grid>

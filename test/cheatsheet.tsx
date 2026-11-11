@@ -20,6 +20,7 @@ import {
   Tree, type TreeNode, useCommandPaletteShortcut, useTheme, VirtualList, WindowResizeEdges,
   ActiveFilters, CardBadge, EMPTY_FILTERS, RangeInput, type Facet, FilterPanel, type FilterState, PriceTag, ProductCard, Shelf,
   SettingRow, SettingsGroup, SettingsPage, SettingsTree, settingsTreeNodes, type SettingsChapter, ThumbnailCard, ThumbnailGrid,
+  CardTilt, CollectionCard, DonutChart, NexisMark, ProportionBar, SkeletonCard, SkeletonGroup, SkeletonRow, SkeletonText,
 } from "../src";
 
 type Row = { id: string; name: string; rps: number };
@@ -178,6 +179,14 @@ export function Cheatsheet() {
       <BarChart label="Deploys" bars={[{ label: "Mon", value: 12 }]} highlight={0} />
       <Sparkline values={[1, 3, 2]} width={96} tone="muted" />
       <Heatmap label="Load" rows={[[0, 0.5, 1]]} rowLabels={["Mon"]} />
+
+      {/* Part of a whole, loading, showmanship, brand */}
+      <DonutChart label="Build time" parts={[{ label: "Compile", value: 142 }, { label: "Link", value: 48 }]} highlight={0} format={(v) => `${v}s`} />
+      <ProportionBar label="Storage" parts={[{ label: "Projects", value: 182 }, { label: "Media", value: 22 }]} highlight={0} legend={false} />
+      <SkeletonGroup label="Loading services"><SkeletonRow /><SkeletonText lines={3} /><SkeletonCard aspect="portrait" /></SkeletonGroup>
+      <CardTilt />
+      <CollectionCard name="Desk setup" count={4} covers={[null]} />
+      <NexisMark className="size-[18px]" />
 
       {/* Motion moments */}
       <SceneEnter replayKey={page}>…</SceneEnter>
