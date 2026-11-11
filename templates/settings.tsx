@@ -1,5 +1,5 @@
 // ╔══════════════════════════════════════╗
-// ║  @nexis/design — app template        ║
+// ║  @nexis/design · app template        ║
 // ║  settings                            ║
 // ╚══════════════════════════════════════╝
 //
@@ -8,7 +8,7 @@
 // confirm dialog for the destructive reset.
 // Start here for: preferences windows, config tools, admin consoles.
 //
-// Appearance is wired to the real theme engine, and applies live — that is
+// Appearance is wired to the real theme engine, and applies live: that is
 // the one setting a user wants to *see* before committing, so it bypasses
 // the draft on purpose. It includes Interface size (RULES R2.3), which every
 // app's settings must have.

@@ -40,6 +40,8 @@ import { FormsPage } from "./pages/forms";
 import { FoundationsPage } from "./pages/foundations";
 import { IconsPage } from "./pages/icons";
 import { LayoutPage } from "./pages/layout";
+import { CataloguePage } from "./pages/catalogue";
+import { RulesPage } from "./pages/rules";
 import { MotionPage } from "./pages/motion";
 import { NavigationPage } from "./pages/navigation";
 import { OverlaysPage } from "./pages/overlays";
@@ -58,6 +60,8 @@ type PageId =
   | "charts"
   | "feedback"
   | "layout"
+  | "catalogue"
+  | "rules"
   | "motion"
   | "chrome"
   | "icons"
@@ -65,6 +69,7 @@ type PageId =
 
 const PAGES: Record<Exclude<PageId, `app-${string}`>, { label: string; icon: IconName; render: () => React.ReactNode }> = {
   overview: { label: "Overview", icon: "home", render: () => <OverviewPage /> },
+  rules: { label: "Rules", icon: "checklist", render: () => <RulesPage /> },
   foundations: { label: "Foundations", icon: "layers", render: () => <FoundationsPage /> },
   themes: { label: "Themes", icon: "theme", render: () => <ThemesPage /> },
   controls: { label: "Controls", icon: "check-box", render: () => <ControlsPage /> },
@@ -75,6 +80,7 @@ const PAGES: Record<Exclude<PageId, `app-${string}`>, { label: string; icon: Ico
   charts: { label: "Charts", icon: "chart-line", render: () => <ChartsPage /> },
   feedback: { label: "Feedback", icon: "notification", render: () => <FeedbackPage /> },
   layout: { label: "Layout", icon: "grid", render: () => <LayoutPage /> },
+  catalogue: { label: "Catalogue", icon: "store", render: () => <CataloguePage /> },
   motion: { label: "Motion", icon: "sparkle", render: () => <MotionPage /> },
   chrome: { label: "Window chrome", icon: "computer", render: () => <ChromePage /> },
   icons: { label: "Icons", icon: "star", render: () => <IconsPage /> },
@@ -264,7 +270,7 @@ export function Gallery() {
           sections={[
             {
               title: "Design system",
-              items: (["overview", "foundations", "themes", "icons", "motion", "chrome"] as const).map((id) => ({
+              items: (["overview", "rules", "foundations", "themes", "icons", "motion", "chrome"] as const).map((id) => ({
                 id,
                 label: PAGES[id].label,
                 icon: PAGES[id].icon,
@@ -273,7 +279,7 @@ export function Gallery() {
             },
             {
               title: "Components",
-              items: (["controls", "forms", "overlays", "navigation", "data", "charts", "feedback", "layout"] as const).map((id) => ({
+              items: (["controls", "forms", "overlays", "navigation", "data", "charts", "feedback", "layout", "catalogue"] as const).map((id) => ({
                 id,
                 label: PAGES[id].label,
                 icon: PAGES[id].icon,

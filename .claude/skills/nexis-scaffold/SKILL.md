@@ -33,7 +33,11 @@ cd <dir> && pnpm install
 
 - Name apps `nexis-<thing>`, lowercase.
 - Use `NEXIS_PATH=$(pwd)` when this repo's commit is not pushed yet (the git
-  pin only resolves for pushed commits).
+  pin only resolves for pushed commits). The script writes it as a relative
+  `file:` path, which Windows pnpm can read from any shell.
+- The scaffold ships placeholder desktop icons, a `.gitignore`, `CLAUDE.md`,
+  a README skeleton with the brand footer, and the workspace file header on
+  every source file. The dev port is derived from the app name.
 - `pnpm dev` here and open `#/app/<template>` to see what you are starting
   from.
 
@@ -44,7 +48,7 @@ cd <dir> && pnpm install
    `useMemo`.
 2. Rename views, sidebar items, palette commands and titles; redraw
    `src/AppLogo.tsx` and replace `src-tauri/icons/icon.png`, then
-   `pnpm tauri icon src-tauri/icons/icon.png`.
+   `pnpm icons`.
 3. Delete what the app does not need — templates are generous on purpose.
 4. Every action goes in the `CommandPalette` too.
 5. Copy component usage from AGENTS.md §3 (compile-checked).
@@ -53,11 +57,24 @@ cd <dir> && pnpm install
 
 Colours only from tokens (no hex, no `emerald-500`); one accent (`brand`);
 state from `success`/`warning`/`info`/`destructive`; icons only via
-`<Icon name>`; no emoji; `font-heading` only for titles; motion only from the
+`<Icon name>`; no emoji; no em dashes; one UI face (no `font-heading`); motion only from the
 house vocabulary, never on live data; `Panel` for regions; window APIs behind
 `IN_TAURI`. Full list: AGENTS.md §2.
 
-## 5. Verify, then report
+## 5. Register it in the workspace
+
+Inside the Dev workspace:
+
+1. Add a row to `Dev/PROJECTS.md`.
+2. Add the preview entry `new-app.sh` printed to `Dev/.claude/launch.json`.
+3. Run `powershell -File _templates/audit-workspace.ps1` and fix what it
+   flags.
+
+Anything in @nexis/design that got in the way goes in this repo's
+`docs/SCAFFOLD-ISSUES.md` (scaffolding) or `docs/APP-FINDINGS.md`
+(components, rules), not a patch in the app's `node_modules`.
+
+## 6. Verify, then report
 
 ```bash
 pnpm build

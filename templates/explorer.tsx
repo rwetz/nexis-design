@@ -1,17 +1,23 @@
 // ╔══════════════════════════════════════╗
-// ║  @nexis/design — app template        ║
+// ║  @nexis/design · app template        ║
 // ║  explorer                            ║
 // ╚══════════════════════════════════════╝
 //
-// Shape: search + filter toolbar · paginated sortable table · details sheet.
+// Shape: search + filter toolbar · paginated sortable table or a card grid
+// (the view switch) · details sheet.
 // Start here for: CRUD/admin panels, issue trackers, CRMs, database
-// browsers, inventories.
+// browsers, inventories, libraries and catalogues (keep the grid; give cards
+// pictures with `image` and `aspect="portrait"`, or use `ProductCard`).
+//
+// Narrow windows: secondary controls step aside (`@max-*/toolbar:hidden`)
+// and stay in the command palette.
 
 import * as React from "react";
 import {
   Avatar,
   Badge,
   Button,
+  CardBadge,
   type Column,
   CommandPalette,
   DataTable,
@@ -40,6 +46,8 @@ import {
   Switch,
   TitleBar,
   toast,
+  ThumbnailCard,
+  ThumbnailGrid,
   Toolbar,
   ToolbarSeparator,
   ToolbarSpacer,
@@ -61,9 +69,16 @@ export default function App() {
   const [mine, setMine] = React.useState(false);
   const [owners, setOwners] = React.useState<Set<string>>(() => new Set(OWNERS));
   const [sort, setSort] = React.useState<SortState<K>>({ key: "updated", dir: "asc" });
-  const [page, setPage] = React.useState(1);
+  // The page belongs to one set of filters: a new search starts on page 1.
+  // Kept with the filters it was chosen under rather than reset by an effect
+  // after the fact, which drew one frame of an empty page 7 (RULES R14.3).
+  const filterKey = JSON.stringify([query, status, mine, [...owners]]);
+  const [paged, setPaged] = React.useState({ key: filterKey, page: 1 });
+  const page = paged.key === filterKey ? paged.page : 1;
+  const setPage = (p: number) => setPaged({ key: filterKey, page: p });
   const [selected, setSelected] = React.useState<string | null>(null);
   const [paletteOpen, setPaletteOpen] = React.useState(false);
+  const [view, setView] = React.useState<"table" | "grid">("table");
   useCommandPaletteShortcut(() => setPaletteOpen((o) => !o));
 
   const filtered = React.useMemo(() => {
@@ -83,20 +98,19 @@ export default function App() {
   const rows = filtered.slice((current - 1) * PAGE, current * PAGE);
   const issue = ISSUES.find((i) => i.id === selected) ?? null;
 
-  React.useEffect(() => setPage(1), [query, status, mine, owners]);
-
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <WindowResizeEdges />
       <TitleBar brand={<img src="./brand/nexis-logo.png" alt="" className="size-[18px]" />} title="Ledger" />
       <Toolbar>
-        <div className="relative w-72">
+        <div className="relative w-72 min-w-32 shrink">
           <Icon name="search" className="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" />
           <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search issues…" className="h-8 pl-8" />
         </div>
         <Segmented
           size="sm"
           label="Status"
+          className="@max-3xl/toolbar:hidden"
           value={status}
           onChange={setStatus}
           segments={[
@@ -134,11 +148,23 @@ export default function App() {
             </div>
           </PopoverContent>
         </Popover>
-        <ToolbarSeparator />
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Switch size="sm" checked={mine} onCheckedChange={setMine} /> Mine
-        </label>
+        <span className="contents @max-4xl/toolbar:hidden">
+          <ToolbarSeparator />
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Switch size="sm" checked={mine} onCheckedChange={setMine} /> Mine
+          </label>
+        </span>
         <ToolbarSpacer />
+        <Segmented
+          size="sm"
+          label="View"
+          value={view}
+          onChange={setView}
+          segments={[
+            { id: "table", label: "Table" },
+            { id: "grid", label: "Grid" },
+          ]}
+        />
         <Button variant="brand" size="sm" onClick={() => toast("New issue")}>
           <Icon name="add" /> New issue
         </Button>
@@ -155,6 +181,23 @@ export default function App() {
               Reset filters
             </Button>
           </Empty>
+        ) : view === "grid" ? (
+          <div className="h-full overflow-y-auto nexis-scrollbar pb-4">
+            <ThumbnailGrid min="11rem">
+              {rows.map((r) => (
+                <ThumbnailCard
+                  key={r.id}
+                  title={r.title}
+                  meta={`${r.id} · ${r.owner}`}
+                  aspect="landscape"
+                  placeholder={<Icon name="document" size="xl" />}
+                  overlay={<CardBadge>{r.status}</CardBadge>}
+                  selected={selected === r.id}
+                  onClick={() => setSelected(r.id)}
+                />
+              ))}
+            </ThumbnailGrid>
+          </div>
         ) : (
           <DataTable
             label="Issues"
@@ -217,13 +260,24 @@ export default function App() {
       <CommandPalette
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
-        commands={ISSUES.slice(0, 40).map((i) => ({
-          id: i.id,
-          label: `${i.id} ${i.title}`,
-          group: "Issues",
-          icon: "document" as const,
-          run: () => setSelected(i.id),
-        }))}
+        commands={[
+          ...(["all", "open", "in-progress", "done"] as const).map((s) => ({
+            id: `status-${s}`,
+            label: `Show ${s === "all" ? "all statuses" : s}`,
+            group: "Filter",
+            icon: "filter" as const,
+            run: () => setStatus(s),
+          })),
+          { id: "mine", label: mine ? "Show everyone's" : "Show only mine", group: "Filter", icon: "user" as const, run: () => setMine((m) => !m) },
+          { id: "view", label: view === "table" ? "Show as grid" : "Show as table", group: "View", icon: "grid" as const, run: () => setView((v) => (v === "table" ? "grid" : "table")) },
+          ...ISSUES.slice(0, 40).map((i) => ({
+            id: i.id,
+            label: `${i.id} ${i.title}`,
+            group: "Issues",
+            icon: "document" as const,
+            run: () => setSelected(i.id),
+          })),
+        ]}
       />
     </div>
   );
@@ -248,7 +302,7 @@ const COLUMNS: Column<Issue, K>[] = [
   { key: "updated", header: "Updated", numeric: true, sortable: true, width: 100, cell: (r) => `${r.updated}d` },
 ];
 
-// ── Fixture data — replace with your source ─────────────────────────────────
+// ── Fixture data: replace with your source ──────────────────────────────────
 
 const OWNERS = ["Ryan Wetzstein", "Ada Lovelace", "Grace Hopper", "Alan Turing"];
 const VERBS = ["Fix", "Add", "Remove", "Speed up", "Document", "Refactor", "Test"];

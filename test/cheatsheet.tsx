@@ -18,11 +18,18 @@ import {
   SidebarNav, Sparkline, Spinner, Stat, StatusBar, StatusDot, StatusItem, Steps, Switch,
   ThoughtLine, Timeline, TitleBar, toast, Toolbar, ToolbarSpacer, Tooltip, TooltipContent, TooltipTrigger,
   Tree, type TreeNode, useCommandPaletteShortcut, useTheme, VirtualList, WindowResizeEdges,
+  ActiveFilters, CardBadge, EMPTY_FILTERS, RangeInput, type Facet, FilterPanel, type FilterState, PriceTag, ProductCard, Shelf,
+  SettingRow, SettingsGroup, SettingsPage, SettingsTree, settingsTreeNodes, type SettingsChapter, ThumbnailCard, ThumbnailGrid,
 } from "../src";
 
 type Row = { id: string; name: string; rps: number };
 const rows: Row[] = [{ id: "api", name: "api", rps: 905 }];
 const nodes: TreeNode[] = [{ id: "src", label: "src", children: [{ id: "src/a.ts", label: "a.ts" }] }];
+const facets: Facet[] = [
+  { kind: "range", key: "price", label: "Price", unit: "$" },
+  { kind: "options", key: "seller", label: "Seller", options: [{ value: "Acme", count: 4 }] },
+];
+const SETTINGS: SettingsChapter[] = [{ id: "look", label: "Appearance", mark: "I", groups: [{ id: "theme", label: "Theme", settings: [{ label: "Mode", keywords: ["dark"] }] }] }];
 
 export function Cheatsheet() {
   const [open, setOpen] = React.useState(false);
@@ -32,6 +39,8 @@ export function Cheatsheet() {
   const [expanded, setExpanded] = React.useState<Set<string>>(() => new Set(["src"]));
   const [n, setN] = React.useState(8);
   const [day, setDay] = React.useState<dates.CalendarDate | null>(dates.date(2026, 10, 7));
+  const [filters, setFilters] = React.useState<FilterState>(EMPTY_FILTERS);
+  const [chapter, setChapter] = React.useState<[string, string | null]>(["look", null]);
   const theme = useTheme();
   useCommandPaletteShortcut(() => setOpen((o) => !o));
 
@@ -95,6 +104,27 @@ export function Cheatsheet() {
           <AccordionContent>…</AccordionContent>
         </AccordionItem>
       </Accordion>
+      <Accordion type="multiple" defaultValue={["a", "b"]}>
+        <AccordionItem value="a"><AccordionTrigger meta={2}>Seller</AccordionTrigger><AccordionContent>…</AccordionContent></AccordionItem>
+      </Accordion>
+      <FilterPanel facets={facets} value={filters} onChange={setFilters} />
+      <ActiveFilters facets={facets} value={filters} onChange={setFilters} />
+      <RangeInput label="Price" unit="$" value={{ min: "", max: "" }} onChange={() => {}} />
+
+      {/* Galleries and catalogues */}
+      <ThumbnailGrid min="9rem" maxColumns={6}>
+        <ThumbnailCard image={null} title="Dune" meta="Frank Herbert" aspect="portrait" overlay={<CardBadge>New</CardBadge>} />
+      </ThumbnailGrid>
+      <Shelf title="On sale" meta={12} action={<Button variant="ghost" size="sm">See all</Button>}>
+        <ProductCard className="w-44 shrink-0" image={null} eyebrow="Acme" title="Lamp" price={<PriceTag price="$24" was="$30" />}
+          badges={<CardBadge>-20%</CardBadge>} action={<Button size="icon-sm" variant="secondary" aria-label="Add to cart"><Icon name="cart" /></Button>} onClick={() => {}} />
+      </Shelf>
+
+      {/* Deep settings (RULES R4.2) */}
+      <SettingsTree nodes={settingsTreeNodes(SETTINGS)} chapter={chapter[0]} section={chapter[1]} onSelect={(c, s) => setChapter([c, s])} />
+      <SettingsPage title="Appearance" id="look">
+        <SettingsGroup title="Theme" id="theme"><SettingRow label="Mode" data-setting="Mode">…</SettingRow></SettingsGroup>
+      </SettingsPage>
 
       {/* Overlays */}
       <DropdownMenu>

@@ -225,3 +225,26 @@ if (missing) throw new Error(`${path}: missing`);
 
 and put the parse inside the same promise chain as the fetch, so one `.catch`
 covers both. First seen in BibleLM (`APP-FINDINGS.md`, finding 8).
+
+## 15. jsdom has no `IntersectionObserver` (or `ResizeObserver`)
+
+A scroll spy, a lazy image loader or anything else that observes
+intersection throws `IntersectionObserver is not defined` in an app's
+vitest smoke test, and takes the whole page with it. jsdom implements
+neither observer. Stub both in the test setup, as this package's
+`test/setup.ts` does: a class with no-op `observe`, `unobserve`,
+`disconnect` and `takeRecords`. A component that skips itself when the
+observer is missing works too, but hides the gap. First seen in BibleLM
+(APP-FINDINGS 10).
+
+## 16. Git Bash paths in `file:` dependencies
+
+`NEXIS_PATH=$(pwd)` in Git Bash is `/c/Users/...`. Windows pnpm reads that
+as a path on the current drive, fails with
+`ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND`, and on the way prints a stream of
+`UND_ERR_DESTROYED` registry warnings that look like a network problem.
+`new-app.sh` now writes the dependency relative to the app
+(`file:../nexis-design`), which works from any shell. When writing one by
+hand, use a relative path, or `cygpath -m` for an absolute one
+(`C:/Users/...`). First seen in nexis-wishlist, now Vitrine
+(SCAFFOLD-ISSUES 1).

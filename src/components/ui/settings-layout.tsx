@@ -15,6 +15,11 @@
  * nav they belong to. It's 760px wide at 100% and grows with the interface
  * scale. Rows are label and description on the left, the control in a fixed
  * column on the right, separated by hairlines rather than boxed in cards.
+ *
+ * More than about eight sections? Use `SettingsTree` as the nav instead of
+ * `SidebarNav` (R4.2, the deep case). Every part takes `id` and `data-*`
+ * props on its root, so search and palette deep links can scroll to a row
+ * and flash it, and a scroll spy can observe the groups.
  */
 
 import * as React from "react";
@@ -48,10 +53,18 @@ export function SettingsPage({
   title,
   description,
   actions,
+  titleClassName,
+  inset = true,
   children,
   className,
-}: {
+  ...props
+}: Omit<React.ComponentProps<"section">, "title"> & {
+  /** A string, or a node when the app sets its own face for titles. */
   title: React.ReactNode;
+  /** Replaces the title's default `text-lg font-semibold`. */
+  titleClassName?: string;
+  /** The page's own padding (`p-page`). Turn it off when the page already sits inside the app's padding, e.g. beside a tree. */
+  inset?: boolean;
   description?: React.ReactNode;
   /** Beside the title, right-aligned: rarely more than one quiet button. */
   actions?: React.ReactNode;
@@ -59,10 +72,10 @@ export function SettingsPage({
   className?: string;
 }) {
   return (
-    <section data-slot="settings-page" className={cn("nexis-scene-enter flex w-full max-w-190 flex-col gap-section p-page", className)}>
+    <section data-slot="settings-page" className={cn("nexis-scene-enter flex w-full max-w-190 flex-col gap-section", inset && "p-page", className)} {...props}>
       <header className="flex items-start gap-group">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <h1 className="text-lg font-semibold">{title}</h1>
+          <h1 className={titleClassName ?? "text-lg font-semibold"}>{title}</h1>
           {description && <p className="max-w-prose text-body text-muted-foreground">{description}</p>}
         </div>
         {actions}
@@ -76,14 +89,15 @@ export function SettingsGroup({
   title,
   children,
   className,
-}: {
+  ...props
+}: Omit<React.ComponentProps<"section">, "title"> & {
   /** The group's overline; leave it out for a page with one group. */
   title?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
-    <section data-slot="settings-group" className={cn("flex flex-col", className)}>
+    <section data-slot="settings-group" className={cn("flex flex-col", className)} {...props}>
       {title && <h2 className="pb-2 text-micro font-medium tracking-[0.06em] text-muted-foreground uppercase">{title}</h2>}
       <div className="flex flex-col divide-y divide-border/60 border-y border-border/60">{children}</div>
     </section>
@@ -97,7 +111,8 @@ export function SettingRow({
   align = "end",
   children,
   className,
-}: {
+  ...props
+}: Omit<React.ComponentProps<"div">, "children"> & {
   label: React.ReactNode;
   /** One sentence: what the setting does. */
   description?: React.ReactNode;
@@ -115,6 +130,7 @@ export function SettingRow({
     <div
       data-slot="setting-row"
       className={cn("grid grid-cols-[minmax(0,1fr)_minmax(0,17.5rem)] items-center gap-x-section gap-y-2 py-4 max-sm:grid-cols-1", className)}
+      {...props}
     >
       <div className="flex min-w-0 flex-col gap-1">
         <label htmlFor={htmlFor} className="text-sm font-medium">

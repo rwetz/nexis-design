@@ -20,6 +20,15 @@
  * additionally carry the app's ancestor CSS `zoom` and any scroll offset,
  * both of which would then have to be divided back out — the same class of
  * mistake as AGENTS.md pitfall #15.
+ *
+ * That also means **no positioned element may sit between the items and the
+ * container**: `offsetTop` is relative to the nearest positioned ancestor,
+ * so a `relative` wrapper around a group of items (a collapsible section in
+ * a tree, say) puts the rail in the wrong place. Items themselves may be
+ * `relative`; their wrappers stay `position: static`.
+ *
+ * Two rails can share one container (a highlight and a separate mark, as in
+ * `SettingsTree`): attach a callback ref that calls both `setContainer`s.
  */
 
 import { useReducedMotion } from "motion/react";
@@ -30,6 +39,8 @@ export type RailRect = { offset: number; extent: number };
 
 export type GlidingRail<Id> = {
   containerRef: React.RefObject<HTMLDivElement | null>;
+  /** A callback ref for the container, for when two rails share one. */
+  setContainer: (el: HTMLDivElement | null) => void;
   registerItem: (id: Id, el: HTMLElement | null) => void;
   activeRect: RailRect | null;
   hoverRect: RailRect | null;
@@ -55,6 +66,9 @@ export function useGlidingRail<Id>(
   revision: number,
 ): GlidingRail<Id> {
   const containerRef = useRef<HTMLDivElement>(null);
+  const setContainer = useCallback((el: HTMLDivElement | null) => {
+    containerRef.current = el;
+  }, []);
   const itemRefs = useRef(new Map<Id, HTMLElement>());
   const [activeRect, setActiveRect] = useState<RailRect | null>(null);
   const [hoverId, setHoverId] = useState<Id | null>(null);
@@ -124,6 +138,7 @@ export function useGlidingRail<Id>(
 
   return {
     containerRef,
+    setContainer,
     registerItem,
     activeRect,
     hoverRect,

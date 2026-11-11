@@ -56,8 +56,25 @@ Combine templates; every piece below is in the package.
 - **File manager**: `explorer`'s toolbar + `Breadcrumb` path + a resizable
   split with a `Tree` of folders and a `DataTable` of entries; `ContextMenu`
   on rows; `AlertDialog` for delete; `toast(…, { action: Undo })`.
-- **Media / gallery**: a wrapping grid of cards, `Segmented` for density,
-  `Sheet` + `PropertyList` for metadata, `SceneEnter` as each loads.
+- **Media / gallery**: `explorer` with its Grid view: `ThumbnailGrid` of
+  `ThumbnailCard`s (`aspect="portrait"` for covers), `Segmented` for
+  density, `Sheet` + `PropertyList` for metadata, `SceneEnter` as each loads.
+- **Shop / catalogue**: `ProductCard`s (picture, eyebrow, title, `PriceTag`,
+  `CardBadge`s, one action button) in a `ThumbnailGrid`, or in `Shelf`s on a
+  home page; `FilterPanel` + `ActiveFilters` beside the grid with facets
+  and counts derived from the data; a collapsed `SidebarNav` rail shows
+  counts (Cart 3) as badges. Icons: `cart`, `bag`, `heart`, `store`,
+  `package`.
+- **Catalogue with varied item types**: let each category own its fields,
+  and let fields become facets: a field list per category, values in a
+  `Record<string, string>` per item, and `FilterPanel` facets built from
+  the fields of the category being browsed.
+- **Hero / summary banner**: a `Panel` with one headline number (`Stat`,
+  large), one line under it, and a cluster of two or three overlapping
+  `rounded-xl` pictures on the right that lift on hover. One per page, at
+  the top; it is not a carousel.
+- **Deep settings**: the `settings` template with `SettingsTree` in place of
+  `SidebarNav`, driven by a `SettingsChapter[]` registry (RULES R4.2).
 - **Music / media player**: `SidebarNav` library, `DataTable` tracklist, a
   bottom bar with icon `Button`s (`play`/`pause`/`stop`), `Slider` for
   position and volume, `Meter` as a level meter (it never tweens).
@@ -119,6 +136,12 @@ this list and RULES.md disagree, RULES.md wins.
    `GlidingTabs`, or `useGlidingRail` + `RailIndicator` for a new strip.
 9. **Frame regions with `<Panel title meta actions>`**; long work the user
    started gets a `CallChip`; facts go in the `StatusBar`.
+10. **State is explicit (RULES §14).** A flow with phases (a request, a job,
+   a wizard, a draft) is one discriminated union, not `loading` + `error` +
+   `data` flags; derived values are computed while rendering, never copied
+   into state by an effect (tripwired); "nothing" is `null`, never `""`.
+   Decide what a screen does with the principles (RULES P1 to P7) when no
+   rule covers it.
 10. **Every app exposes its actions in a `CommandPalette`** on Mod+Shift+P
     (`useCommandPaletteShortcut`).
 11. **Chrome:** `TitleBar` + `WindowResizeEdges` at the root; window APIs only
@@ -196,6 +219,14 @@ export default function App() {
 <PanelSection title="Layers" actions={<Button variant="ghost" size="icon-sm" …/>}>…</PanelSection>
 <ControlRow label="Line weight" edited={v !== def} onReset={reset} value={v}><Slider …/></ControlRow>
 <ThumbnailGrid min="9rem" maxColumns={6}><ThumbnailCard image={url} title="Stencil" meta="Print" selected /></ThumbnailGrid>
+<ThumbnailCard image={url} title="Dune" aspect="square|portrait|landscape" overlay={<CardBadge>New</CardBadge>} />
+<ProductCard image={url} eyebrow="Acme" title="Lamp" price={<PriceTag price="$24" was="$30" prefix?="From" />} aside={<Sparkline …/>}
+  badges={<CardBadge>-20%</CardBadge>} action={<Button size="icon-sm" variant="secondary" aria-label="Add to cart"><Icon name="cart" /></Button>} dimmed? onClick={open} />
+<Shelf title="On sale" meta={12} action={…} wheel?="page|sideways">{cards with className="w-44 shrink-0"}</Shelf>
+// Deep settings (R4.2): one registry drives the tree, the search and the palette
+<SettingsTree nodes={settingsTreeNodes(SETTINGS)} chapter={c} section={s} onSelect={(c, s) => …} openAll={searching} />
+findSettings(query, SETTINGS)  locateSetting("Mode", SETTINGS)   // SettingsPage/Group/Row take id and data-*; SettingsPage titleClassName, inset={false}
+const data = await fetchJson<Data>("/data/x.json")              // rejects on a missing file, even Vite's 200 text/html fallback
 <Strip>{cards}</Strip>   <ColorPicker label="Ink" value="#163a70" onChange={set} swatches={others} />
 <ListPresence>{rows.map((r) => <PresenceItem key={r.id}>…</PresenceItem>)}</ListPresence>
 
@@ -206,6 +237,11 @@ export default function App() {
 <DatePicker selected={d} onSelect={setD} min={dates.today()} />      <Calendar selected={d} onSelect={setD} weekStartsOn={1} />
 // dates.date(2026, 10, 7)  dates.addDays(d, n)  dates.addMonths(d, n)  dates.iso(d)  dates.parseIso(s)
 <Accordion type="single" collapsible><AccordionItem value="a"><AccordionTrigger meta="3">General</AccordionTrigger><AccordionContent>…</AccordionContent></AccordionItem></Accordion>
+<Accordion type="multiple" defaultValue={["a", "b"]}>…</Accordion>   // several open at once; meta={2} shows a count
+const facets: Facet[] = [{ kind: "range", key: "price", label: "Price", unit: "$" }, { kind: "options", key: "seller", label: "Seller", options: [{ value: "Acme", count: 4 }] }];
+<FilterPanel facets={facets} value={filters} onChange={setFilters} />   <ActiveFilters facets={facets} value={filters} onChange={setFilters} />
+// filters: FilterState = EMPTY_FILTERS; filterCount(filters); rangeBounds(filters.ranges.price) -> { min, max } (null = no bound)
+<RangeInput label="Price" unit="$" value={{ min: "", max: "" }} onChange={…} />   // NumberInput cannot be empty; this can
 
 // Overlays
 <DropdownMenu><DropdownMenuTrigger asChild>…</DropdownMenuTrigger><DropdownMenuContent>
@@ -288,8 +324,14 @@ ultraviolet synthwave tokyo-night catppuccin nord gruvbox rose-pine`.
 - **`link:` the package and `tsc` reports two Reacts** → use `file:`
   (PITFALLS §10).
 - **A view that fetches a data file spins forever** → a missing file came
-  back as the app's own page, `200 text/html`; check the content type
+  back as the app's own page, `200 text/html`; load data with `fetchJson`
   (PITFALLS §14).
+- **A scroll spy or lazy loader crashes the app's jsdom tests** → stub
+  `IntersectionObserver` beside `ResizeObserver` (PITFALLS §15).
+- **`ERR_PNPM_LINKED_PKG_DIR_NOT_FOUND` with a `/c/...` path** → a Git Bash
+  path in a `file:` dependency; use `file:../nexis-design` (PITFALLS §16).
+- **Port 1420 in use** → another app, or a Vite left from an aborted
+  `pnpm tauri dev`; each app has its own port (docs/SCAFFOLDING.md Step 4).
 - Pick a template that is close and delete; do not build a shell from
   scratch.
 

@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 
-// jsdom has neither; components and the theme engine call both.
+// jsdom has none of these; components and the theme engine call them. An
+// app's own test setup needs the same stubs (docs/PITFALLS.md §15).
 if (!window.matchMedia) {
   window.matchMedia = (query: string) =>
     ({
@@ -19,6 +20,19 @@ if (!("ResizeObserver" in window)) {
     observe() {}
     unobserve() {}
     disconnect() {}
+  };
+}
+if (!("IntersectionObserver" in window)) {
+  (window as unknown as { IntersectionObserver: unknown }).IntersectionObserver = class {
+    root = null;
+    rootMargin = "";
+    thresholds = [];
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return [];
+    }
   };
 }
 

@@ -94,13 +94,13 @@ function SelectContent({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
   const [viewport, setViewport] = React.useState<HTMLDivElement | null>(null)
-  const [glide, setGlide] = React.useState<{
-    top: number
-    height: number
-    shown: boolean
-    /** Arriving from hidden: appear on the item instead of sliding to it. */
-    jump: boolean
-  } | null>(null)
+  // The highlight's one state (RULES R14): never shown yet; appearing on an
+  // item (no slide, it was hidden); gliding between items; or fading out
+  // where it last was. Two booleans for this allowed "jump while hidden".
+  const [glide, setGlide] = React.useState<
+    | { phase: "appear" | "glide" | "fade"; top: number; height: number }
+    | null
+  >(null)
 
   // Radix owns the highlight: it writes `data-highlighted` onto whichever
   // item has roving focus, for pointer and keyboard alike. Observing that
@@ -122,8 +122,12 @@ function SelectContent({
       // drag it across the list, and it could be seen resting between items.
       setGlide((prev) =>
         el
-          ? { top: el.offsetTop, height: el.offsetHeight, shown: true, jump: !prev?.shown }
-          : prev && { ...prev, shown: false },
+          ? {
+              phase: prev && prev.phase !== "fade" ? "glide" : "appear",
+              top: el.offsetTop,
+              height: el.offsetHeight,
+            }
+          : prev && { ...prev, phase: "fade" },
       )
     }
     const observer = new MutationObserver(sync)
@@ -166,12 +170,12 @@ function SelectContent({
             data-slot="select-glide"
             className={cn(
               "pointer-events-none absolute inset-x-1 top-0 z-0 rounded-2xl bg-muted",
-              glide?.shown ? "opacity-100" : "opacity-0",
+              glide && glide.phase !== "fade" ? "opacity-100" : "opacity-0",
             )}
             style={{
               height: glide?.height ?? 0,
               translate: `0 ${glide?.top ?? 0}px`,
-              transitionProperty: glide?.jump ? "opacity" : "translate, height, opacity",
+              transitionProperty: glide?.phase === "glide" ? "translate, height, opacity" : "opacity",
               transitionDuration: "var(--dur-panel)",
               transitionTimingFunction: "var(--ease-enter)",
             }}

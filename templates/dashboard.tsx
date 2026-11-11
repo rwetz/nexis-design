@@ -1,5 +1,5 @@
 // ╔══════════════════════════════════════╗
-// ║  @nexis/design — app template        ║
+// ║  @nexis/design · app template        ║
 // ║  dashboard                           ║
 // ╚══════════════════════════════════════╝
 //
@@ -279,7 +279,7 @@ export default function App() {
   );
 }
 
-// ── Fixture data — replace with your source ─────────────────────────────────
+// ── Fixture data: replace with your source ──────────────────────────────────
 
 type Service = { id: string; name: string; region: string; rps: number; p95: number; errors: number; status: "ok" | "degraded" };
 

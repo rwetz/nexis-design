@@ -6,6 +6,26 @@ and traps worth a pitfall. Newest app first. Each entry: what happened, the
 fix to make in nexis-design, and what the app does meanwhile. Scaffolding
 problems go in `SCAFFOLD-ISSUES.md` instead.
 
+## Status (2026-11-10, `scaffold-sweep`)
+
+| # | Status | Where |
+|---|---|---|
+| 1 | Fixed | RULES R4.2, "the deep case" |
+| 2 | Fixed | `SettingsTree` in the package, on the gallery's Navigation page. Not yet wired into the `settings` template |
+| 3 | Partly | `findSettings`, `locateSetting`, `settingsTreeNodes` and the `SettingsChapter` type in the package; the `settings` template does not use them yet |
+| 4 | Fixed | `SettingsPage`, `SettingsGroup`, `SettingRow` spread `id`, `data-*` and the rest onto their roots |
+| 5 | Fixed | `useGlidingRail` returns `setContainer`, a callback ref |
+| 6 | Fixed | `use-gliding-rail.ts` comment and COMPONENTS.md |
+| 7 | Fixed | `SettingsPage` `titleClassName` and `inset={false}` |
+| 8 | Fixed | `fetchData` and `fetchJson`, with tests |
+| 9 | Open | No family release template yet (ROADMAP Phase 3) |
+| 10 | Fixed | `test/setup.ts` stubs `IntersectionObserver`; PITFALLS §15 |
+| 11 | Fixed | Changes in one tick share one view transition; a skipped one is not an error |
+
+BibleLM can drop its workarounds (the cast in `SettingsTree`, its own
+`SettingsTree` and registry, the wrapping `div`s, `fetchData`) once it moves
+its pin past this change.
+
 ## BibleLM (2026-11-10, pinned at `cfb2b06`)
 
 BibleLM has its own design language now (the Scriptorium: blackletter,
@@ -26,3 +46,4 @@ learns about them is reported here. Its code is in
 | 8 | Pitfall | **A missing data file comes back as the app's own page, `200 text/html`.** See PITFALLS §14. In BibleLM a loader caught fetch errors but not the `JSON.parse` that came after, so interlinear reading of a book with no data showed a spinner forever. | PITFALLS §14 and a gotcha line in AGENTS.md (this change). A small `fetchData` helper in the package that throws on a non-OK response or an HTML content type would save every app the same bug. | `fetchData` in `src/lib/bible.ts`. |
 | 9 | Release | **A release job that builds git-ignored assets once and hands them to the installer builds by an explicit list will drift.** BibleLM 2.2.0 shipped without two art folders added after the list was written; the build passed. | If the family gets a release template, upload the whole parent folder, set `if-no-files-found: error`, and keep a test that checks every git-ignored folder under `public/` is covered by the upload. | `.github/workflows/release.yml` and `scripts/release.test.mjs`. |
 | 10 | Testing | **jsdom has no `IntersectionObserver`.** A scroll spy crashes a page in the app's smoke test. The package's setup stubs `ResizeObserver` but nothing stubs this one. | Stub it in the test setup that the templates ship, or note it beside the `ResizeObserver` stub. | The scroll spy skips itself when it is missing. |
+| 11 | Component | **A scheme change logs `AbortError: Transition was skipped`.** BibleLM's schemes set the theme and the mode together, and `ThemeProvider` started a view transition for each; the second aborted the first, whose promises were never caught. Seen during the November polish (BibleLM `docs/evals/polish-2026-11-01.md`). | Batch changes made in the same tick into one transition, and catch the transition's promises: the crossfade is cosmetic. | Nothing; the error is harmless but noisy. |

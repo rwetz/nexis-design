@@ -6,6 +6,8 @@
  * than `maxColumns`, so a wide window gets bigger cards rather than twenty
  * small ones. Cards lift 2px on hover (R8.1); a selected card has a neutral
  * ring, never the accent (R6.3). Titles get two lines before truncating.
+ * `aspect` shapes the picture: square for icons and swatches, portrait for
+ * covers and posters, landscape for screenshots and video.
  */
 
 import * as React from "react";
@@ -37,10 +39,20 @@ export function ThumbnailGrid({
   );
 }
 
+const ASPECT = {
+  square: "aspect-square",
+  portrait: "aspect-[3/4]",
+  landscape: "aspect-[4/3]",
+} as const;
+
+export type ThumbnailAspect = keyof typeof ASPECT;
+
 export function ThumbnailCard({
   image,
   title,
   meta,
+  aspect = "square",
+  overlay,
   selected = false,
   loading = false,
   placeholder,
@@ -52,12 +64,19 @@ export function ThumbnailCard({
   title: React.ReactNode;
   /** A second line: a category, a size, a date. */
   meta?: React.ReactNode;
+  /** The picture's shape. The image fills it (`object-cover`). */
+  aspect?: ThumbnailAspect;
+  /** Laid over the picture's bottom-left corner: a badge or two. */
+  overlay?: React.ReactNode;
   selected?: boolean;
   /** Shows a skeleton where the picture goes. */
   loading?: boolean;
   /** What to show with no picture and not loading, e.g. an icon. */
   placeholder?: React.ReactNode;
 }) {
+  // What fills the picture, in order of precedence: the image once there
+  // is one, else a skeleton while loading, else the placeholder (RULES R14.4).
+  const face: { kind: "image"; src: string } | { kind: "loading" } | { kind: "empty" } = image ? { kind: "image", src: image } : loading ? { kind: "loading" } : { kind: "empty" };
   return (
     <button
       type="button"
@@ -68,17 +87,19 @@ export function ThumbnailCard({
     >
       <div
         className={cn(
-          "relative aspect-square w-full overflow-hidden rounded-xl bg-muted ring-1 transition-[translate,box-shadow] group-hover/thumb:-translate-y-0.5 group-focus-visible/thumb:ring-2 group-focus-visible/thumb:ring-ring",
+          "relative w-full overflow-hidden rounded-xl bg-muted ring-1 transition-[translate,box-shadow] group-hover/thumb:-translate-y-0.5 group-focus-visible/thumb:ring-2 group-focus-visible/thumb:ring-ring",
+          ASPECT[aspect],
           selected ? "ring-2 ring-foreground/60" : "ring-foreground/8 group-hover/thumb:ring-foreground/25",
         )}
       >
-        {image ? (
-          <img src={image} alt="" draggable={false} className="size-full object-cover" />
-        ) : loading ? (
+        {face.kind === "image" ? (
+          <img src={face.src} alt="" draggable={false} className="size-full object-cover" />
+        ) : face.kind === "loading" ? (
           <Skeleton className="size-full rounded-none" />
         ) : (
           <div className="grid size-full place-items-center text-muted-foreground">{placeholder}</div>
         )}
+        {overlay && <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">{overlay}</div>}
       </div>
       <div className="flex min-w-0 flex-col">
         <span className={cn("line-clamp-2 text-ui leading-tight", selected ? "font-medium text-foreground" : "text-muted-foreground group-hover/thumb:text-foreground")}>
