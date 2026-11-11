@@ -46,10 +46,11 @@ about what is not done.
   CI, so a change that moves pixels says so.
 - Accessibility pass with axe on every gallery page and template, both
   modes, high contrast.
-- Run the scaffold in CI: `new-app.sh` → `pnpm verify` → `cargo check` on
-  Linux, macOS and Windows. (`pnpm test` already scaffolds all seven
-  templates and runs `nexis-design-check` on each; the production build and
-  the Rust half have never run in CI.)
+- ~~Run the scaffold in CI~~ done: `.github/workflows/ci.yml` scaffolds every
+  template with all ten plugins and runs `pnpm verify`; `minimal` and
+  `explorer` also `cargo check`, `minimal` on Linux, macOS and Windows, and
+  `explorer` is launched under Xvfb. Not yet run on GitHub: the workflow was
+  written and its script run end to end locally, so expect a first-run fix.
 - Bundle size: the root barrel pulls every component; measure tree-shaking in
   a scaffolded app and split heavy entries (charts, virtual list) if needed.
 

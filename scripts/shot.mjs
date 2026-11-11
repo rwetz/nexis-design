@@ -2,7 +2,7 @@
 import { chromium } from "playwright-core";
 import { chromiumPath } from "./browser.mjs";
 const [url, out, w = "1440", h = "900", ...rest] = process.argv.slice(2);
-const browser = await chromium.launch({ executablePath: chromiumPath() });
+const browser = await chromium.launch({ executablePath: await chromiumPath() });
 const page = await browser.newPage({ viewport: { width: +w, height: +h }, deviceScaleFactor: 1 });
 page.on("pageerror", (e) => console.error("PAGEERROR", e.message));
 page.on("console", (m) => m.type() === "error" && console.error("CONSOLE", m.text()));

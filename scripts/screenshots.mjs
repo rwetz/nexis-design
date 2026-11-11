@@ -18,7 +18,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = resolve(ROOT, "docs/img");
 mkdirSync(OUT, { recursive: true });
 
-const CHROMIUM = chromiumPath();
+const CHROMIUM = await chromiumPath();
 const W = 1440;
 const H = 900;
 

@@ -116,7 +116,7 @@ export function DataTable<T, K extends string>({
                       type="button"
                       onClick={() => setSort(nextSort(sort, c.key))}
                       className={cn(
-                        "group/sort inline-flex items-center gap-1 rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40",
+                        "group/sort inline-flex min-h-6 items-center gap-1 rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40",
                         active && "text-foreground",
                         align(c) === "text-right" && "flex-row-reverse",
                       )}

@@ -31,6 +31,7 @@ shared version yet.
 | `ThoughtLine` | Nexis | a stream still arriving: live only |
 | `CallChip` | Nexis | a long run the user started: elapsed + stop |
 | `ErrorBoundary` | new | a render error becomes a message and Try again, not a blank window; `resetKey` retries on navigation |
+| `DataBoundary`, `SkeletonRows` | new | RULES R7.3 in one component: loading skeleton, error Alert with Retry, empty state with its action, or the data. Pairs with `useLoad` |
 | `useLoad` | new | the `loading / error / ready` status behind RULES R7.3, with `reload` and stale-answer protection |
 
 ### Forms

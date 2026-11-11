@@ -7,7 +7,7 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
   Alert, AlertDescription, AlertTitle,
   Avatar, Badge, BarChart, Button, CallChip, Calendar, Checkbox,
-  type Column, Combobox, CommandPalette, DataTable, DatePicker, dates,
+  type Column, Combobox, CommandPalette, DataBoundary, DataTable, DatePicker, dates,
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuSub,
   DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
   Empty, EmptyDescription, ErrorBoundary, EmptyHeader, EmptyTitle,
@@ -131,6 +131,9 @@ export function Cheatsheet() {
         <p>content</p>
       </ErrorBoundary>
 
+      <DataBoundary state={loaded} onRetry={reload} noun="services" empty={<Empty><EmptyHeader><EmptyTitle>No services</EmptyTitle></EmptyHeader></Empty>}>
+        {(data) => <p>{data.length} services</p>}
+      </DataBoundary>
       {loaded.status === "ready" ? <Panel title="Loaded" meta={String(loaded.data.length)} actions={<Button size="xs" onClick={reload}>Retry</Button>}>ok</Panel> : <Skeleton className="h-8 w-full" />}
 
       {/* Navigation */}

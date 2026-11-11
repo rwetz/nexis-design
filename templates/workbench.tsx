@@ -11,6 +11,12 @@
 import * as React from "react";
 import {
   CommandPalette,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  SkeletonRows,
+  DataBoundary,
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
@@ -33,6 +39,7 @@ import {
   Tree,
   type TreeNode,
   useCommandPaletteShortcut,
+  useLoad,
   VirtualList,
   WindowResizeEdges,
 } from "@nexis/design";
@@ -58,7 +65,10 @@ export default function App() {
       return next;
     });
   };
-  const lines = FILES[active] ?? [];
+  // The document arrives through one async function, keyed on the file, so
+  // switching files shows a skeleton and a failed read shows Retry (RULES R7.3).
+  const { state: doc, reload: reloadDoc } = useLoad(() => readFile(active), [active]);
+  const lines = doc.status === "ready" ? doc.data : NO_LINES;
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
@@ -138,23 +148,40 @@ export default function App() {
                 </React.Fragment>
               ))}
             </div>
-            <VirtualList
-              label={active}
-              count={lines.length}
-              rowHeight={22}
-              className="min-h-0 flex-1 pb-6"
-              renderRow={(i) => (
-                <div
-                  onClick={() => setCursor(i)}
-                  className={cn("flex h-full items-center font-mono text-ui", i === cursor && "bg-muted/60")}
-                >
-                  <span className={cn("w-14 shrink-0 pr-4 text-right tabular-nums", i === cursor ? "text-foreground" : "text-muted-foreground/50")}>
-                    {i + 1}
-                  </span>
-                  <Code line={lines[i]} />
-                </div>
+            <DataBoundary
+              state={doc}
+              onRetry={reloadDoc}
+              noun={active || "the file"}
+              skeleton={<SkeletonRows rows={14} />}
+              empty={
+                <Empty className="min-h-0 flex-1">
+                  <EmptyHeader>
+                    <EmptyTitle>{active ? "This file is empty" : "No file open"}</EmptyTitle>
+                    <EmptyDescription>{active ? "Start typing, or open another file." : "Pick a file in the explorer."}</EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              }
+            >
+              {(rows) => (
+                <VirtualList
+                  label={active}
+                  count={rows.length}
+                  rowHeight={22}
+                  className="min-h-0 flex-1 pb-6"
+                  renderRow={(i) => (
+                    <div
+                      onClick={() => setCursor(i)}
+                      className={cn("flex h-full items-center font-mono text-ui", i === cursor && "bg-muted/60")}
+                    >
+                      <span className={cn("w-14 shrink-0 pr-4 text-right tabular-nums", i === cursor ? "text-foreground" : "text-muted-foreground/50")}>
+                        {i + 1}
+                      </span>
+                      <Code line={rows[i]} />
+                    </div>
+                  )}
+                />
               )}
-            />
+            </DataBoundary>
           </div>
         </ResizablePanel>
         <ResizableHandle />
@@ -315,6 +342,14 @@ The design system for the Nexis family of Tauri desktop apps.
 Then import the stylesheet and wrap your root in ThemeProvider.
 `.split("\n");
 
+// Replace with `call<string[]>("read_file", { path }, FILES[path])` from src/backend.ts.
+const readFile = async (path: string): Promise<string[]> => {
+  if (!path) return [];
+  const text = FILES[path];
+  if (!text) throw new Error(`Couldn't read ${path}: it no longer exists.`);
+  return text;
+};
+const NO_LINES: string[] = [];
 const FILES: Record<string, string[]> = {
   "src/components/Panel.tsx": PANEL,
   "src/components/StatusBar.tsx": PANEL.slice(0, 12),

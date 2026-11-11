@@ -5,6 +5,8 @@ import {
   AlertTitle,
   Button,
   CallChip,
+  DataBoundary,
+  type Load,
   Empty,
   EmptyContent,
   EmptyDescription,
@@ -12,6 +14,7 @@ import {
   EmptyMedia,
   EmptyTitle,
   ErrorBoundary,
+  Segmented,
   Icon,
   KbdHint,
   MOD_KEY,
@@ -30,8 +33,17 @@ function Fragile({ broken }: { broken: boolean }) {
   return <p className="text-body text-muted-foreground">The log view renders its rows.</p>;
 }
 
+type StateId = "loading" | "error" | "empty" | "ready";
+const STATES: Record<StateId, Load<string[]>> = {
+  loading: { status: "loading" },
+  error: { status: "error", error: new Error("The database is locked by another process.") },
+  empty: { status: "ready", data: [] },
+  ready: { status: "ready", data: ["NX-1201 Fix theme crossfade", "NX-1202 Add date picker bounds", "NX-1203 Document the rail"] },
+};
+
 export function FeedbackPage() {
   const [broken, setBroken] = React.useState(false);
+  const [stateId, setStateId] = React.useState<StateId>("loading");
   return (
     <Page
       title="Feedback"
@@ -88,6 +100,32 @@ export function FeedbackPage() {
       </Grid>
 
       <Grid cols={3}>
+        <Demo title="The four states" meta="DataBoundary · RULES R7.3">
+          <Segmented
+            size="sm"
+            label="State"
+            value={stateId}
+            onChange={setStateId}
+            segments={[{ id: "loading", label: "Loading" }, { id: "error", label: "Error" }, { id: "empty", label: "Empty" }, { id: "ready", label: "Ready" }]}
+          />
+          <div className="h-56 overflow-hidden rounded-2xl border border-border/60">
+            <DataBoundary
+              state={STATES[stateId]}
+              onRetry={() => setStateId("ready")}
+              noun="issues"
+              empty={<p className="p-gutter text-body text-muted-foreground">No issues yet. Create the first one.</p>}
+            >
+              {(rows) => (
+                <ul className="flex flex-col gap-row p-gutter text-body">
+                  {rows.map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+              )}
+            </DataBoundary>
+          </div>
+        </Demo>
+
         <Demo title="Crashed view" meta="ErrorBoundary">
           <ErrorBoundary label="Log view" resetKey={broken} onError={() => {}} className="flex-none p-6">
             <Fragile broken={broken} />

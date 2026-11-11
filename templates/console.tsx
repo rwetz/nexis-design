@@ -19,6 +19,12 @@ import {
   CallChip,
   cn,
   CommandPalette,
+  DataBoundary,
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+  type Load,
   Icon,
   Input,
   StatusBar,
@@ -32,6 +38,7 @@ import {
   ToolbarSeparator,
   ToolbarSpacer,
   useCommandPaletteShortcut,
+  useLoad,
   VirtualList,
   WindowResizeEdges,
 } from "@nexis/design";
@@ -47,7 +54,15 @@ const LEVEL_CLASS: Record<Level, string> = {
 };
 
 export default function App() {
-  const [lines, setLines] = React.useState<Line[]>(() => Array.from({ length: 400 }, (_, i) => make(i)));
+  // History arrives through one async function (RULES R7.3); the stream appends after it.
+  const { state: history, reload } = useLoad(fetchHistory, []);
+  const [lines, setLines] = React.useState<Line[]>([]);
+  const [ready, setReady] = React.useState(false);
+  React.useEffect(() => {
+    if (history.status !== "ready") return;
+    setLines(history.data);
+    setReady(true);
+  }, [history]);
   const [levels, setLevels] = React.useState<Record<Level, boolean>>({ debug: false, info: true, warn: true, error: true });
   const [filter, setFilter] = React.useState("");
   const [follow, setFollow] = React.useState(true);
@@ -58,15 +73,16 @@ export default function App() {
   useCommandPaletteShortcut(() => setPaletteOpen((o) => !o));
 
   React.useEffect(() => {
-    if (!running) return;
+    if (!running || !ready) return;
     const id = setInterval(() => setLines((l) => [...l, make(l.length)]), 450);
     return () => clearInterval(id);
-  }, [running]);
+  }, [running, ready]);
 
   const shown = React.useMemo(() => {
     const q = filter.trim().toLowerCase();
     return lines.filter((l) => levels[l.level] && (q === "" || l.msg.toLowerCase().includes(q) || l.src.includes(q)));
   }, [lines, levels, filter]);
+  const logState: Load<Line[]> = ready ? { status: "ready", data: shown } : history.status === "error" ? history : { status: "loading" };
   const errors = lines.filter((l) => l.level === "error").length;
 
   const run = () => {
@@ -112,24 +128,41 @@ export default function App() {
         )}
       </Toolbar>
 
-      <VirtualList
-        label="Log"
-        count={shown.length}
-        rowHeight={22}
-        follow={follow}
-        className="min-h-0 flex-1 bg-[var(--terminal-background)] py-1"
-        renderRow={(i) => {
-          const l = shown[i];
-          return (
-            <div className="flex h-full items-center gap-3 px-4 font-mono text-ui hover:bg-muted/40">
-              <span className="w-16 shrink-0 text-muted-foreground tabular-nums">{l.t}</span>
-              <span className={cn("w-11 shrink-0 uppercase", LEVEL_CLASS[l.level])}>{l.level}</span>
-              <span className="w-14 shrink-0 truncate text-muted-foreground">{l.src}</span>
-              <span className={cn("truncate", l.src === "you" && "font-medium text-foreground")}>{l.msg}</span>
-            </div>
-          );
-        }}
-      />
+      <DataBoundary
+        state={logState}
+        onRetry={reload}
+        noun="the log"
+        className="bg-[var(--terminal-background)]"
+        empty={
+          <Empty className="min-h-0 flex-1 bg-[var(--terminal-background)]">
+            <EmptyHeader>
+              <EmptyTitle>{lines.length === 0 ? "No output yet" : "No lines match"}</EmptyTitle>
+              <EmptyDescription>{lines.length === 0 ? "Lines appear here as the worker writes them." : "Widen the level toggles or clear the filter."}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        }
+      >
+        {(rows) => (
+          <VirtualList
+            label="Log"
+            count={rows.length}
+            rowHeight={22}
+            follow={follow}
+            className="min-h-0 flex-1 bg-[var(--terminal-background)] py-1"
+            renderRow={(i) => {
+              const l = rows[i];
+              return (
+                <div className="flex h-full items-center gap-3 px-4 font-mono text-ui hover:bg-muted/40">
+                  <span className="w-16 shrink-0 text-muted-foreground tabular-nums">{l.t}</span>
+                  <span className={cn("w-11 shrink-0 uppercase", LEVEL_CLASS[l.level])}>{l.level}</span>
+                  <span className="w-14 shrink-0 truncate text-muted-foreground">{l.src}</span>
+                  <span className={cn("truncate", l.src === "you" && "font-medium text-foreground")}>{l.msg}</span>
+                </div>
+              );
+            }}
+          />
+        )}
+      </DataBoundary>
 
       <form
         onSubmit={(e) => {
@@ -203,6 +236,9 @@ function clock(n: number) {
   const p = (x: number) => String(x).padStart(2, "0");
   return `${p(Math.floor(s / 3600) % 24)}:${p(Math.floor(s / 60) % 60)}:${p(s % 60)}`;
 }
+
+// Replace with `call<Line[]>("log_history", {}, [])` from src/backend.ts.
+const fetchHistory = async (): Promise<Line[]> => Array.from({ length: 400 }, (_, i) => make(i));
 
 function make(n: number): Line {
   const r = (n * 2654435761) % 100;

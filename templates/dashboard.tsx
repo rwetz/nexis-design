@@ -26,13 +26,19 @@ import {
   Button,
   type Column,
   CommandPalette,
+  DataBoundary,
   DataTable,
+  EmptyTitle,
+  EmptyHeader,
+  EmptyDescription,
+  Empty,
   formatCompact,
   Icon,
   LineChart,
   Panel,
   PropertyList,
   Segmented,
+  SkeletonRows,
   Sheet,
   SheetContent,
   SheetDescription,
@@ -51,6 +57,7 @@ import {
   Toolbar,
   ToolbarSpacer,
   useCommandPaletteShortcut,
+  useLoad,
   useTheme,
   WindowResizeEdges,
 } from "@nexis/design";
@@ -75,7 +82,9 @@ export default function App() {
 
   const latency = React.useMemo(() => series(60, 3 + tick * 0.05, 52, 22), [tick]);
   const lastWeek = React.useMemo(() => series(60, 9, 46, 14), []);
-  const svc = SERVICES.find((s) => s.id === selected) ?? null;
+  const { state: servicesState, reload: reloadServices } = useLoad(fetchServices, []);
+  const services = servicesState.status === "ready" ? servicesState.data : NONE;
+  const svc = services.find((s) => s.id === selected) ?? null;
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
@@ -90,7 +99,7 @@ export default function App() {
               title: "Monitor",
               items: [
                 { id: "overview", label: "Overview", icon: "home" },
-                { id: "services", label: "Services", icon: "server", meta: SERVICES.length },
+                { id: "services", label: "Services", icon: "server", meta: services.length || undefined },
                 { id: "alerts", label: "Alerts", icon: "notification", meta: acked ? undefined : 1 },
               ],
             },
@@ -152,15 +161,35 @@ export default function App() {
 
               <div className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                 <Panel title="Services" meta="click a row for details" flush>
-                  <DataTable
-                    label="Services"
-                    columns={COLUMNS}
-                    rows={SERVICES}
-                    rowKey={(s) => s.id}
-                    defaultSort={{ key: "rps", dir: "desc" }}
-                    selected={selected}
-                    onSelect={setSelected}
-                  />
+                  <DataBoundary
+                    state={servicesState}
+                    onRetry={reloadServices}
+                    noun="services"
+                    skeleton={<SkeletonRows rows={6} />}
+                    empty={
+                      <Empty className="py-10">
+                        <EmptyHeader>
+                          <EmptyTitle>No services yet</EmptyTitle>
+                          <EmptyDescription>Connect a source and they appear here.</EmptyDescription>
+                        </EmptyHeader>
+                        <Button variant="secondary" size="sm" onClick={() => toast("Connect a source")}>
+                          Connect a source
+                        </Button>
+                      </Empty>
+                    }
+                  >
+                    {(rows) => (
+                      <DataTable
+                        label="Services"
+                        columns={COLUMNS}
+                        rows={rows}
+                        rowKey={(s) => s.id}
+                        defaultSort={{ key: "rps", dir: "desc" }}
+                        selected={selected}
+                        onSelect={setSelected}
+                      />
+                    )}
+                  </DataBoundary>
                 </Panel>
                 <Panel title="Incidents" meta="today">
                   <div className="flex flex-col gap-4">
@@ -210,7 +239,7 @@ export default function App() {
         }
         right={
           <>
-            <StatusItem>{SERVICES.length} services</StatusItem>
+            {servicesState.status === "ready" && <StatusItem>{services.length} services</StatusItem>}
             <StatusItem icon={theme.resolvedMode === "dark" ? "theme-dark" : "theme-light"}>{theme.theme.name}</StatusItem>
           </>
         }
@@ -259,7 +288,7 @@ export default function App() {
             icon: "arrow-right" as const,
             run: () => setPage(p),
           })),
-          ...SERVICES.map((s) => ({
+          ...services.map((s) => ({
             id: `svc-${s.id}`,
             label: `Open service: ${s.name}`,
             group: "Services",
@@ -283,6 +312,10 @@ export default function App() {
 
 type Service = { id: string; name: string; region: string; rps: number; p95: number; errors: number; status: "ok" | "degraded" };
 
+// The data arrives through one async function (RULES R7.3). Replace the body
+// with `call<Service[]>("list_services", {}, SERVICES)` from src/backend.ts.
+const fetchServices = async () => SERVICES;
+const NONE: Service[] = [];
 const SERVICES: Service[] = [
   { id: "ingest", name: "ingest", region: "eu-west-1", rps: 1204, p95: 77, errors: 0.91, status: "ok" },
   { id: "queue", name: "queue", region: "us-east-1", rps: 942, p95: 65, errors: 0.68, status: "ok" },

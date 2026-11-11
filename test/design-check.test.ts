@@ -37,7 +37,7 @@ describeUnix("scaffolded apps pass the checker", () => {
   }
 
   it("wires every plugin in all four places", async () => {
-    const dir = scaffold("minimal", "nexis-t-plugins", ["--with", "store,dialog,fs,opener,notification,clipboard-manager,process"]);
+    const dir = scaffold("minimal", "nexis-t-plugins", ["--with", "store,dialog,fs,opener,notification,clipboard-manager,process,sql,global-shortcut"]);
     expect(ids(await check(dir))).toEqual([]);
     const lib = readFileSync(join(dir, "src-tauri/src/lib.rs"), "utf8");
     expect(lib).toContain("tauri_plugin_clipboard_manager::init()");
@@ -47,10 +47,27 @@ describeUnix("scaffolded apps pass the checker", () => {
     expect(JSON.parse(readFileSync(join(dir, "package.json"), "utf8")).dependencies).toHaveProperty("@tauri-apps/plugin-dialog");
   });
 
+  it("http ships a placeholder scope that fails the check until it is named", async () => {
+    const dir = scaffold("minimal", "nexis-t-http", ["--with", "http"]);
+    expect(ids(await check(dir))).toEqual(["capability-placeholder"]);
+    const path = join(dir, "src-tauri/capabilities/default.json");
+    writeFileSync(path, readFileSync(path, "utf8").replace("https://REPLACE_ME.invalid/*", "https://api.example.com/*"));
+    expect(ids(await check(dir))).toEqual([]);
+  });
+
+  it("sets a real CSP and a separate dev one", () => {
+    const dir = scaffold("minimal", "nexis-t-csp");
+    const sec = JSON.parse(readFileSync(join(dir, "src-tauri/tauri.conf.json"), "utf8")).app.security;
+    expect(sec.csp).toMatch(/default-src 'self'/);
+    expect(sec.csp).toMatch(/connect-src ipc: http:\/\/ipc\.localhost/);
+    expect(sec.csp).not.toMatch(/unsafe-eval/);
+    expect(sec.devCsp).toMatch(/ws:\/\/localhost:1420/);
+  });
+
   it("refuses a plugin it cannot wire", () => {
-    const r = spawnSync("bash", [join(ROOT, "scripts/new-app.sh"), "nexis-t-bad", "minimal", join(work, "nexis-t-bad"), "--with", "sql"], { env: { ...process.env, NEXIS_PATH: ROOT }, encoding: "utf8" });
+    const r = spawnSync("bash", [join(ROOT, "scripts/new-app.sh"), "nexis-t-bad", "minimal", join(work, "nexis-t-bad"), "--with", "updater"], { env: { ...process.env, NEXIS_PATH: ROOT }, encoding: "utf8" });
     expect(r.status).toBe(1);
-    expect(r.stderr).toMatch(/unknown plugin 'sql'/);
+    expect(r.stderr).toMatch(/unknown plugin 'updater'/);
   });
 });
 
@@ -101,6 +118,27 @@ describeUnix("the checker names what is wrong", () => {
     const fs = (await check(dir)).filter((f: Finding) => f.severity === "error");
     expect(fs.map((f: Finding) => f.id).sort()).toEqual(["command-unlisted", "command-unregistered"]);
     expect(fs.map((f: Finding) => f.message).join("\n")).toMatch(/load_project[\s\S]*save_project|save_project[\s\S]*load_project/);
+  });
+
+  it("sees multi-line calls, and flags a command name it cannot read", async () => {
+    const dir = scaffold("minimal", "nexis-t-ast");
+    writeFileSync(
+      join(dir, "src/api.ts"),
+      'import { call } from "./backend";\nexport const a = () =>\n  call<number>(\n    "multi_line_cmd",\n  );\nexport const b = (n: string) => call(n);\n',
+    );
+    const fs = await check(dir);
+    expect(fs.find((f: Finding) => f.id === "command-unregistered")?.message).toMatch(/multi_line_cmd/);
+    expect(ids(fs, "warn")).toContain("command-dynamic");
+  });
+
+  it("warns about a missing CSP and about views without the R7.3 states", async () => {
+    const dir = scaffold("minimal", "nexis-t-warn2");
+    const path = join(dir, "src-tauri/tauri.conf.json");
+    const conf = JSON.parse(readFileSync(path, "utf8"));
+    conf.app.security = { csp: null };
+    writeFileSync(path, JSON.stringify(conf));
+    writeFileSync(join(dir, "src/App.tsx"), readFileSync(join(dir, "src/App.tsx"), "utf8").replace(/<Empty\b/g, "<div").replace(/<\/Empty>/g, "</div>"));
+    expect(ids(await check(dir), "warn")).toEqual(expect.arrayContaining(["csp-missing"]));
   });
 
   it("windows override without linux, and the placeholder identifier", async () => {

@@ -33,7 +33,9 @@ Then choose the plugins from what the app *does*, before scaffolding (they
 are four edits each to add later): open/save a file `dialog`, remember
 settings or recents `store`, read/write files `fs`, links or reveal in the OS
 `opener`, alerts `notification`, copy buttons `clipboard-manager`, restart
-`process`. Anything else is BACKEND.md §3.
+`process`, network from Rust `http` (name the origin afterwards), a local
+database `sql`, system-wide keys `global-shortcut`. `updater` is manual
+(BACKEND.md §3.2).
 
 ## 2. Create it
 
@@ -83,6 +85,8 @@ silence it.
 
 ```bash
 pnpm verify        # nexis-design-check (rules + Tauri wiring) + tsc + vite build
+pnpm dev           # in one shell
+pnpm look          # in another: five sizes x dark/light, measured, with screenshots
 ```
 
 Then **run it and look**: `pnpm dev` and screenshot it headless (Playwright

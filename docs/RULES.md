@@ -422,11 +422,16 @@ one, fix the template in the same commit as the rule.
 `test/design-rules.test.ts`. An app runs the same rules, plus the Tauri
 wiring checks (docs/BACKEND.md), with `pnpm check` (the package's
 `nexis-design-check` bin); `pnpm verify` is check, typecheck and build, and
-the scaffold sets both up. A line that must break a rule on purpose carries
+the scaffold sets both up. The checker reads source: it cannot see a layout.
+`pnpm look` (`nexis-design-look`) opens the running app at the sizes below,
+dark and light, and reports what is measurable: console errors, a page that
+scrolls sideways, elements outside the window, text cut off with no ellipsis,
+text under 10px, targets under 24px, controls with no accessible name. A line that must break a rule on purpose carries
 `nexis-ok: <rule-id> <why>`. Use it rarely: an app full of them has stopped
 following the rules.
 
-**R12.2 Look at it.** Before calling UI work done, look at every screen at:
+**R12.2 Look at it.** Before calling UI work done, run `pnpm look`, then
+look at every screen (the probe writes a screenshot per size and mode) at:
 
 | Size (CSS px) | Scale | Stands for |
 |---|---|---|
@@ -460,11 +465,12 @@ Still to do:
 
 1. The workbench and dashboard templates' side panels on `PanelSection`
    and `ControlRow`, and the start-screen pattern on `ThumbnailGrid`.
-2. R7.3 is ahead of the templates: none draws a loading (`Skeleton`) or an
-   error state, only `explorer` and `minimal` have an `Empty`, and
-   `dashboard` has one `Alert`. Their data is fixtures, so they never wait or
-   fail; an app replacing the fixtures adds the states itself with
-   BACKEND.md's `useLoad`.
+2. The templates run R7.3 on `useLoad` and `DataBoundary`: the explorer's
+   table, the dashboard's services, the workbench's open document (per file)
+   and the console's history. `settings`, `wizard` and `minimal` hold no
+   fetched data, so they have none. Their fixtures resolve at once, so a
+   fixture never shows the loading or error state; the gallery's Feedback page
+   shows all four.
 3. `docs/img` screenshots regenerated at 100% and 150% (`pnpm screenshots`).
 
 Then each app moves its pin and deletes its local versions of these.

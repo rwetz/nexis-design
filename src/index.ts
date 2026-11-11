@@ -54,6 +54,7 @@ export * from "./components/ui/combobox";
 export * from "./components/ui/command-palette";
 export * from "./components/ui/command";
 export * from "./components/ui/context-menu";
+export * from "./components/ui/data-boundary";
 export * from "./components/ui/data-table";
 export * from "./components/ui/dialog";
 export * from "./components/ui/dropdown-menu";

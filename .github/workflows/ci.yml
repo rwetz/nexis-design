@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: typecheck + tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+
+  # Scaffold a real app from this checkout, with every plugin wired, and prove
+  # it: nexis-design-check + tsc + vite build, then the Rust half.
+  scaffold:
+    name: scaffold ${{ matrix.template }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Frontend on every template; Rust and a launch on the two that
+          # carry the most (a data app and the smallest).
+          - { os: ubuntu-latest, template: dashboard, flags: "" }
+          - { os: ubuntu-latest, template: workbench, flags: "" }
+          - { os: ubuntu-latest, template: settings, flags: "" }
+          - { os: ubuntu-latest, template: console, flags: "" }
+          - { os: ubuntu-latest, template: wizard, flags: "" }
+          - { os: ubuntu-latest, template: explorer, flags: "--cargo --smoke" }
+          - { os: ubuntu-latest, template: minimal, flags: "--cargo" }
+          - { os: macos-latest, template: minimal, flags: "--cargo" }
+          - { os: windows-latest, template: minimal, flags: "--cargo" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: dtolnay/rust-toolchain@stable
+        if: contains(matrix.flags, '--cargo')
+      - uses: Swatinem/rust-cache@v2
+        if: contains(matrix.flags, '--cargo')
+        with:
+          workspaces: ${{ runner.temp }}/ci/nexis-ci-${{ matrix.template }}/src-tauri
+      - name: Tauri prerequisites (Linux)
+        if: runner.os == 'Linux' && contains(matrix.flags, '--cargo')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential libssl-dev librsvg2-dev libxdo-dev libayatana-appindicator3-dev xvfb
+      - name: Scaffold, verify, compile
+        shell: bash
+        env:
+          CI_WORKDIR: ${{ runner.temp }}/ci
+        run: |
+          mkdir -p "$CI_WORKDIR"
+          scripts/ci-scaffold.sh ${{ matrix.template }} ${{ matrix.flags }}

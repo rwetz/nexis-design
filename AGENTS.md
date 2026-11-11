@@ -23,7 +23,9 @@ cd ../nexis-<thing> && pnpm install && pnpm tauri icon src-tauri/icons/icon.png 
 ```
 
 `--with` wires Tauri plugins end to end (npm dep, Cargo dep, `lib.rs`,
-capability): `store dialog fs opener notification clipboard-manager process`.
+capability): `store dialog fs opener notification clipboard-manager process
+http sql global-shortcut` (`http` ships a placeholder URL scope that
+`pnpm check` fails on until you name the origin; `updater` is manual).
 Decide them up front from what the app does: it needs `dialog` to open or
 save a file, `store` to remember settings, `fs` or a Rust command to read what
 it opened, `notification` for alerts, `clipboard-manager` for copy actions.
@@ -324,6 +326,7 @@ const columns: Column<Row, "name" | "rps">[] = [
 <Sparkline values={v} width={96} tone="brand|muted" />   <Heatmap label="Load" rows={rows0to1} rowLabels={[…]} colLabels={[…]} />
 
 // Failure and loading
+<DataBoundary state={state} onRetry={reload} noun="issues" empty={<Empty>…one action…</Empty>}>{(rows) => <DataTable … />}</DataBoundary>
 <ErrorBoundary label="Log view" resetKey={fileId} onError={report}>…</ErrorBoundary>   // root of the app, and around any view of external data
 <Skeleton className="h-8 w-full" />                                                    // loading: the content's shape, never a lone spinner
 const { state, reload } = useLoad(() => call<Row[]>("list_rows", {}, FIXTURE), []);   // state.status: "loading" | "error" (state.error) | "ready" (state.data)
@@ -396,6 +399,12 @@ ultraviolet synthwave tokyo-night catppuccin nord gruvbox rose-pine`.
 pnpm verify              # nexis-design-check (rules + Tauri wiring) + tsc + vite build
 pnpm tauri dev           # look at it: every screen, dark and light, one other theme, high contrast
 ```
+
+`pnpm look` is `nexis-design-look`: it opens the running app (`pnpm dev`) at
+1024x768 to 3840x2160, dark and light, writes a screenshot of each, and
+reports console errors, sideways scroll, elements outside the window, clipped
+text, text under 10px, targets under 24px and unnamed controls. It does not
+replace looking at the screenshots.
 
 `pnpm check` is the package's `nexis-design-check`: the tripwires in §2 over
 your `src/`, plus the Tauri wiring (plugins in all four places, every

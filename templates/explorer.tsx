@@ -14,6 +14,7 @@ import {
   Button,
   type Column,
   CommandPalette,
+  DataBoundary,
   DataTable,
   Empty,
   EmptyDescription,
@@ -44,6 +45,7 @@ import {
   ToolbarSeparator,
   ToolbarSpacer,
   useCommandPaletteShortcut,
+  useLoad,
   WindowResizeEdges,
   Checkbox,
 } from "@nexis/design";
@@ -55,7 +57,15 @@ type K = "id" | "title" | "status" | "owner" | "points" | "updated";
 const PAGE = 14;
 const STATUS_TONE = { open: "secondary", "in-progress": "info", done: "success" } as const;
 
+// The data arrives through one async function, so the view already has its
+// loading, error and empty states (RULES R7.3). Replace the body with
+// `call<Issue[]>("list_issues", {}, ISSUES)` from src/backend.ts.
+const fetchIssues = async () => ISSUES;
+const NONE: Issue[] = [];
+
 export default function App() {
+  const { state, reload } = useLoad(fetchIssues, []);
+  const issues = state.status === "ready" ? state.data : NONE;
   const [query, setQuery] = React.useState("");
   const [status, setStatus] = React.useState<"all" | Status>("all");
   const [mine, setMine] = React.useState(false);
@@ -68,7 +78,7 @@ export default function App() {
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
-    const rows = ISSUES.filter(
+    const rows = issues.filter(
       (r) =>
         (status === "all" || r.status === status) &&
         (!mine || r.owner === "Ryan Wetzstein") &&
@@ -76,12 +86,12 @@ export default function App() {
         (q === "" || r.title.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)),
     );
     return sortRows(rows, sort, (r, k) => r[k]);
-  }, [query, status, mine, owners, sort]);
+  }, [issues, query, status, mine, owners, sort]);
 
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
   const current = Math.min(page, pages);
   const rows = filtered.slice((current - 1) * PAGE, current * PAGE);
-  const issue = ISSUES.find((i) => i.id === selected) ?? null;
+  const issue = issues.find((i) => i.id === selected) ?? null;
 
   React.useEffect(() => setPage(1), [query, status, mine, owners]);
 
@@ -144,30 +154,50 @@ export default function App() {
         </Button>
       </Toolbar>
 
-      <div className="min-h-0 flex-1 px-4 pt-2">
-        {rows.length === 0 ? (
-          <Empty className="h-full">
-            <EmptyHeader>
-              <EmptyTitle>No issues match</EmptyTitle>
-              <EmptyDescription>Clear the search or widen the filters.</EmptyDescription>
-            </EmptyHeader>
-            <Button variant="secondary" onClick={() => { setQuery(""); setStatus("all"); setMine(false); setOwners(new Set(OWNERS)); }}>
-              Reset filters
-            </Button>
-          </Empty>
-        ) : (
-          <DataTable
-            label="Issues"
-            columns={COLUMNS}
-            rows={rows}
-            rowKey={(r) => r.id}
-            sort={sort}
-            onSortChange={(s) => setSort(s)}
-            selected={selected}
-            onSelect={setSelected}
-            className="h-full"
-          />
-        )}
+      <div className="flex min-h-0 flex-1 flex-col px-4 pt-2">
+        <DataBoundary
+          state={state}
+          onRetry={reload}
+          noun="issues"
+          className="h-full"
+          empty={
+            <Empty className="h-full">
+              <EmptyHeader>
+                <EmptyTitle>No issues yet</EmptyTitle>
+                <EmptyDescription>Create the first one to start tracking work.</EmptyDescription>
+              </EmptyHeader>
+              <Button variant="brand" onClick={() => toast("New issue")}>
+                <Icon name="add" /> New issue
+              </Button>
+            </Empty>
+          }
+        >
+          {() =>
+            rows.length === 0 ? (
+              <Empty className="h-full">
+                <EmptyHeader>
+                  <EmptyTitle>No issues match</EmptyTitle>
+                  <EmptyDescription>Clear the search or widen the filters.</EmptyDescription>
+                </EmptyHeader>
+                <Button variant="secondary" onClick={() => { setQuery(""); setStatus("all"); setMine(false); setOwners(new Set(OWNERS)); }}>
+                  Reset filters
+                </Button>
+              </Empty>
+            ) : (
+              <DataTable
+                label="Issues"
+                columns={COLUMNS}
+                rows={rows}
+                rowKey={(r) => r.id}
+                sort={sort}
+                onSortChange={(s) => setSort(s)}
+                selected={selected}
+                onSelect={setSelected}
+                className="h-full"
+              />
+            )
+          }
+        </DataBoundary>
       </div>
 
       <div className="flex h-12 shrink-0 items-center gap-3 border-t border-border/60 px-4">
@@ -180,7 +210,7 @@ export default function App() {
 
       <StatusBar
         left={<StatusItem icon="database">issues.sqlite</StatusItem>}
-        right={<StatusItem live>{filtered.length} rows</StatusItem>}
+        right={state.status === "ready" ? <StatusItem live>{filtered.length} rows</StatusItem> : undefined}
       />
 
       <Sheet open={issue !== null} onOpenChange={(o) => !o && setSelected(null)}>
@@ -217,7 +247,7 @@ export default function App() {
       <CommandPalette
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
-        commands={ISSUES.slice(0, 40).map((i) => ({
+        commands={issues.slice(0, 40).map((i) => ({
           id: i.id,
           label: `${i.id} ${i.title}`,
           group: "Issues",

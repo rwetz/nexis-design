@@ -208,6 +208,12 @@ export async function check(root = process.cwd()) {
   for (const [name, fix] of must) {
     if (!new RegExp(`<${name}\\b`).test(all)) add("error", srcDir, 0, "shell-missing", "AGENTS 2", `<${name}> is not used anywhere in src/`, fix);
   }
+  const hasLoading = /<Skeleton\b|<DataBoundary\b|SkeletonRows/.test(all);
+  const hasEmpty = /<Empty\b|<DataBoundary\b/.test(all);
+  const hasError = /<DataBoundary\b|<ErrorBoundary\b|variant=["']destructive["']/.test(all);
+  const missingStates = [!hasLoading && "loading", !hasEmpty && "empty", !hasError && "error"].filter(Boolean);
+  if (missingStates.length)
+    add("warn", srcDir, 0, "states-missing", "R7.3", `no ${missingStates.join(", ")} state anywhere in src/`, "give every data view Skeleton, Empty and an error Alert with Retry (DataBoundary does all four)");
   if (!/<CommandPalette\b/.test(all)) add("warn", srcDir, 0, "shell-palette", "AGENTS 10", "no <CommandPalette>", "every app exposes its actions on Mod+Shift+P");
   if (!/globals(\.ide)?\.css/.test(all) && ![...text].some(([f, s]) => f.endsWith(".css") && /@nexis\/design\/styles\/globals/.test(s)))
     add("error", srcDir, 0, "shell-styles", "AGENTS 1", "the design stylesheet is not imported", '@import "@nexis/design/styles/globals.css" in src/styles.css');
@@ -253,15 +259,39 @@ export async function check(root = process.cwd()) {
   }
 
   const { defined, registered } = rustCommands(rust);
+  const ts = await loadTypeScript(root);
   const invoked = new Map();
   for (const [file, src] of code) {
-    const lines = src.split("\n");
     const usesWrapper = /from\s*["'](?:\.{1,2}\/)+(?:[\w/]*\/)?backend["']/.test(src);
-    lines.forEach((line, i) => {
-      for (const m of line.matchAll(/\binvoke(?:<[^>]*>)?\(\s*["'`]([a-zA-Z0-9_]+)["'`]/g)) invoked.set(m[1], { file, line: i + 1 });
-      if (usesWrapper)
-        for (const m of line.matchAll(/\bcall(?:<[^>]*>)?\(\s*["'`]([a-zA-Z0-9_]+)["'`]/g)) invoked.set(m[1], { file, line: i + 1 });
-    });
+    const lines = src.split("\n");
+    const seen = (name, line) => invoked.set(name, { file, line });
+    const dynamic = (line) => {
+      if (!allowed(lines, line - 1, "command-dynamic"))
+        add("warn", file, line, "command-dynamic", "BACKEND 1", "command name is not a string literal, so it cannot be checked against generate_handler!", "use a literal, or mark the line nexis-ok: command-dynamic");
+    };
+    if (ts) {
+      // The AST sees multi-line calls, generics and nesting that a per-line
+      // regex does not.
+      const sf = ts.createSourceFile(file, src, ts.ScriptTarget.Latest, true, file.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+      const visit = (node) => {
+        if (ts.isCallExpression(node)) {
+          const callee = ts.isIdentifier(node.expression) ? node.expression.text : ts.isPropertyAccessExpression(node.expression) ? node.expression.name.text : "";
+          if (callee === "invoke" || (usesWrapper && callee === "call")) {
+            const arg = node.arguments[0];
+            const line = sf.getLineAndCharacterOfPosition(node.getStart(sf)).line + 1;
+            if (arg && (ts.isStringLiteralLike(arg) || ts.isNoSubstitutionTemplateLiteral(arg))) seen(arg.text, line);
+            else if (arg) dynamic(line);
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(sf);
+    } else {
+      lines.forEach((line, i) => {
+        for (const m of line.matchAll(/\binvoke(?:<[^>]*>)?\(\s*["'`]([a-zA-Z0-9_]+)["'`]/g)) seen(m[1], i + 1);
+        if (usesWrapper) for (const m of line.matchAll(/\bcall(?:<[^>]*>)?\(\s*["'`]([a-zA-Z0-9_]+)["'`]/g)) seen(m[1], i + 1);
+      });
+    }
   }
   for (const [name, where] of invoked) {
     if (!registered.has(name))
@@ -271,7 +301,18 @@ export async function check(root = process.cwd()) {
     if (!registered.has(name)) add("error", join(tauriDir, "src/lib.rs"), 0, "command-unlisted", "BACKEND 1", `#[tauri::command] ${name} is not in generate_handler![…]`, "list it in invoke_handler or the call fails at runtime");
   }
 
+  if (existsSync(capDir)) {
+    for (const name of readdirSync(capDir).filter((n) => n.endsWith(".json"))) {
+      if (/REPLACE_ME/.test(readFileSync(join(capDir, name), "utf8")))
+        add("error", join(capDir, name), 0, "capability-placeholder", "BACKEND 3", "a capability still has its REPLACE_ME placeholder", "name the real URL scope, or remove the permission");
+    }
+  }
+
   const conf = readJson(join(tauriDir, "tauri.conf.json"));
+  const csp = conf?.app?.security?.csp;
+  if (!csp) add("warn", join(tauriDir, "tauri.conf.json"), 0, "csp-missing", "BACKEND 7", "app.security.csp is not set", "ship a policy for release (the scaffold has one) and devCsp for Vite");
+  else if (/unsafe-eval|default-src\s+\*/.test(typeof csp === "string" ? csp : JSON.stringify(csp)))
+    add("warn", join(tauriDir, "tauri.conf.json"), 0, "csp-loose", "BACKEND 7", "the release CSP allows unsafe-eval or a wildcard default-src", "keep that in devCsp only");
   if (conf?.identifier === "com.tauri.dev" || conf?.identifier === "com.tauri.app")
     add("error", join(tauriDir, "tauri.conf.json"), 0, "conf-identifier", "PITFALLS 7", `identifier is the template default "${conf.identifier}"`, "use app.nexis.<name>");
   if (existsSync(join(tauriDir, "tauri.windows.conf.json")) && !existsSync(join(tauriDir, "tauri.linux.conf.json")))

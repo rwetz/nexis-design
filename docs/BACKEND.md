@@ -6,10 +6,14 @@ here, and it goes wrong at runtime, so `pnpm check` (`nexis-design-check`)
 compares the frontend with the Rust and fails on the mismatches below. Rules
 are numbered `B1.1` so a review can cite them.
 
-Verified by a script, not by a build: the Rust here could not be compiled in
-the environment that wrote it (no WebKitGTK). Run `cargo check` in
-`src-tauri/` on a desktop before trusting a new command, and say so in your
-report if you could not.
+What is verified, and how: every plugin `--with` wires was scaffolded, built
+with `cargo check` against WebKitGTK 2.52, packaged with its frontend
+embedded, and launched under Xvfb, where it stayed up with the release CSP
+applied (`scripts/ci-scaffold.sh`, which CI runs on Linux, macOS and Windows).
+Tauri's build rejects an unknown permission identifier, so a clean build means
+the capability is real. What no script can verify: that a new command does
+what you meant. Run `cargo check` after adding one, and `cargo test` on its
+logic (B1.6).
 
 ---
 
@@ -82,26 +86,39 @@ symptom if one is missing:
 | `src-tauri/capabilities/default.json` | `<name>:default`, or narrower `<name>:allow-*` |
 
 **B3.1** `scripts/new-app.sh <name> <template> --with store,dialog` does all
-four for: `store` (settings and small state), `dialog` (open/save pickers),
-`fs`, `opener` (open a URL or path in the OS), `notification`,
-`clipboard-manager` (read and write text), `process` (exit, restart).
-`nexis-design-check` verifies the four for any `@tauri-apps/plugin-*` import,
-including ones `--with` does not know.
+four for ten plugins. Identifiers were read from each plugin's published
+source, not remembered:
 
-**B3.2 Plugins `--with` does not wire** need their own reading of the Tauri
-docs first, because each has a step the table above does not cover:
+| `--with` | For | Permissions it grants | Note |
+|---|---|---|---|
+| `store` | settings, recents | `store:default` | `load("settings.json", { autoSave: true })` |
+| `dialog` | open/save pickers | `dialog:default` | |
+| `fs` | files | `fs:default`, `fs:allow-appdata-write-recursive` | read and write inside the app data directory only |
+| `opener` | open a URL or reveal a path | `opener:default` | http(s), mailto, tel, reveal in folder |
+| `notification` | OS notifications | `notification:default` | |
+| `clipboard-manager` | copy and paste text | `allow-read-text`, `allow-write-text` | `default` grants nothing |
+| `process` | exit, restart | `process:default` | |
+| `http` | fetch from Rust, no CORS | `http:default` with a URL scope | **placeholder scope**: `pnpm check` fails until you replace `REPLACE_ME.invalid` with the real origin |
+| `sql` | SQLite from JS | `sql:default`, `sql:allow-execute` | Cargo feature `sqlite` is set; `Database.load("sqlite:app.db")`; migrations are yours to register in `lib.rs` |
+| `global-shortcut` | system-wide keys | `allow-register`, `allow-unregister`, `allow-is-registered` | ask the user first; never claim a common combination |
 
-| Plugin | The extra step |
+`nexis-design-check` verifies the four edits for any `@tauri-apps/plugin-*`
+import, including ones `--with` does not know.
+
+**B3.2 Plugins `--with` does not wire**, and why:
+
+| Plugin | Why it is manual |
 |---|---|
-| `http` | permissions need a URL scope (`{ "identifier": "http:default", "allow": [{ "url": "https://api.example.com/*" }] }`) |
-| `sql` | a Cargo feature for the driver (`sqlite`), and migrations registered in Rust |
-| `updater` | a signing key (`pnpm tauri signer generate`), `pubkey` and `endpoints` in `tauri.conf.json`, desktop only |
-| `global-shortcut` | registered shortcuts are system wide: ask first, offer to change, never take a common one |
-| `autostart`, `single-instance`, `deep-link` | initialised with arguments or before others; follow the plugin's page |
+| `updater` | its config (`pubkey`, `endpoints` under `plugins.updater`) is required at startup: registering it without a signing key panics the app on launch. Generate a key (`pnpm tauri signer generate`), then add all four edits and the config together |
+| `autostart`, `single-instance`, `deep-link` | initialised with arguments or before the other plugins; follow the plugin's page |
 
-**B3.3 Permissions are the narrowest that work.** `fs:default` is read-only
-and limited to the app's own directories. Writing is a separate explicit
-permission with a scope. Never widen to `**` or `$HOME/**` to make an error
+Everything else in the Tauri plugin set follows the four-place rule;
+`nexis-design-check` will tell you which place you missed.
+
+**B3.3 Permissions are the narrowest that work.** `fs:default` creates and
+reads inside the app's own directories and nothing else. Writing there is
+`fs:allow-appdata-write-recursive` (the scaffold adds it); writing elsewhere
+is an explicit scoped permission. Never widen to `**` or `$HOME/**` to make an error
 go away; do file work outside the app directories in a Rust command, which
 has no scope.
 
@@ -122,7 +139,7 @@ Rust. Only the theme engine's keys live there.
 
 ```ts
 import { load } from "@tauri-apps/plugin-store";
-const store = await load("settings.json", { autoSave: true }); // if tsc says `defaults` is required, pass defaults: {}
+const store = await load("settings.json", { autoSave: true }); // `defaults` is optional in plugin-store 2.x
 const recents = (await store.get<string[]>("recents")) ?? [];
 await store.set("recents", [path, ...recents.filter((p) => p !== path)].slice(0, 10));
 ```
@@ -166,12 +183,19 @@ window you create with the chrome (PITFALLS 1).
 
 ## 7. Before you ship
 
-- `pnpm verify` is clean, and `cargo check` in `src-tauri/` is clean on a
-  desktop (it needs `pnpm tauri icon` to have run).
-- **Set a CSP.** The scaffold ships `"csp": null` so dev works anywhere. For a
-  release set `app.security.csp` (and `devCsp` for Vite's HMR) to what the app
-  loads: `default-src 'self'; img-src 'self' data: asset:; style-src 'self'
-  'unsafe-inline'`, plus `connect-src` for each API you call.
+- `pnpm verify` is clean, `cargo check` in `src-tauri/` is clean (it needs
+  `pnpm tauri icon` to have run), and `pnpm look` against the running app
+  reports no errors.
+- **Extend the CSP, do not loosen it.** The scaffold ships a real policy in
+  `app.security.csp` (`default-src 'self'`, scripts from `'self'` only, inline
+  styles allowed because React sets style attributes, `connect-src ipc:
+  http://ipc.localhost` for Tauri's own calls) and a separate permissive
+  `devCsp` so Vite's HMR works. Tauri adds the hash of the inline
+  no-flash script itself. When the app calls an API from the webview, add
+  that origin to `connect-src`; when it shows remote images, to `img-src`.
+  Never add `unsafe-eval` or a wildcard `default-src` to the release policy
+  (`pnpm check` warns). Checked: the packaged app launches under it and
+  renders data, fonts and styles.
 - Capabilities hold only what the app uses (open `default.json` and delete
   what no code calls).
 - Identifier is `app.nexis.<name>`, version is set in `tauri.conf.json` and
