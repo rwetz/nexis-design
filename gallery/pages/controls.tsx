@@ -43,7 +43,7 @@ export function ControlsPage() {
   return (
     <Page
       title="Controls"
-      lede="Buttons, toggles, levels and status marks. One accent: brand marks the one action a surface exists to perform, the active item and live progress, never decoration."
+      lede="Buttons, toggles, levels and status marks. One accent: brand marks the one action a surface exists to perform, keyboard focus and live progress, never selection or decoration."
     >
       <Demo title="Button" meta="variant × size">
         <Row label="Variants">

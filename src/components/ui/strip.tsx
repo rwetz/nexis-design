@@ -12,6 +12,7 @@
 
 import * as React from "react";
 import { cn } from "../../lib/utils";
+import { edgeFadeStyle } from "./use-edge-fade";
 
 export function Strip({ className, style, children, ...props }: React.ComponentProps<"div">) {
   const ref = React.useRef<HTMLDivElement>(null);
@@ -42,14 +43,14 @@ export function Strip({ className, style, children, ...props }: React.ComponentP
       el.removeEventListener("wheel", wheel);
     };
   }, [measure]);
-  const fade = `linear-gradient(to right, ${more.before ? "transparent" : "black"}, black var(--spacing-gutter), black calc(100% - var(--spacing-gutter)), ${more.after ? "transparent" : "black"})`;
+  const fade = edgeFadeStyle("x", "var(--spacing-gutter)", more.before, more.after);
   return (
     <div
       ref={ref}
       data-slot="strip"
       onScroll={measure}
       className={cn("-mx-gutter flex gap-3 overflow-x-auto px-gutter py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden", className)}
-      style={{ maskImage: fade, WebkitMaskImage: fade, ...style }}
+      style={{ ...fade, ...style }}
       {...props}
     >
       {children}

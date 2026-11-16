@@ -49,7 +49,9 @@ fi
 
 if [[ $smoke -eq 1 ]]; then
   pnpm tauri build --debug --no-bundle
-  bin="src-tauri/target/debug/$name"
+  # CI builds into CARGO_TARGET_DIR (outside the app, so a restored cache
+  # never creates the app folder before the scaffold); locally, the default.
+  bin="${CARGO_TARGET_DIR:-src-tauri/target}/debug/$name"
   [[ -x "$bin" ]] || { echo "no binary at $bin" >&2; exit 1; }
   # A window that is still alive after 15s got through startup: the plugins
   # initialised, the capability and CSP parsed, the page loaded.

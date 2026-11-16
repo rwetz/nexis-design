@@ -40,7 +40,7 @@ const PRODUCTS: Product[] = [
 const money = (n: number) => `$${n.toFixed(0)}`;
 
 function Art({ tone }: { tone: string }) {
-  return <span className="block size-full" style={{ background: `linear-gradient(160deg, ${tone}, color-mix(in oklab, ${tone} 55%, black))` }} />;
+  return <span className="block size-full" style={{ background: `linear-gradient(160deg in oklch, ${tone}, color-mix(in oklch, ${tone} 55%, black))` }} />;
 }
 
 export function CataloguePage() {
@@ -76,7 +76,7 @@ export function CataloguePage() {
       action={
         p.soldOut ? undefined : (
           <Button size="icon-sm" variant={cart.has(p.id) ? "default" : "secondary"} className="rounded-full shadow-sm" aria-label={cart.has(p.id) ? "Remove from cart" : "Add to cart"} aria-pressed={cart.has(p.id)} onClick={() => toggle(p.id)}>
-            <Icon name={cart.has(p.id) ? "check" : "cart"} />
+            <Icon name={cart.has(p.id) ? "check" : "cart"} swap />
           </Button>
         )
       }

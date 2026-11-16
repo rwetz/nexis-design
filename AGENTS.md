@@ -179,7 +179,8 @@ this list and RULES.md disagree, RULES.md wins.
    `destructive` (`Badge`, `StatusDot`, `text-success`). They are the theme's
    ANSI roles.
 5. **Icons only via `<Icon name="…" />`**, sizes `xs sm md lg xl`, `active`
-   for selected. Never import `@phosphor-icons/react` (or any icon library)
+   for selected, bold beside `font-medium` text (R7.5), `swap` when a user
+   action changes the glyph (R8.4). Never import `@phosphor-icons/react` (or any icon library)
    directly; add a name to `src/icon/icon.tsx` if the idea has none.
    **No emoji, anywhere.** Both tripwired.
 6. **Type:** one face, Inter, for everything a person reads (RULES R1);
@@ -287,6 +288,8 @@ export default function App() {
 // Controls
 <Button variant="brand|default|secondary|outline|ghost|destructive|link|arrow" size="xs|sm|default|lg|icon-xs|icon-sm|icon|icon-lg">
 <Button variant="ghost" size="icon-sm" aria-label="Refresh"><Icon name="refresh" /></Button>   // icon-only: label the button
+<Icon name={copied ? "check" : "copy"} swap />   // a glyph a user action changes blurs through (R8.4)
+<IconWeightProvider weight="bold">…</IconWeightProvider>   // icons beside font-medium text in a hand-built control (R7.5)
 <Badge variant="brand|success|warning|info|destructive|secondary|outline">ok</Badge>
 <StatusDot tone="neutral|brand|success|warning|info|danger" live />
 <Meter label="cpu" value={0.49} warnAt={0.75} dangerAt={0.9} />      <Progress value={64} />
@@ -312,6 +315,7 @@ export default function App() {
 <SettingsTree nodes={settingsTreeNodes(SETTINGS)} chapter={c} section={s} onSelect={(c, s) => …} openAll={searching} />
 findSettings(query, SETTINGS)  locateSetting("Mode", SETTINGS)   // SettingsPage/Group/Row take id and data-*; SettingsPage titleClassName, inset={false}
 const data = await fetchJson<Data>("/data/x.json")              // rejects on a missing file, even Vite's 200 text/html fallback
+const fade = useEdgeFade<HTMLDivElement>("x"); <div ref={fade.ref} style={fade.style} className="overflow-x-auto">…</div>   // any other sideways scroller (R4.9)
 <Strip>{cards}</Strip>   <ColorPicker label="Ink" value="#163a70" onChange={set} swatches={others} />
 <ListPresence>{rows.map((r) => <PresenceItem key={r.id}>…</PresenceItem>)}</ListPresence>
 

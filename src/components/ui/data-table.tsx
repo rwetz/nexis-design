@@ -200,6 +200,7 @@ export function DataTable<T, K extends string>({
                       {c.header}
                       <Icon
                         name={active && sort!.dir === "desc" ? "chevron-down" : "chevron-up"}
+                        swap
                         size="xs"
                         className={cn(active ? "text-foreground" : "opacity-0 group-hover/sort:opacity-40")}
                       />

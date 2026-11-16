@@ -88,7 +88,7 @@ export function ThumbnailCard({
     >
       <div
         className={cn(
-          "relative w-full overflow-hidden rounded-xl bg-muted ring-1 transition-[translate,box-shadow] group-hover/thumb:-translate-y-0.5 group-focus-visible/thumb:ring-2 group-focus-visible/thumb:ring-ring",
+          "relative w-full overflow-hidden rounded-2xl bg-muted ring-1 transition-[translate,box-shadow] group-hover/thumb:-translate-y-0.5 group-focus-visible/thumb:ring-2 group-focus-visible/thumb:ring-ring",
           ASPECT[aspect],
           selected ? "ring-2 ring-foreground/60" : "ring-foreground/8 group-hover/thumb:ring-foreground/25",
         )}

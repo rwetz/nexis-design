@@ -74,7 +74,7 @@ export function WindowControls({ closeOnly = false, preview = false }: Props) {
             ariaLabel={maximized ? "Restore" : "Maximize"}
             onClick={() => void w.toggleMaximize()}
           >
-            <Icon name={maximized ? "copy" : "square"} />
+            <Icon name={maximized ? "copy" : "square"} swap />
           </CtlButton>
         </>
       )}

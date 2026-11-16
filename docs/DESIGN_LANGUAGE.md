@@ -78,16 +78,21 @@ the same over any surface.
 ### 2.2 One accent
 
 `--brand` is the only colour with an opinion. **It marks the one action a
-surface exists to perform, the selected item, focus and live progress,
-never decoration, never a link.** On the default theme it is coral; on every
+surface exists to perform, keyboard focus and live progress, never
+decoration, never a link.** On the default theme it is coral; on every
 other theme `applyTheme` points it at the theme's `ring` (falling back to
 `primary`), so the whole accent system: primary buttons, focus rings, live
 progress and the chart's main series: re-tints with the theme. Selection is
 neutral, never the accent (RULES R6.3).
 
-`primary` is *not* the accent in Nexis: on the default theme it is a
-near-black/near-white neutral, the high-contrast button for ordinary
-emphasis. `variant="brand"` is the accent button.
+`primary` is *not* the accent in Nexis: it is a near-black/near-white
+neutral, the high-contrast button for ordinary emphasis and the fill of a
+checked control. The theme files are shadcn-shaped and ship their accent as
+`primary`, so `applyTheme` does not write it to `--primary`: it sets
+`--primary` to the theme's foreground and `--primary-foreground` to its
+background, on every theme. `variant="brand"` is the accent button. Its
+text is `--brand-foreground`: white on the default coral, and on a theme
+the `primaryForeground` made for that accent.
 
 ### 2.3 State is the theme's ANSI, not a palette
 
@@ -207,7 +212,13 @@ change. It is the only module allowed to import `@phosphor-icons/react`
 - **Depth:** surface steps (`background → card → popover`) plus a hairline
   ring (`ring-1 ring-foreground/6`, `/10` in dark). Shadows only on things
   that float; `backdrop-blur` only on things that float over content
-  (dropped entirely on Linux: WebKitGTK re-composites it every frame).
+  (dropped entirely on Linux: WebKitGTK re-composites it every frame). In
+  the dark, where a shadow barely reads, surfaces are lit from above
+  instead: the popover is a step above the card, and panels, cards and
+  floating surfaces carry a 1px top-edge highlight (RULES R6.6). Hairlines
+  are the foreground at a low alpha, never solid (R6.7).
+- **Concentric corners:** a rounded thing inside a rounded thing takes the
+  outer radius minus the padding (`rounded-menu-item`, RULES R3.6).
 - **Rhythm:** title bar 48px, toolbar 48px, status bar 28px, panel header
   48px, rows 28–32px, the 4px grid between, and the named spaces
   (`gutter`, `group`, `section`, `page`) for layout. RULES.md §3 is exact.
@@ -358,8 +369,8 @@ The catalogue is [COMPONENTS.md](COMPONENTS.md).
 - A **`Theme`** is data: `{ id, name, variants: { light?, dark? } }`, each
   variant `{ colors?, terminal? }`, plus an optional `editorTheme` per mode.
 - `applyTheme(theme, mode)`, the only writer, sets the variant's colours as
-  inline custom properties on `<html>`, derives `--brand`, and writes the 16
-  ANSI variables. `clearTheme()` removes them; the default theme *is* the
+  inline custom properties on `<html>`, derives `--brand` (and a neutral
+  `--primary`, §2.2), and writes the 16 ANSI variables. `clearTheme()` removes them; the default theme *is* the
   absence of overrides (globals.css shows through), which is why its palette
   lives in the stylesheet.
 - `ThemeProvider` resolves `light | dark | system` (live), the theme id

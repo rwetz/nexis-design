@@ -41,6 +41,7 @@
  * idle→active pair consistent everywhere.
  */
 
+import * as React from "react";
 import type { Icon as PhosphorIcon, IconWeight } from "@phosphor-icons/react";
 import {
   AppleLogoIcon,
@@ -469,16 +470,51 @@ export type IconProps = Omit<
   active?: boolean;
   /** Escape hatch for the remaining Phosphor weights. */
   weight?: IconWeight;
+  /**
+   * The glyph changes on a user action (copy to check, play to pause, a sort
+   * direction): the new one arrives with a short blur, fade and scale
+   * instead of popping (RULES R8.4). Never on live data, and never the first
+   * glyph: only a change of `name` animates.
+   */
+  swap?: boolean;
 };
+
+/** The weight an icon takes from the text around it (RULES R7.5). */
+const IconWeightContext = React.createContext<IconWeight | null>(null);
+
+/**
+ * Sets the weight of every `Icon` inside, so an icon matches the text it
+ * sits beside (RULES R7.5). Phosphor's regular stroke is 16/256 of the icon
+ * (0.88px at 14px), lighter than Inter at 400; its bold, 24/256 (1.31px at
+ * 14px, 1.5px at 16px), is Inter Medium's stem at 13 to 14px. So a control
+ * whose label is `font-medium` (buttons, badges, menu items, tabs, toggles)
+ * wraps its children in `weight="bold"`; text at 400 keeps regular. An
+ * icon's own `weight` or `active` still wins.
+ */
+export function IconWeightProvider({ weight, children }: { weight: IconWeight; children?: React.ReactNode }) {
+  return <IconWeightContext.Provider value={weight}>{children}</IconWeightContext.Provider>;
+}
 
 export function Icon({
   name,
   size = "sm",
   active = false,
   weight,
+  swap = false,
+  className,
   ...rest
 }: IconProps) {
   const Glyph = REGISTRY[name];
+  const inherited = React.useContext(IconWeightContext);
+  // A swap is a change of name since the last render, kept until the next
+  // change, so the class stays on the glyph that arrived (React's "store
+  // information from previous renders" pattern, no effect).
+  const [shown, setShown] = React.useState(name);
+  const [swapped, setSwapped] = React.useState(false);
+  if (swap && shown !== name) {
+    setShown(name);
+    setSwapped(true);
+  }
   // In rem, so icons grow with the interface scale (RULES R2.1) like the text
   // beside them; the scale above is in px at 100%.
   const rem = `${(typeof size === "number" ? size : ICON_SIZE[size]) / 16}rem`;
@@ -492,10 +528,12 @@ export function Icon({
   return (
     <Glyph
       size={rem}
-      weight={weight ?? (active && !FILL_CHANGES_SHAPE.has(name) ? "fill" : "regular")}
+      weight={weight ?? (active && !FILL_CHANGES_SHAPE.has(name) ? "fill" : inherited ?? "regular")}
       aria-hidden={labelled ? undefined : true}
       focusable={false}
       {...rest}
+      key={swap ? name : undefined}
+      className={swapped ? (className ? `nexis-icon-swap ${className}` : "nexis-icon-swap") : className}
     />
   );
 }
