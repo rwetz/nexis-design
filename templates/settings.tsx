@@ -36,6 +36,7 @@ import {
   Icon,
   cn,
   Input,
+  NexisMark,
   INTERFACE_SCALES,
   interfaceScaleLabel,
   Kbd,
@@ -118,7 +119,7 @@ const SETTINGS: (SettingsChapter & { id: Section })[] = [
     label: "General",
     groups: [
       { id: "device", label: "This device", settings: [{ label: "Device name", keywords: ["computer", "network"] }, { label: "Autosave", keywords: ["save"] }, { label: "Restore session", keywords: ["tabs", "reopen"] }] },
-      { id: "reset", label: "Reset", settings: [{ label: "Reset all settings", keywords: ["defaults", "factory"] }] },
+      { id: "reset", label: "Reset", settings: [{ label: "Reset saved preferences", keywords: ["defaults", "factory"] }] },
     ],
   },
   {
@@ -206,7 +207,7 @@ export default function App({ deep = false }: { deep?: boolean } = {}) {
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <WindowResizeEdges />
-      <TitleBar title="Settings" brand={<Icon name="settings" className="text-muted-foreground" />} />
+      <TitleBar title="Settings" brand={<NexisMark className="size-[18px]" />} />
       <SettingsLayout
         nav={
           <div className="flex h-full w-56 shrink-0 flex-col bg-sidebar">
@@ -315,7 +316,7 @@ export default function App({ deep = false }: { deep?: boolean } = {}) {
               </SettingRow>
             </SettingsGroup>
             <SettingsGroup id="settings-reset" title="Reset">
-              <SettingRow data-setting="Reset all settings" label="Reset all settings" description="Every preference goes back to its default, themes and keys too.">
+              <SettingRow data-setting="Reset saved preferences" label="Reset saved preferences" description="Restores device, editor and terminal preferences to their defaults.">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" size="sm">
@@ -324,8 +325,8 @@ export default function App({ deep = false }: { deep?: boolean } = {}) {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Reset every setting?</AlertDialogTitle>
-                      <AlertDialogDescription>This cannot be undone. Your files are not affected.</AlertDialogDescription>
+                      <AlertDialogTitle>Reset saved preferences?</AlertDialogTitle>
+                      <AlertDialogDescription>Device, editor and terminal preferences will return to their defaults. This cannot be undone.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Keep my settings</AlertDialogCancel>
@@ -334,10 +335,10 @@ export default function App({ deep = false }: { deep?: boolean } = {}) {
                         onClick={() => {
                           setSaved(DEFAULTS);
                           setDraft(DEFAULTS);
-                          toast("Every setting is back to its default");
+                          toast.success("Saved preferences reset to defaults");
                         }}
                       >
-                        Reset
+                        Reset preferences
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

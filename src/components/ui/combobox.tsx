@@ -19,10 +19,14 @@ export type ComboboxOption = {
 };
 
 type ComboboxProps = {
-  label: string;
+  label?: string;
   options: readonly ComboboxOption[];
   value: string | null;
-  onChange: (value: string) => void;
+  onValueChange: (value: string | null) => void;
+  searchPlaceholder?: string;
+  emptyText?: string;
+  clearable?: boolean;
+  size?: "sm" | "default";
   placeholder?: string;
   disabled?: boolean;
   id?: string;
@@ -32,11 +36,13 @@ type ComboboxProps = {
 };
 
 export function Combobox({
-  label, options, value, onChange, placeholder = "Choose an option",
+  label, options, value, onValueChange, placeholder = "Choose an option",
+  searchPlaceholder = "Search", emptyText = "No matches", clearable = false, size = "default",
   disabled, id, className, "aria-describedby": describedBy, "aria-invalid": invalid,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const current = options.find((option) => option.value === value);
+  const name = label ?? placeholder;
   const active = (option: ComboboxOption) => JSON.stringify(option.value);
 
   return (
@@ -46,7 +52,8 @@ export function Combobox({
           id={id}
           disabled={disabled}
           variant="outline"
-          aria-label={`${label}: ${current?.label ?? placeholder}`}
+          size={size}
+          aria-label={label ? `${label}: ${current?.label ?? placeholder}` : undefined}
           aria-describedby={describedBy}
           aria-invalid={invalid}
           className={cn("w-56 justify-between font-normal", className)}
@@ -55,11 +62,11 @@ export function Combobox({
           <Icon name="chevron-down" size="sm" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent aria-label={label} align="start" className="w-(--radix-popover-trigger-width) p-0">
-        <Command label={`Search ${label}`} defaultValue={current && active(current)}>
-          <CommandInput placeholder="Search options" />
-          <CommandList label={`${label} options`}>
-            <CommandEmpty>No matching options</CommandEmpty>
+      <PopoverContent aria-label={name} align="start" className="w-(--radix-popover-trigger-width) p-0">
+        <Command label={`Search ${name}`} defaultValue={current && active(current)}>
+          <CommandInput placeholder={searchPlaceholder} />
+          <CommandList label={`${name} options`}>
+            <CommandEmpty>{emptyText}</CommandEmpty>
             {options.map((option) => (
               <CommandItem
                 key={option.value}
@@ -68,11 +75,12 @@ export function Combobox({
                 disabled={option.disabled}
                 data-checked={option.value === value}
                 onSelect={() => {
-                  onChange(option.value);
+                  if (option.value !== value) onValueChange(option.value);
+                  else if (clearable) onValueChange(null);
                   setOpen(false);
                 }}
               >
-                {option.label}
+                <span className="min-w-0 truncate">{option.label}</span>
                 {option.value === value && <span className="sr-only">Current value</span>}
               </CommandItem>
             ))}

@@ -12,6 +12,20 @@ Every **Apps must** starts the same way: bump the pin, `pnpm install`, then
 delete `node_modules/.vite` (or run `pnpm dev --force` once) so Vite does not
 keep serving the old package (PITFALLS §17).
 
+## Unreleased · Layout, modal feedback, and identity
+
+- Shared controls align nested corners, rails, peer segment widths and
+  avatar stacks. Dialogs keep their titles and actions reachable.
+- Gallery and scaffold examples give modal buttons specific names and
+  connect feedback to the result.
+- The [branding guide](BRANDING.md) documents the canonical icon workflow
+  and the BibleLM and Vitrine references. The scaffold also includes
+  backend commands, plugin wiring, and the app verification tools.
+
+**Apps must** use the new icon workflow when creating or revising Nexis
+launcher artwork. Keep the canonical SVG mark and pick a background plus
+mark color with the user.
+
 ## Unreleased
 
 - **Components.** `Combobox`, `DateRangePicker`, multi-select tables and
@@ -95,7 +109,7 @@ needs it mounted.
 `--radix-collapsible-content-height` on an accordion. Rows of `Item`s in
 outline cards with gaps become hairline rows (`divide-y`), unless they are
 cards on purpose. Replace the app's logo `<img>` with `NexisMark` (or its
-own mark per R17.4) and regenerate its icons from the new tile. Replace
+legacy app mark, where it was already used) and regenerate its icons from the new tile. Replace
 `animate-pulse` placeholders with the `Skeleton` presets. Vitrine: replace
 `useCardPhysics`, `.fun-face` and the fan CSS with `CardTilt`,
 `ProductCard tilt` and `CollectionCard`, keeping its Showmanship levels as

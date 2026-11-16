@@ -30,6 +30,9 @@ shared version yet.
 | `Spinner` | Nexis | the heptagram loader: a comet round the {7/2} star, continuous, `currentColor` |
 | `ThoughtLine` | Nexis | a stream still arriving: live only |
 | `CallChip` | Nexis | a long run the user started: elapsed + stop |
+| `ErrorBoundary` | new | a render error becomes a message and Try again, not a blank window; `resetKey` retries on navigation |
+| `DataBoundary`, `SkeletonRows` | new | RULES R7.3 in one component: loading skeleton, error Alert with Retry, empty state with its action, or the data. Pairs with `useLoad` |
+| `useLoad` | new | the `loading / error / ready` status behind RULES R7.3, with `reload` and stale-answer protection |
 
 ### Forms
 
@@ -38,7 +41,8 @@ shared version yet.
 | `Field` | new | label + control + hint/error; wires `id`, `aria-describedby`, `aria-invalid`. `inline` for settings rows. |
 | `Input`, `Textarea`, `InputGroup` | Nexis | |
 | `Label` | Nexis | |
-| `Select` | Nexis | Radix select, grouped |
+| `Select` | Nexis | Radix select, grouped; popper, opens below. Up to 12 options |
+| `Combobox` | new | typeahead select (Popover + Command) for long or searchable lists; `clearable`, `keywords` |
 | `NumberInput` | new | steppers, bounds, unit; commits on blur/Enter; arrows step, Shift×10 |
 | `Calendar`, `DatePicker` | new | `CalendarDate` (no time, no zone); always six weeks; arrow/PageUp keys |
 | `Accordion` | new | Radix accordion on the shared collapsible keyframes |

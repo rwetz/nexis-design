@@ -96,9 +96,19 @@ export function LineChart({
   const padT = 8;
   const w = Math.max(0, width - padL - 4);
   const h = Math.max(0, height - padB - padT);
-  const max = niceMax([values, compare ?? []].reduce((max, series) => series.reduce((m, value) => Math.max(m, value), max), 0));
-  const ticks = [0, 0.5, 1].map((t) => t * max);
   const n = values.length;
+  const baseline = compare?.slice(0, n);
+  let lowest = 0;
+  let highest = 0;
+  for (const series of [values, baseline ?? []]) {
+    for (const value of series) {
+      lowest = Math.min(lowest, value);
+      highest = Math.max(highest, value);
+    }
+  }
+  const min = lowest < 0 ? -niceMax(-lowest) : 0;
+  const max = highest > 0 || min === 0 ? niceMax(highest) : 0;
+  const ticks = min < 0 && max > 0 ? [min, 0, max] : [min, (min + max) / 2, max];
   const dx = n > 1 ? w / (n - 1) : 0;
   const timed = timestamps?.length === n && n > 0 && timestamps.every((time, i) =>
     Math.abs(time) <= 8.64e15 && (i === 0 || time > timestamps[i - 1]),
@@ -113,7 +123,8 @@ export function LineChart({
     return { x: fraction * w, text: formatTime(start + fraction * span) };
   });
   const active = hover !== null && hover < n ? hover : null;
-  const yOf = (v: number) => padT + h - (v / max) * h;
+  const y = (v: number) => h - ((v - min) / (max - min)) * h;
+  const yOf = (v: number) => padT + y(v);
 
   return (
     <div className={cn("w-full select-none", className)}>
@@ -133,8 +144,9 @@ export function LineChart({
           role="img"
           aria-label={label ?? legend?.primary ?? "Line chart"}
           onPointerMove={(e) => {
-            const x = e.clientX - e.currentTarget.getBoundingClientRect().left - padL;
-            if (!n) return;
+            const bounds = e.currentTarget.getBoundingClientRect();
+            if (!n || !bounds.width) return;
+            const x = ((e.clientX - bounds.left) / bounds.width) * width - padL;
             if (!offsets || w === 0) {
               setHover(dx > 0 ? Math.min(n - 1, Math.max(0, Math.round(x / dx))) : 0);
               return;
@@ -165,15 +177,15 @@ export function LineChart({
             </g>
           ))}
           <g transform={`translate(${padL},${padT})`}>
-            {compare && (
-              <path d={path(timed ? compare.slice(0, n) : compare, w, h, max, 0, offsets)} fill="none" stroke="var(--muted-foreground)" strokeOpacity={0.55} strokeWidth={1.25} strokeDasharray="3 4" />
+            {baseline && (
+              <path d={path(baseline, w, h, max, min, offsets ?? (baseline.length !== n ? baseline.map((_, i) => xOf(i)) : undefined))} fill="none" stroke="var(--muted-foreground)" strokeOpacity={0.55} strokeWidth={1.25} strokeDasharray="3 4" />
             )}
-            {area && n > 1 && <path d={`${path(values, w, h, max, 0, offsets)}L${w},${h}L0,${h}Z`} fill={`url(#${gradId})`} />}
-            <path d={path(values, w, h, max, 0, offsets)} fill="none" stroke="var(--brand)" strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
+            {area && n > 1 && <path d={`${path(values, w, h, max, min, offsets)}L${w},${y(0)}L0,${y(0)}Z`} fill={`url(#${gradId})`} />}
+            <path d={path(values, w, h, max, min, offsets)} fill="none" stroke="var(--brand)" strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
             {active !== null && (
               <g>
                 <line x1={xOf(active)} x2={xOf(active)} y1={0} y2={h} stroke="var(--foreground)" strokeOpacity={0.25} />
-                <circle cx={xOf(active)} cy={h - (values[active] / max) * h} r={3.5} fill="var(--background)" stroke="var(--brand)" strokeWidth={2} />
+                <circle cx={xOf(active)} cy={y(values[active])} r={3.5} fill="var(--background)" stroke="var(--brand)" strokeWidth={2} />
               </g>
             )}
           </g>

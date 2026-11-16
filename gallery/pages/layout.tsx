@@ -18,6 +18,7 @@ import {
   Card,
   CardAction,
   CardContent,
+  CardMedia,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -91,7 +92,10 @@ export function LayoutPage() {
             </div>
           </ScrollArea>
         </Demo>
-        <Card>
+        <Card size="sm">
+          <CardMedia>
+            <img src="/brand/nexis-logo.svg" alt="" className="mx-auto block h-20 w-auto" />
+          </CardMedia>
           <CardHeader>
             <CardTitle>Card</CardTitle>
             <CardDescription>For content that is a unit: a plan, a preset, a result.</CardDescription>

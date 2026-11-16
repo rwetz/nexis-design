@@ -26,12 +26,13 @@ export function ThumbnailGrid({
   /** The most columns a row may have, however wide the window. */
   maxColumns?: number;
 }) {
+  const count = Number.isFinite(maxColumns) ? Math.max(1, Math.floor(maxColumns)) : 6;
   return (
     <div
       data-slot="thumbnail-grid"
       className={cn("grid gap-group", className)}
       style={{
-        gridTemplateColumns: `repeat(auto-fill, minmax(max(${min}, calc((100% - ${maxColumns - 1} * var(--spacing-group)) / ${maxColumns})), 1fr))`,
+        gridTemplateColumns: `repeat(auto-fill, minmax(min(100%, max(${min}, calc((100% - ${count - 1} * var(--spacing-group)) / ${count}))), 1fr))`,
         ...style,
       }}
       {...props}

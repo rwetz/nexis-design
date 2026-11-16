@@ -42,7 +42,9 @@
   },
   "bin": {
     "nexis-design-assets": "./bin/sync-assets.mjs",
-    "nexis-design": "./bin/nexis-design.mjs"
+    "nexis-design": "./bin/nexis-design.mjs",
+    "nexis-design-check": "./bin/nexis-design-check.mjs",
+    "nexis-design-look": "./bin/nexis-design-look.mjs"
   },
   "files": [
     "src",

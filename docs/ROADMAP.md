@@ -1,4 +1,4 @@
-# Roadmap
+# Shipped roadmap
 
 ## Phase 2 · Components
 
@@ -29,4 +29,5 @@
 - The Lumen v1 palette round-trip test checks the ordered palette export,
   the background and primary roles on import, and invalid input handling.
 
-See [CHANGES.md](CHANGES.md) for package adoption and scaffold instructions.
+See [CHANGES.md](CHANGES.md) for package adoption and scaffold instructions,
+and [the tip review](UI-UX-REVIEW.md) for the design decisions.

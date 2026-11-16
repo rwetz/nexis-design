@@ -99,18 +99,35 @@ export function DataTable<T, K extends string>({
   );
 
   const scrollRef = React.useRef<HTMLDivElement>(null);
-  const rowHeight = virtual?.rowHeight ?? (density === "compact" ? 28 : 36);
-  const headerHeight = 36;
+  const headerRef = React.useRef<HTMLTableSectionElement>(null);
+  const [headerHeight, setHeaderHeight] = React.useState(36);
+  const virtualized = !!virtual;
+  React.useLayoutEffect(() => {
+    const header = headerRef.current;
+    if (!virtualized || !header) return;
+    const measure = () => {
+      if (header.offsetHeight > 0) setHeaderHeight(header.offsetHeight);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, [virtualized]);
+
+  const rowHeight = virtual?.rowHeight ?? headerHeight * (density === "compact" ? 28 / 36 : 1);
   const getItemKey = React.useCallback((index: number) => rowKey(sorted[index]), [rowKey, sorted]);
   const virtualizer = useVirtualizer({
     count: sorted.length,
-    enabled: !!virtual,
+    enabled: virtualized,
     getScrollElement: () => scrollRef.current,
     getItemKey,
     estimateSize: () => rowHeight,
     overscan: virtual?.overscan ?? 8,
     scrollMargin: headerHeight,
   });
+  React.useLayoutEffect(() => {
+    if (virtualized) virtualizer.measure();
+  }, [rowHeight, virtualized, virtualizer]);
   const items = virtualizer.getVirtualItems();
   const first = items[0];
   const last = items.at(-1);
@@ -144,7 +161,7 @@ export function DataTable<T, K extends string>({
         aria-rowcount={virtual ? Math.max(1, sorted.length) + 1 : undefined}
         className={cn("w-full border-separate border-spacing-0 text-body", virtual && "table-fixed")}
       >
-        <thead className={cn(stickyHeader && "sticky top-0 z-10 bg-card/95 backdrop-blur-sm")}>
+        <thead ref={headerRef} className={cn(stickyHeader && "sticky top-0 z-10 bg-card/95 backdrop-blur-sm")}>
           <tr aria-rowindex={virtual ? 1 : undefined}>
             {selection && (
               <th scope="col" className="w-10 border-b border-border px-3">
@@ -175,7 +192,7 @@ export function DataTable<T, K extends string>({
                       type="button"
                       onClick={() => setSort(nextSort(sort, c.key))}
                       className={cn(
-                        "group/sort inline-flex items-center gap-1 rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40",
+                        "group/sort inline-flex min-h-6 items-center gap-1 rounded-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40",
                         active && "text-foreground",
                         align(c) === "text-right" && "flex-row-reverse",
                       )}
