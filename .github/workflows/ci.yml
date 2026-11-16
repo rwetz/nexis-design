@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
@@ -43,14 +43,14 @@ jobs:
         include:
           # Frontend on every template; Rust and a launch on the two that
           # carry the most (a data app and the smallest).
-          - { os: ubuntu-latest, template: dashboard, flags: "" }
-          - { os: ubuntu-latest, template: workbench, flags: "" }
-          - { os: ubuntu-latest, template: settings, flags: "" }
-          - { os: ubuntu-latest, template: settings-deep, flags: "--cargo" }
-          - { os: ubuntu-latest, template: console, flags: "" }
-          - { os: ubuntu-latest, template: wizard, flags: "" }
-          - { os: ubuntu-latest, template: explorer, flags: "--cargo --smoke" }
-          - { os: ubuntu-latest, template: minimal, flags: "--cargo" }
+          - { os: ubuntu-24.04, template: dashboard, flags: "" }
+          - { os: ubuntu-24.04, template: workbench, flags: "" }
+          - { os: ubuntu-24.04, template: settings, flags: "" }
+          - { os: ubuntu-24.04, template: settings-deep, flags: "--cargo" }
+          - { os: ubuntu-24.04, template: console, flags: "" }
+          - { os: ubuntu-24.04, template: wizard, flags: "" }
+          - { os: ubuntu-24.04, template: explorer, flags: "--cargo --smoke" }
+          - { os: ubuntu-24.04, template: minimal, flags: "--cargo" }
           - { os: macos-latest, template: minimal, flags: "--cargo" }
           - { os: windows-latest, template: minimal, flags: "--cargo" }
     steps:
