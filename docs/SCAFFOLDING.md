@@ -294,3 +294,16 @@ pnpm tauri build
 - [ ] No raw colours, no emoji, no direct icon-vendor import.
 - [ ] Reduced-motion OS setting stops the motion.
 - [ ] `pnpm tauri build` produces a bundle with your icons and identifier.
+
+## Desktop releases
+
+Generated apps include `.github/workflows/release.yml`. Commit the
+generated app's `pnpm-lock.yaml` before running it. A manual run builds
+desktop bundles and archives each platform's complete bundle directory
+so permissions and symlinks are preserved in the GitHub Actions artifact. A `v*` tag also attaches the platform archives
+to a draft GitHub release. The workflow fails if a platform builds no
+bundles. Adapt the platform targets and signing setup to your app.
+
+Use `settings-deep` with `new-app.sh` for a settings app with chapter and
+group navigation. The same registry drives the tree, search and command
+palette throughout the template.

@@ -11,14 +11,14 @@ problems go in `SCAFFOLD-ISSUES.md` instead.
 | # | Status | Where |
 |---|---|---|
 | 1 | Fixed | RULES R4.2, "the deep case" |
-| 2 | Fixed | `SettingsTree` in the package, on the gallery's Navigation page. Not yet wired into the `settings` template |
-| 3 | Partly | `findSettings`, `locateSetting`, `settingsTreeNodes` and the `SettingsChapter` type in the package; the `settings` template does not use them yet |
+| 2 | Fixed | `SettingsTree` in the package, on the gallery's Navigation page. Wired into the `settings-deep` scaffold variant |
+| 3 | Fixed | The settings registry drives search, palette and tree navigation in `settings-deep` |
 | 4 | Fixed | `SettingsPage`, `SettingsGroup`, `SettingRow` spread `id`, `data-*` and the rest onto their roots |
 | 5 | Fixed | `useGlidingRail` returns `setContainer`, a callback ref |
 | 6 | Fixed | `use-gliding-rail.ts` comment and COMPONENTS.md |
 | 7 | Fixed | `SettingsPage` `titleClassName` and `inset={false}` |
 | 8 | Fixed | `fetchData` and `fetchJson`, with tests |
-| 9 | Open | No family release template yet (ROADMAP Phase 3) |
+| 9 | Fixed | Generated desktop release workflow uploads complete bundle folders |
 | 10 | Fixed | `test/setup.ts` stubs `IntersectionObserver`; PITFALLS §15 |
 | 11 | Fixed | Changes in one tick share one view transition; a skipped one is not an error |
 

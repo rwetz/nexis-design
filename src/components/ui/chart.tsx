@@ -46,20 +46,27 @@ export function niceMax(max: number): number {
   return 10 * base;
 }
 
-function path(values: readonly number[], w: number, h: number, max: number, min = 0): string {
+function path(values: readonly number[], w: number, h: number, max: number, min = 0, offsets?: readonly number[]): string {
   if (values.length === 0) return "";
   const dx = values.length > 1 ? w / (values.length - 1) : 0;
   const span = max - min || 1;
   return values
-    .map((v, i) => `${i === 0 ? "M" : "L"}${(i * dx).toFixed(2)},${(h - ((v - min) / span) * h).toFixed(2)}`)
+    .map((v, i) => `${i === 0 ? "M" : "L"}${(offsets?.[i] ?? i * dx).toFixed(2)},${(h - ((v - min) / span) * h).toFixed(2)}`)
     .join("");
 }
+
+const chartTime = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "UTC" });
+const formatChartTime = (timestamp: number) => chartTime.format(timestamp);
 
 type LineChartProps = {
   values: readonly number[];
   /** A second, muted, dashed series — last period, a baseline. */
   compare?: readonly number[];
   labels?: readonly string[];
+  /** One ascending epoch-millisecond timestamp per value, shared with compare. */
+  timestamps?: readonly number[];
+  formatTime?: (timestamp: number) => string;
+  legend?: { primary: string; compare?: string };
   format?: (v: number) => string;
   height?: number;
   /** Fill under the main series. */
@@ -72,6 +79,9 @@ export function LineChart({
   values,
   compare,
   labels,
+  timestamps,
+  formatTime = formatChartTime,
+  legend,
   format = (v) => String(Math.round(v)),
   height = 180,
   area = true,
@@ -82,27 +92,61 @@ export function LineChart({
   const [hover, setHover] = React.useState<number | null>(null);
   const gradId = React.useId().replace(/:/g, "");
   const padL = 40;
-  const padB = labels ? 20 : 6;
+  const padB = labels || timestamps ? 20 : 6;
   const padT = 8;
   const w = Math.max(0, width - padL - 4);
   const h = Math.max(0, height - padB - padT);
-  const max = niceMax(Math.max(...values, ...(compare ?? []), 0));
+  const max = niceMax([values, compare ?? []].reduce((max, series) => series.reduce((m, value) => Math.max(m, value), max), 0));
   const ticks = [0, 0.5, 1].map((t) => t * max);
   const n = values.length;
   const dx = n > 1 ? w / (n - 1) : 0;
+  const timed = timestamps?.length === n && n > 0 && timestamps.every((time, i) =>
+    Math.abs(time) <= 8.64e15 && (i === 0 || time > timestamps[i - 1]),
+  ) ? timestamps : null;
+  const start = timed?.[0] ?? 0;
+  const span = timed && n > 1 ? timed[n - 1] - start : 0;
+  const offsets = span > 0 ? timed?.map((t) => ((t - start) / span) * w) : undefined;
+  const xOf = (i: number) => offsets?.[i] ?? i * dx;
+  const tickCount = span ? Math.max(2, Math.min(6, Math.floor(w / 115))) : 1;
+  const timeTicks = timed && Array.from({ length: tickCount }, (_, i) => {
+    const fraction = tickCount > 1 ? i / (tickCount - 1) : 0;
+    return { x: fraction * w, text: formatTime(start + fraction * span) };
+  });
+  const active = hover !== null && hover < n ? hover : null;
   const yOf = (v: number) => padT + h - (v / max) * h;
 
   return (
-    <div ref={ref} className={cn("relative w-full select-none", className)} style={{ height }}>
+    <div className={cn("w-full select-none", className)}>
+      {legend && (
+        <div className="mb-2 flex flex-wrap gap-x-4 gap-y-1 text-ui text-muted-foreground">
+          <span className="inline-flex items-center gap-2"><span aria-hidden className="w-4 border-t-2 border-current text-brand" />{legend.primary}</span>
+          {compare && legend.compare && (
+            <span className="inline-flex items-center gap-2"><span aria-hidden className="w-4 border-t-2 border-dashed border-muted-foreground" />{legend.compare}</span>
+          )}
+        </div>
+      )}
+      <div ref={ref} className="relative w-full" style={{ height }}>
       {width > 0 && (
         <svg
           width={width}
           height={height}
           role="img"
-          aria-label={label}
+          aria-label={label ?? legend?.primary ?? "Line chart"}
           onPointerMove={(e) => {
             const x = e.clientX - e.currentTarget.getBoundingClientRect().left - padL;
-            setHover(n > 1 ? Math.min(n - 1, Math.max(0, Math.round(x / dx))) : 0);
+            if (!n) return;
+            if (!offsets || w === 0) {
+              setHover(dx > 0 ? Math.min(n - 1, Math.max(0, Math.round(x / dx))) : 0);
+              return;
+            }
+            let low = 0;
+            let high = n - 1;
+            while (low < high) {
+              const mid = Math.floor((low + high) / 2);
+              if (x > (offsets[mid] + offsets[mid + 1]) / 2) low = mid + 1;
+              else high = mid;
+            }
+            setHover(low);
           }}
           onPointerLeave={() => setHover(null)}
         >
@@ -122,18 +166,23 @@ export function LineChart({
           ))}
           <g transform={`translate(${padL},${padT})`}>
             {compare && (
-              <path d={path(compare, w, h, max)} fill="none" stroke="var(--muted-foreground)" strokeOpacity={0.55} strokeWidth={1.25} strokeDasharray="3 4" />
+              <path d={path(timed ? compare.slice(0, n) : compare, w, h, max, 0, offsets)} fill="none" stroke="var(--muted-foreground)" strokeOpacity={0.55} strokeWidth={1.25} strokeDasharray="3 4" />
             )}
-            {area && n > 1 && <path d={`${path(values, w, h, max)}L${w},${h}L0,${h}Z`} fill={`url(#${gradId})`} />}
-            <path d={path(values, w, h, max)} fill="none" stroke="var(--brand)" strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
-            {hover !== null && (
+            {area && n > 1 && <path d={`${path(values, w, h, max, 0, offsets)}L${w},${h}L0,${h}Z`} fill={`url(#${gradId})`} />}
+            <path d={path(values, w, h, max, 0, offsets)} fill="none" stroke="var(--brand)" strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
+            {active !== null && (
               <g>
-                <line x1={hover * dx} x2={hover * dx} y1={0} y2={h} stroke="var(--foreground)" strokeOpacity={0.25} />
-                <circle cx={hover * dx} cy={h - (values[hover] / max) * h} r={3.5} fill="var(--background)" stroke="var(--brand)" strokeWidth={2} />
+                <line x1={xOf(active)} x2={xOf(active)} y1={0} y2={h} stroke="var(--foreground)" strokeOpacity={0.25} />
+                <circle cx={xOf(active)} cy={h - (values[active] / max) * h} r={3.5} fill="var(--background)" stroke="var(--brand)" strokeWidth={2} />
               </g>
             )}
           </g>
-          {labels && (
+          {timeTicks && timeTicks.map(({ x, text }, i) => (
+            <text key={i} x={padL + x} y={height - 4}
+              textAnchor={i === 0 ? "start" : i === timeTicks.length - 1 ? "end" : "middle"}
+              className="fill-muted-foreground tabular-nums text-micro">{text}</text>
+          ))}
+          {!timeTicks && labels && (
             <g>
               {labels.map((l, i) =>
                 i % Math.max(1, Math.ceil(labels.length / 6)) === 0 || i === labels.length - 1 ? (
@@ -152,20 +201,21 @@ export function LineChart({
           )}
         </svg>
       )}
-      {hover !== null && width > 0 && (
+      {active !== null && width > 0 && (
         <div
           className="pointer-events-none absolute top-1 rounded-lg bg-popover px-2 py-1 text-caption shadow-md ring-1 ring-foreground/10"
           style={{
-            left: Math.min(width - 110, Math.max(0, padL + hover * dx + 8)),
+            left: Math.max(0, Math.min(width - 110, padL + xOf(active) + 8)),
           }}
         >
-          {labels?.[hover] && <span className="mr-2 text-muted-foreground">{labels[hover]}</span>}
-          <span className="tabular-nums font-medium text-foreground">{format(values[hover])}</span>
-          {compare?.[hover] !== undefined && (
-            <span className="ml-2 tabular-nums text-muted-foreground">{format(compare[hover])}</span>
+          {(timed || labels?.[active]) && <span className="mr-2 text-muted-foreground">{timed ? formatTime(timed[active]) : labels?.[active]}</span>}
+          <span className="tabular-nums font-medium text-foreground">{format(values[active])}</span>
+          {compare?.[active] !== undefined && (
+            <span className="ml-2 tabular-nums text-muted-foreground">{format(compare[active])}</span>
           )}
         </div>
       )}
+      </div>
     </div>
   );
 }

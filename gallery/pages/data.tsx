@@ -67,6 +67,12 @@ const COLUMNS: Column<Service, K>[] = [
   { key: "errors", header: "Errors", numeric: true, sortable: true, cell: (s) => `${s.errors.toFixed(2)}%` },
 ];
 
+const VIRTUAL_SERVICES = Array.from({ length: 1000 }, (_, i) => ({
+  ...SERVICES[i % SERVICES.length],
+  id: `instance-${i + 1}`,
+  name: `${SERVICES[i % SERVICES.length].name}-${i + 1}`,
+}));
+
 const LEVEL_TONE: Record<string, string> = {
   error: "text-destructive",
   warn: "text-warning",
@@ -76,14 +82,15 @@ const LEVEL_TONE: Record<string, string> = {
 
 export function DataPage() {
   const [expanded, setExpanded] = React.useState<Set<string>>(() => new Set(["src", "src/components"]));
-  const [file, setFile] = React.useState<string | null>("src/components/TitleBar.tsx");
+  const [files, setFiles] = React.useState<Set<string>>(() => new Set(["src/components/TitleBar.tsx"]));
+  const [instances, setInstances] = React.useState<Set<string>>(() => new Set());
   const [sel, setSel] = React.useState<string | null>("search");
   const svc = SERVICES.find((s) => s.id === sel);
 
   return (
     <Page
       title="Data"
-      lede="Tables sort with a three-state cycle and keep blanks last in both directions. Numbers are right-aligned Geist Mono in tabular figures, so columns of digits line up. Selection is the accent's quiet tint plus a leading bar, never a block of strong colour."
+      lede="Tables sort with a three-state cycle and keep blanks last in both directions. Numbers are right-aligned in tabular figures. Select individual instances or use the header checkbox to select every row."
     >
       <Grid cols={3} className="lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <Demo title="Data table" meta="click a header to sort, a row to select" flush>
@@ -114,9 +121,14 @@ export function DataPage() {
         </Demo>
       </Grid>
 
+      <Demo title="Virtualized table" meta={`1,000 instances · ${instances.size} selected`} flush>
+        <DataTable label="Service instances" columns={COLUMNS} rows={VIRTUAL_SERVICES} rowKey={(row) => row.id}
+          virtual={{}} className="h-48" selection={instances} onSelectionChange={setInstances} />
+      </Demo>
+
       <Grid cols={3}>
-        <Demo title="Tree" meta="arrows · enter · home/end" flush bodyClassName="py-1">
-          <Tree label="Files" nodes={TREE} expanded={expanded} onExpandedChange={setExpanded} selected={file} onSelect={(id) => setFile(id)} />
+        <Demo title="Tree" meta="arrows move · Space selects" flush bodyClassName="py-1">
+          <Tree label="Files" nodes={TREE} expanded={expanded} onExpandedChange={setExpanded} selection={files} onSelectionChange={setFiles} />
         </Demo>
         <Demo title="Virtual list" meta="10,000 rows" flush>
           <VirtualList

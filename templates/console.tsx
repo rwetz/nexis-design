@@ -47,7 +47,7 @@ const LEVEL_CLASS: Record<Level, string> = {
   error: "text-destructive",
 };
 
-export default function App() {
+export default function App({ live = true }: { live?: boolean } = {}) {
   const [lines, setLines] = React.useState<Line[]>(() => Array.from({ length: 400 }, (_, i) => make(i)));
   const [levels, setLevels] = React.useState<Record<Level, boolean>>({ debug: false, info: true, warn: true, error: true });
   const [filter, setFilter] = React.useState("");
@@ -63,10 +63,10 @@ export default function App() {
   useCommandPaletteShortcut(() => setPaletteOpen((o) => !o));
 
   React.useEffect(() => {
-    if (!running) return;
+    if (!running || !live) return;
     const id = setInterval(() => setLines((l) => [...l, make(l.length)]), 450);
     return () => clearInterval(id);
-  }, [running]);
+  }, [live, running]);
 
   const shown = React.useMemo(() => {
     const q = filter.trim().toLowerCase();

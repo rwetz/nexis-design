@@ -37,6 +37,7 @@ the rev is pushed; to work against a local checkout use
 | `dashboard` | sidebar · toolbar · KPI stats · live chart · sortable table · details sheet · incidents | monitoring, analytics, fleet/system status, finance, home-lab |
 | `workbench` | resizable split: tree · tabs · virtualised document · inspector | editors, notes, IDE-likes, asset browsers, API clients, git clients |
 | `settings` | sidebar sections · inline fields · draft with save/discard · destructive confirm | preferences windows, config tools, admin consoles |
+| `settings-deep` | settings chapters and groups · search · palette deep links | settings with many groups |
 | `explorer` | search + filters toolbar · paginated sortable table · details sheet | CRUD/admin panels, issue trackers, CRMs, database browsers, inventories |
 | `console` | filtered virtual log · follow-tail · level toggles · command prompt · job chip | log viewers, REPLs, job runners, serial monitors, chat transcripts |
 | `wizard` | centred steps · validated pages · progress · done | installers, onboarding, setup and export flows |
@@ -235,6 +236,8 @@ const data = await fetchJson<Data>("/data/x.json")              // rejects on a 
 <NumberInput value={n} onChange={setN} min={1} max={64} step={1} decimals={0} suffix="ms" />
 <Select value={v} onValueChange={…}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="a">A</SelectItem></SelectContent></Select>
 <DatePicker selected={d} onSelect={setD} min={dates.today()} />      <Calendar selected={d} onSelect={setD} weekStartsOn={1} />
+<DateRangePicker value={range} onChange={setRange} min={dates.today()} />
+<Combobox label="Region" options={options} value={region} onChange={setRegion} />
 // dates.date(2026, 10, 7)  dates.addDays(d, n)  dates.addMonths(d, n)  dates.iso(d)  dates.parseIso(s)
 <Accordion type="single" collapsible><AccordionItem value="a"><AccordionTrigger meta="3">General</AccordionTrigger><AccordionContent>…</AccordionContent></AccordionItem></Accordion>
 <Accordion type="multiple" defaultValue={["a", "b"]}>…</Accordion>   // several open at once; meta={2} shows a count
@@ -266,6 +269,7 @@ const columns: Column<Row, "name" | "rps">[] = [
 <DataTable label="Services" columns={columns} rows={rows} rowKey={(r) => r.id} defaultSort={{ key: "rps", dir: "desc" }}
   selected={sel} onSelect={setSel} density="compact" />               // sort/onSortChange to control it (server-side)
 <Tree label="Files" nodes={[{ id, label, icon?, meta?, children? }]} expanded={set} onExpandedChange={setSet} selected={id} onSelect={(id, node) => …} />
+// DataTable and Tree accept selection={keys} onSelectionChange={setKeys}. For a bounded table viewport, add virtual={{}}.
 <VirtualList label="Log" count={n} rowHeight={24} follow renderRow={(i) => …} className="h-64" />
 <PropertyList items={[{ label: "pid", value: "4412", mono: true }]} />
 <Avatar name="Ada Lovelace" size={28} presence="online|away|busy|offline" />   <AvatarStack names={[…]} />
@@ -389,7 +393,7 @@ app has it. Existing apps pin a commit, so nothing reaches them by itself.
    app gets its own branch and PR that bumps the pin and does its **Apps
    must** lines. An unpinned app is pinned first. Nexis, the source of most
    components, takes the same fix in its own copy until it consumes this
-   package (ROADMAP Phase 1).
+   package.
 5. **Nothing is silently left behind.** An app that cannot take a change yet
    gets a line under that change in CHANGES.md saying why.
 
@@ -405,8 +409,7 @@ app has it. Existing apps pin a commit, so nothing reaches them by itself.
 - A new component: [docs/COMPONENTS.md](docs/COMPONENTS.md#rules-for-writing-a-component):
   exported from `src/index.ts`, shown in the gallery, logic tested, added
   to the cheat sheet if it is common, screenshots regenerated.
-- A new theme: generate it with Nexis's `scripts/generate-theme-palettes.py`
-  and copy the file in; it must pass `themes.contrast.test.ts`. Add its folder
+- A new theme: generate it with `nexis-design theme new <id> --hue <degrees>`; it must pass `themes.contrast.test.ts`. Add its folder
   colour to `theme/folderColor.ts`.
 - A new icon: a semantic name in `REGISTRY` (one name per idea).
 - What changed and what it asks of apps: [docs/CHANGES.md](docs/CHANGES.md);

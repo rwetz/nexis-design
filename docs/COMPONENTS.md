@@ -183,3 +183,48 @@ arithmetic) · `readAppTokens`, `readTerminalTokens`, `resolveCssColor`.
    function with a test in `test/logic.test.ts`.
 6. Export it from `src/index.ts` (a test fails otherwise) and show it in the
    gallery in the same commit; regenerate the screenshots that include it.
+
+## Selection and large data sets
+
+- `Combobox` is a searchable select with a labeled trigger and keyboard
+  navigation. Options have a stable `value`, a `label`, optional search
+  `keywords` and an optional `disabled` flag.
+- `DateRangePicker` takes `value` and `onChange`. Pick two calendar days
+  to commit a chronological range. The popover keeps the first pick as a
+  draft until the second pick. `min` and `max` bound both dates.
+- `DataTable` and `Tree` accept a controlled `selection` set and
+  `onSelectionChange`. The table uses checkboxes. Its header checkbox
+  selects all supplied rows and preserves selections outside those rows.
+  In the tree, Space toggles the focused item and arrows move or expand.
+- Set `virtual={{ rowHeight: 36, overscan: 8 }}` on a `DataTable` with a
+  bounded height to render a window of fixed-height rows. Long cell content
+  clips to the column and row bounds.
+- `LineChart` accepts ascending epoch milliseconds via `timestamps`,
+  a `formatTime` callback, and a `legend` with primary and comparison labels.
+
+## Optional surface and IDE entry points
+
+Mount `SurfaceLayer` from `@nexis/design/surface` inside a container
+with `relative isolate` under `ThemeProvider`. Install `ogl` and pass `kind="aurora"`,
+`"particles"`, `"threads"` or `null`. Effects follow the palette, pause
+when the document is hidden, and are disabled in high contrast or reduced
+motion.
+
+Install `@codemirror/view` and use `buildCodeMirrorTheme(mode)` from
+`@nexis/design/ide` as a CodeMirror extension. It reads live CSS variables
+and can be reconfigured when the light or dark mode changes. For an xterm
+integration, use `buildTerminalTheme()` from `@nexis/design/ide/terminal`
+after the DOM is ready and re-read the theme on `paletteEpoch`.
+
+## Theme tooling
+
+Run `nexis-design theme new signal-blue --hue 258` from an app with the
+package installed, or invoke `node bin/nexis-design.mjs theme new signal-blue
+--hue 258` from a checkout. The command uses Python 3 and writes
+`signal-blue.ts` after both variants pass the contrast floors. Use
+`--name`, `--chroma`, `--base-hue` or `--out` to adjust the result.
+
+The theme entry exports `exportLumenPalette(name)` and
+`importLumenPalette(data)` for Lumen v1 exchange. Export resolves the
+active document's five palette roles. Import maps the first two colors to
+background and primary and computes readable foregrounds for those roles.

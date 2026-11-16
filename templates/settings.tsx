@@ -17,8 +17,8 @@
 // palette command per setting, so the three never disagree (RULES R4.2). A
 // search hit or a palette command opens the section and flashes the row.
 // Save and Discard both offer Undo in their toast (R16.2); only Reset, which
-// cannot be undone, asks first. With more than about eight sections, swap
-// `SidebarNav` for `SettingsTree` and `settingsTreeNodes(SETTINGS)`.
+// cannot be undone, asks first. The settings-deep scaffold uses SettingsTree
+// for grouped navigation.
 
 import * as React from "react";
 import {
@@ -54,6 +54,8 @@ import {
   SettingsGroup,
   SettingsLayout,
   SettingsPage,
+  SettingsTree,
+  settingsTreeNodes,
   SHIFT_KEY,
   SidebarNav,
   Switch,
@@ -145,17 +147,42 @@ const KEYS: [string, string[]][] = [
   ["Split right", [MOD_KEY, "\\"]],
 ];
 
-export default function App() {
+const SETTINGS_NODES = settingsTreeNodes(SETTINGS).map((node) => ({
+  ...node,
+  mark: <Icon name={SECTION_ICON[node.id as Section]} size="sm" />,
+}));
+
+export default function App({ deep = false }: { deep?: boolean } = {}) {
   const theme = useTheme();
   const [section, setSection] = React.useState<Section>("general");
+  const [activeGroup, setActiveGroup] = React.useState<string | null>("device");
   const [query, setQuery] = React.useState("");
   const hits = findSettings(query, SETTINGS);
+  const matchingChapters = new Map<string, { id: string; label: string; children: { id: string; label: string; meta: string }[] }>();
+  for (const { chapter, group, setting } of hits) {
+    let node = matchingChapters.get(chapter.id);
+    if (!node) {
+      node = { id: chapter.id, label: chapter.label, children: [] };
+      matchingChapters.set(chapter.id, node);
+    }
+    node.children.push({ id: setting.label, label: setting.label, meta: group.label });
+  }
+
+  const selectGroup = (chapter: string, group: string | null) => {
+    setSection(chapter as Section);
+    const groupId = group ?? SETTINGS.find((entry) => entry.id === chapter)?.groups[0]?.id ?? null;
+    setActiveGroup(groupId);
+    if (groupId) requestAnimationFrame(() => {
+      document.getElementById(`settings-${groupId}`)?.scrollIntoView({ block: "start" });
+    });
+  };
 
   /** Opens a setting's section, scrolls its row into view and flashes it. */
   const open = (label: string) => {
     const at = locateSetting(label, SETTINGS);
     if (!at) return;
     setSection(at.chapter.id as Section);
+    setActiveGroup(at.group?.id ?? null);
     setQuery("");
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
@@ -196,7 +223,22 @@ export default function App() {
                 className="h-8"
               />
             </div>
-            {query.trim() ? (
+            {deep && (!query.trim() || hits.length > 0) ? (
+              <SettingsTree
+                className="min-h-0 flex-1 overflow-y-auto px-2 nexis-scrollbar"
+                label={query.trim() ? "Matching settings" : "Settings"}
+                nodes={query.trim() ? [...matchingChapters.values()] : SETTINGS_NODES}
+                chapter={section}
+                section={query.trim() ? null : activeGroup}
+                openAll={!!query.trim()}
+                onSelect={(chapter, group) => {
+                  if (query.trim()) {
+                    const match = group ?? matchingChapters.get(chapter)?.children[0]?.id;
+                    if (match) open(match);
+                  } else selectGroup(chapter, group);
+                }}
+              />
+            ) : query.trim() ? (
               <div role="listbox" aria-label="Matching settings" className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-2 pb-2 nexis-scrollbar">
                 {hits.length === 0 && <p className="px-3 py-2 text-ui text-muted-foreground">No setting matches.</p>}
                 {hits.map((h, i) => (
@@ -261,7 +303,7 @@ export default function App() {
       >
         {section === "general" && (
           <SettingsPage key="general" title="General" description="This device and how sessions start.">
-            <SettingsGroup>
+            <SettingsGroup id="settings-device">
               <SettingRow data-setting="Device name" label="Device name" description="Shown to other devices on your network." htmlFor="device" align="stretch">
                 <Input id="device" value={draft.name} onChange={(e) => set("name", e.target.value)} />
               </SettingRow>
@@ -272,7 +314,7 @@ export default function App() {
                 <Switch id="restore" checked={draft.restore} onCheckedChange={(v) => set("restore", v)} />
               </SettingRow>
             </SettingsGroup>
-            <SettingsGroup title="Reset">
+            <SettingsGroup id="settings-reset" title="Reset">
               <SettingRow data-setting="Reset all settings" label="Reset all settings" description="Every preference goes back to its default, themes and keys too.">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -307,7 +349,7 @@ export default function App() {
 
         {section === "appearance" && (
           <SettingsPage key="appearance" title="Appearance" description="How the app looks. Changes here apply immediately.">
-            <SettingsGroup>
+            <SettingsGroup id="settings-look">
               <SettingRow data-setting="Mode" label="Mode" description="Follow the system, or always light or dark.">
                 <Segmented
                   label="Mode"
@@ -371,7 +413,7 @@ export default function App() {
 
         {section === "editor" && (
           <SettingsPage key="editor" title="Editor">
-            <SettingsGroup>
+            <SettingsGroup id="settings-text">
               <SettingRow data-setting="Font size" label="Font size" description="The code font, in pixels at 100%." htmlFor="font-size">
                 <NumberInput id="font-size" value={draft.fontSize} onChange={(v) => set("fontSize", v)} min={8} max={32} suffix="px" className="w-32" />
               </SettingRow>
@@ -399,7 +441,7 @@ export default function App() {
 
         {section === "terminal" && (
           <SettingsPage key="terminal" title="Terminal">
-            <SettingsGroup>
+            <SettingsGroup id="settings-shell">
               <SettingRow data-setting="Shell" label="Shell" description="Started in every new terminal." htmlFor="shell" align="stretch">
                 <Select value={draft.shell} onValueChange={(v) => set("shell", v)}>
                   <SelectTrigger id="shell" className="w-full">
@@ -423,7 +465,7 @@ export default function App() {
 
         {section === "keys" && (
           <SettingsPage key="keys" title="Keybindings">
-            <SettingsGroup>
+            <SettingsGroup id="settings-keys">
               {KEYS.map(([label, keys]) => (
                 <SettingRow key={label} data-setting={label} label={label}>
                   <KbdGroup>

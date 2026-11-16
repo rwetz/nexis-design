@@ -15,6 +15,7 @@ AGENTS.md (repo root) is the contract; this skill is the procedure.
 | live numbers, charts, a status table | `dashboard` |
 | a tree/list of things + an open document + an inspector | `workbench` |
 | labelled options grouped in sections | `settings` |
+| Many settings chapters, with search and grouped navigation | `settings-deep` |
 | records to search, filter, sort, page and inspect | `explorer` |
 | a stream of lines and a command prompt | `console` |
 | a linear sequence of steps | `wizard` |

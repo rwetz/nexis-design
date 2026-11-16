@@ -103,6 +103,7 @@ export function SettingsTree({
 
   const rows = React.useRef(new Map<string, HTMLElement>());
   const [focusId, setFocusId] = React.useState<string>(chapter);
+  const tabStop = flat.find((row) => row.id === focusId)?.id ?? flat[0]?.id;
   const focus = (id: string | undefined) => {
     if (!id) return;
     setFocusId(id);
@@ -172,7 +173,7 @@ export function SettingsTree({
                 aria-selected={on}
                 aria-expanded={kids.length ? opened : undefined}
                 aria-level={1}
-                tabIndex={focusId === n.id ? 0 : -1}
+                tabIndex={tabStop === n.id ? 0 : -1}
                 onFocus={() => setFocusId(n.id)}
                 onKeyDown={(e) => onKeyDown(e, i)}
                 onClick={() => onSelect(n.id, null)}
@@ -203,6 +204,7 @@ export function SettingsTree({
               {kids.length > 0 && (
                 <div
                   role="group"
+                  inert={!opened}
                   className={cn("grid transition-[grid-template-rows,opacity] duration-(--dur-panel) ease-(--ease-enter)", opened ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0")}
                 >
                   <div className="min-h-0 overflow-hidden">
@@ -222,7 +224,7 @@ export function SettingsTree({
                             role="treeitem"
                             aria-selected={active}
                             aria-level={2}
-                            tabIndex={opened && focusId === id ? 0 : -1}
+                            tabIndex={opened && tabStop === id ? 0 : -1}
                             onFocus={() => setFocusId(id)}
                             onKeyDown={(e) => k >= 0 && onKeyDown(e, k)}
                             onClick={() => onSelect(n.id, c.id)}
@@ -230,7 +232,7 @@ export function SettingsTree({
                               "relative z-10 flex min-h-7 cursor-default items-center gap-2 rounded-md py-1 pl-4 pr-2 text-body outline-none transition-colors",
                               "before:absolute before:left-0 before:top-1/2 before:h-px before:w-2.5 before:bg-border/70",
                               "focus-visible:ring-2 focus-visible:ring-ring/40",
-                              active ? "font-medium text-foreground" : "text-muted-foreground hover:text-foreground",
+                              active ? "font-medium text-foreground" : "text-foreground/85 hover:text-foreground",
                             )}
                           >
                             <span className="min-w-0 flex-1 truncate">{c.label}</span>

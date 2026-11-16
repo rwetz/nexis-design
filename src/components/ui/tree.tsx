@@ -46,13 +46,18 @@ type TreeProps = {
   onExpandedChange: (next: Set<string>) => void;
   selected?: string | null;
   onSelect?: (id: string, node: TreeNode) => void;
+  /** Controlled multi-selection. Space toggles the focused item. */
+  selection?: ReadonlySet<string>;
+  onSelectionChange?: (selection: Set<string>) => void;
   label: string;
   className?: string;
 };
 
-export function Tree({ nodes, expanded, onExpandedChange, selected, onSelect, label, className }: TreeProps) {
+export function Tree({ nodes, expanded, onExpandedChange, selected, onSelect, selection, onSelectionChange, label, className }: TreeProps) {
   const flat = React.useMemo(() => flattenTree(nodes, expanded), [nodes, expanded]);
-  const [focusId, setFocusId] = React.useState<string | null>(selected ?? flat[0]?.node.id ?? null);
+  const [focusId, setFocusId] = React.useState<string | null>(() =>
+    selected ?? flat.find(({ node }) => selection?.has(node.id))?.node.id ?? flat[0]?.node.id ?? null,
+  );
   const refs = React.useRef(new Map<string, HTMLDivElement>());
 
   const toggle = (id: string, open?: boolean) => {
@@ -67,6 +72,22 @@ export function Tree({ nodes, expanded, onExpandedChange, selected, onSelect, la
     if (!id) return;
     setFocusId(id);
     refs.current.get(id)?.focus();
+  };
+
+  const tabStop = flat.find(({ node }) => node.id === focusId)?.node.id
+    ?? flat.find(({ node }) => selection?.has(node.id))?.node.id
+    ?? flat[0]?.node.id;
+
+  const activate = (f: FlatNode) => {
+    if (selection) {
+      const next = new Set(selection);
+      if (next.has(f.node.id)) next.delete(f.node.id);
+      else next.add(f.node.id);
+      onSelectionChange?.(next);
+      return;
+    }
+    onSelect?.(f.node.id, f.node);
+    if (f.hasChildren) toggle(f.node.id);
   };
 
   const onKeyDown = (e: React.KeyboardEvent, i: number) => {
@@ -94,8 +115,7 @@ export function Tree({ nodes, expanded, onExpandedChange, selected, onSelect, la
         break;
       case "Enter":
       case " ":
-        onSelect?.(f.node.id, f.node);
-        if (f.hasChildren) toggle(f.node.id);
+        activate(f);
         break;
       default:
         return;
@@ -104,10 +124,10 @@ export function Tree({ nodes, expanded, onExpandedChange, selected, onSelect, la
   };
 
   return (
-    <div role="tree" aria-label={label} className={cn("flex flex-col py-1 text-body", className)}>
+    <div role="tree" aria-label={label} aria-multiselectable={selection ? true : undefined} className={cn("flex flex-col py-1 text-body", className)}>
       {flat.map((f, i) => {
         const open = expanded.has(f.node.id);
-        const isSel = f.node.id === selected;
+        const isSel = selection ? selection.has(f.node.id) : f.node.id === selected;
         const icon: IconName = f.node.icon ?? (f.hasChildren ? (open ? "folder-open" : "folder") : "file");
         return (
           <div
@@ -120,13 +140,12 @@ export function Tree({ nodes, expanded, onExpandedChange, selected, onSelect, la
             aria-level={f.depth + 1}
             aria-expanded={f.hasChildren ? open : undefined}
             aria-selected={isSel}
-            tabIndex={f.node.id === (focusId ?? flat[0]?.node.id) ? 0 : -1}
+            tabIndex={f.node.id === tabStop ? 0 : -1}
             onFocus={() => setFocusId(f.node.id)}
             onKeyDown={(e) => onKeyDown(e, i)}
             onClick={() => {
-              setFocusId(f.node.id);
-              onSelect?.(f.node.id, f.node);
-              if (f.hasChildren) toggle(f.node.id);
+              focus(f.node.id);
+              activate(f);
             }}
             className={cn(
               "group/row relative mx-1 flex h-7 cursor-pointer items-center gap-1.5 rounded-lg pr-2 outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
@@ -142,7 +161,15 @@ export function Tree({ nodes, expanded, onExpandedChange, selected, onSelect, la
                 style={{ left: 14 + d * 14 }}
               />
             ))}
-            <span className="grid w-3 place-items-center text-muted-foreground">
+            <span
+              aria-hidden
+              className="grid w-3 place-items-center text-muted-foreground"
+              onClick={selection && f.hasChildren ? (event) => {
+                event.stopPropagation();
+                focus(f.node.id);
+                toggle(f.node.id);
+              } : undefined}
+            >
               {f.hasChildren && (
                 <Icon name="chevron-right" size={10} className={cn("transition-transform", open && "rotate-90")} />
               )}

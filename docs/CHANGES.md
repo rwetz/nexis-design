@@ -12,6 +12,22 @@ Every **Apps must** starts the same way: bump the pin, `pnpm install`, then
 delete `node_modules/.vite` (or run `pnpm dev --force` once) so Vite does not
 keep serving the old package (PITFALLS §17).
 
+## Unreleased
+
+- **Components.** `Combobox`, `DateRangePicker`, multi-select tables and
+  trees, virtualized table rows, and time axes and legends for line charts.
+- **Optional exports.** `@nexis/design/surface` provides WebGL backgrounds.
+  `@nexis/design/ide` provides editor and terminal adapters, and
+  `@nexis/design/ide/terminal` supports terminal-only consumers.
+- **Tooling.** `settings-deep` uses the shared settings registry. The
+  scaffold includes a desktop release workflow. The theme CLI checks both
+  variants before writing a file, and Lumen palette exchange has a round-trip test.
+
+**Apps must** bump the pin and reinstall to use the new exports. Install
+`ogl` for the surface entry point or `@codemirror/view` for the editor.
+Existing apps can copy `scripts/release.yml` into `.github/workflows` and
+adapt the platform matrix to their supported targets.
+
 ## Unreleased (`vitrine-findings`)
 
 - **From moving Vitrine onto the package** (APP-FINDINGS, Vitrine 1 to 8):

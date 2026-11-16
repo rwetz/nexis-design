@@ -17,6 +17,7 @@ import { HOURS, rng, wave } from "../data";
 import { Demo, Grid, Page } from "../kit";
 
 const LATENCY = wave(60, 3, 52, 22, 8);
+const TIMESTAMPS = LATENCY.map((_, i) => Date.UTC(2026, 9, 7, 12, i));
 const BASELINE = wave(60, 9, 46, 14, 4);
 const R = rng(42);
 const HEAT = Array.from({ length: 7 }, (_, d) =>
@@ -39,12 +40,14 @@ export function ChartsPage() {
         <Stat label="Uptime" value="99.99%" delta={0} />
       </Grid>
 
-      <Demo title="Line chart" meta="p95 latency · last 60 min · dashed = last week">
+      <Demo title="Line chart" meta="p95 latency · last 60 min">
         <LineChart
           label="p95 latency"
           values={LATENCY}
           compare={BASELINE}
-          labels={LATENCY.map((_, i) => (i === 59 ? "now" : `-${60 - i}m`))}
+          timestamps={TIMESTAMPS}
+          formatTime={(ms) => new Date(ms).toISOString().slice(11, 16)}
+          legend={{ primary: "Current", compare: "Last week" }}
           format={(v) => `${Math.round(v)}ms`}
           height={220}
         />

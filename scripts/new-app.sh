@@ -5,7 +5,7 @@
 #   scripts/new-app.sh <name> [template] [dir]
 #
 #   name      package name, e.g. nexis-pulse (family apps are nexis-<thing>)
-#   template  dashboard | workbench | settings | explorer | console | wizard | minimal
+#   template  dashboard | workbench | settings | settings-deep | explorer | console | wizard | minimal
 #             (default: minimal)
 #   dir       where to create it (default: ../<name>, next to this checkout)
 #
@@ -33,6 +33,7 @@ if [[ ! "$name" =~ ^[a-z][a-z0-9-]*$ ]]; then
   exit 1
 fi
 case "$template" in
+  settings-deep) src="$here/templates/settings.tsx" ;;
   dashboard|workbench|settings|explorer|console|wizard|minimal) src="$here/templates/$template.tsx" ;;
   *) echo "error: unknown template '$template'" >&2; exit 1 ;;
 esac
@@ -59,7 +60,7 @@ rev="${NEXIS_REV:-$(git -C "$here" rev-parse HEAD 2>/dev/null || echo main)}"
 
 # Display name: nexis-pulse -> Pulse. Identifier: app.nexis.pulse.
 short="${name#nexis-}"
-display="$(echo "$short" | sed -E 's/-+/ /g; s/(^| )([a-z])/\1\u\2/g')"
+display="$(node -e 'console.log(process.argv[1].split(/-+/).map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" "))' "$short")"
 ident="app.nexis.$(echo "$short" | tr -d '-')"
 year="$(date +%Y)"
 # 1420 is Tauri's default; spread apps over 1420..1819 by name.
@@ -72,7 +73,7 @@ dir_native="$(native "$dir")"
 if [[ -n "${NEXIS_PATH:-}" ]]; then
   # Relative, so the app installs from any shell and on any machine with the
   # same layout (file:../nexis-design).
-  dep="file:$(node -e 'const p=require("node:path");console.log(p.relative(process.argv[1],process.argv[2]).split(p.sep).join("/"))' "$dir_native" "$nexis_abs")"
+  dep="file:$(node -e 'const p=require("node:path");const real=require("node:fs").realpathSync;console.log(p.relative(real(process.argv[1]),real(process.argv[2])).split(p.sep).join("/"))' "$dir_native" "$nexis_abs")"
 else
   dep="github:rwetz/nexis-design#$rev"
 fi
@@ -98,6 +99,7 @@ const pkg = {
   private: true,
   version: "0.1.0",
   type: "module",
+  packageManager: self.packageManager,
   scripts: {
     dev: "vite",
     build: "tsc --noEmit && vite build",
@@ -110,7 +112,11 @@ const pkg = {
     // must be in public/ (docs/ASSETS.md).
     postinstall: "nexis-design-assets",
   },
-  dependencies: { "@nexis/design": process.env.DEP, ...self.peerDependencies },
+  dependencies: {
+    "@nexis/design": process.env.DEP,
+    ...Object.fromEntries(Object.entries(self.peerDependencies).filter(([key]) =>
+      !["ogl", "@codemirror/view"].includes(key))),
+  },
   devDependencies: {
     "@tauri-apps/cli": "^2.12.0",
     ...pick(["@tailwindcss/vite", "@vitejs/plugin-react", "@types/react", "@types/react-dom", "typescript", "vite"]),
@@ -277,12 +283,20 @@ title="$(grep -o 'title="[^"]*"' "$src" | head -1 | sed 's/title="//; s/"$//')"
     -e "s#<NexisMark className=\"\([^\"]*\)\" />#<AppLogo className=\"\1\" />#g" \
     -e "/^  NexisMark,\$/d"
 } > "$dir/src/App.tsx"
-if [[ -n "$title" ]]; then
-  sed -i "s/title=\"$title\"/title=\"$display\"/" "$dir/src/App.tsx"
-fi
-if grep -q "<AppLogo" "$dir/src/App.tsx"; then
-  sed -i '0,/^import /s//import { AppLogo } from ".\/AppLogo";\nimport /' "$dir/src/App.tsx"
-fi
+node --input-type=module - "$dir_native/src/App.tsx" "$title" "$display" "$template" <<'JS'
+import { readFileSync, writeFileSync } from "node:fs";
+const [, , path, title, display, template] = process.argv;
+let source = readFileSync(path, "utf8");
+if (title) source = source.replace(`title="${title}"`, `title="${display}"`);
+if (source.includes("<AppLogo")) {
+  source = source.replace(/^import /m, 'import { AppLogo } from "./AppLogo";\nimport ');
+}
+if (template === "settings-deep") source = source.replace("deep = false", "deep = true");
+writeFileSync(path, source);
+JS
+
+mkdir -p "$dir/.github/workflows"
+cp "$here/scripts/release.yml" "$dir/.github/workflows/release.yml"
 
 # ── src-tauri ───────────────────────────────────────────────────────────────
 crate="$(echo "$name" | tr '-' '_')"

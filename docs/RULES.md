@@ -250,8 +250,8 @@ the current view has facts to show; otherwise it's absent, not empty.
 - Groups have an overline (`SectionLabel`) and `--space-section` above.
 - Destructive settings go last, in a group of their own, with a
   `destructive` outline button that opens an `AlertDialog`.
-- **The deep case** (more than about eight sections): the flat nav stops
-  working, and so does one long page. Use `SettingsTree` as the nav:
+- **The deep case** (more than about eight sections): start with the
+  `settings-deep` scaffold and use `SettingsTree` as the nav:
   chapters with a mark, their groups on a spine under each, a search box
   above it that narrows the tree to matching settings (the group as `meta`,
   Enter opens the first). Drive the tree, the search and the palette's
