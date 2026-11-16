@@ -55,7 +55,9 @@ const look = (path: string) =>
     ),
   );
 
-describe.skipIf(!browser)("nexis-design-look", () => {
+// Each test launches a browser; a cold start on a CI runner takes longer
+// than vitest's 5s default.
+describe.skipIf(!browser)("nexis-design-look", { timeout: 60_000 }, () => {
   it("passes a sound page", async () => {
     const r = await look("/good");
     expect(r.stdout).toMatch(/0 errors, 0 warnings/);
