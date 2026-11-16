@@ -63,10 +63,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - uses: dtolnay/rust-toolchain@stable
         if: contains(matrix.flags, '--cargo')
+      # The build goes to a target folder beside the app, not inside it: a
+      # restored cache used to create the app folder before the scaffold ran,
+      # and the scaffold refuses a folder that exists. v1 drops those caches.
       - uses: Swatinem/rust-cache@v2
         if: contains(matrix.flags, '--cargo')
         with:
-          workspaces: ${{ runner.temp }}/ci/nexis-ci-${{ matrix.template }}/src-tauri
+          prefix-key: v1-rust
+          workspaces: ${{ runner.temp }}/ci/nexis-ci-${{ matrix.template }}/src-tauri -> ../../target-${{ matrix.template }}
       - name: Tauri prerequisites (Linux)
         if: runner.os == 'Linux' && contains(matrix.flags, '--cargo')
         run: |
@@ -76,6 +80,7 @@ jobs:
         shell: bash
         env:
           CI_WORKDIR: ${{ runner.temp }}/ci
+          CARGO_TARGET_DIR: ${{ runner.temp }}/ci/target-${{ matrix.template }}
         run: |
           mkdir -p "$CI_WORKDIR"
           scripts/ci-scaffold.sh ${{ matrix.template }} ${{ matrix.flags }}
