@@ -236,7 +236,9 @@ cp path/to/icon-1024.png src-tauri/icons/icon.png
 pnpm icons
 ```
 
-The scaffold includes a working starter icon set. The icon script replaces
+The scaffold includes a working starter icon set and a README banner.
+Refresh the banner with `pnpm exec nexis-design brand banner` and the
+chosen title, background and mark color. The icon script replaces
 the desktop assets and removes the mobile sets emitted by Tauri.
 
 ## Step 9: Compose the root

@@ -707,7 +707,8 @@ inline SVG in `currentColor` at 18 px, with the title supplying the app name.
 
 **R17.2 The launcher icon.** Place the SVG heptagram over the tile. Keep its
 shape, placement and scale. Change its color and the background composition
-to suit the app. Use the same artwork for the README and platform icon exports.
+to suit the app. Use the same background and mark color for platform icon
+exports and the rectangular README banner.
 Check the icon at 16, 32 and 128 px.
 
 **R17.3 Confirm the look.** Before finalizing an icon, ask about the

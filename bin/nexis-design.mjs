@@ -7,10 +7,19 @@
 
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { writeBanner } from "./brand-banner.mjs";
 
 const [section, command, ...args] = process.argv.slice(2);
-if (section !== "theme" || command !== "new") {
+if (section === "brand" && command === "banner") {
+  try {
+    writeBanner(args);
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+} else if (section !== "theme" || command !== "new") {
   console.error("Usage: nexis-design theme new <id> --hue <degrees> [--help]");
+  console.error('       nexis-design brand banner "App name" [--background file] [--mark-color hex] [--title-color hex] [--out file]');
   process.exitCode = section === "--help" ? 0 : 1;
 } else {
   const script = fileURLToPath(new URL("./generate-theme-palettes.py", import.meta.url));

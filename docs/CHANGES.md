@@ -19,7 +19,9 @@ keep serving the old package (PITFALLS §17).
 - Gallery and scaffold examples give modal buttons specific names and
   connect feedback to the result.
 - The [branding guide](BRANDING.md) documents the canonical icon workflow
-  and the BibleLM and Vitrine references. The scaffold also includes
+  and the BibleLM and Vitrine references. New app READMEs start with a 500×300
+  banner generated from the title, heptagram, and the icon background.
+  The scaffold also includes
   backend commands, plugin wiring, and the app verification tools.
 
 **Apps must** use the new icon workflow when creating or revising Nexis

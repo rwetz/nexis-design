@@ -63,8 +63,11 @@ Read [the branding guide](../../../docs/BRANDING.md) and pick the nearest
 product reference. Before finalizing a launcher icon, ask the user for the
 background direction and heptagram color. Keep the canonical path and
 placement. Use the starter tile for the first build and regenerate the
-platform icons from the chosen 1024×1024 composition. In chrome keep
-`AppLogo` as the monochrome heptagram.
+platform icons from the chosen 1024×1024 composition. Use an image-generated
+background in ChatGPT or an SVG-generated background in Claude. Place the
+canonical SVG over the background. Generate a README banner with
+`nexis-design brand banner` and the same background and mark color. In chrome
+keep `AppLogo` as the monochrome heptagram.
 
 ## 3. Make it the user's app
 
@@ -77,7 +80,7 @@ platform icons from the chosen 1024×1024 composition. In chrome keep
    filtering/sorting in one `useMemo`. Every data view gets its four states
    (RULES R7.3).
 3. Rename views, sidebar items, palette commands and titles; update
-   `assets/logo.svg` and replace `src-tauri/icons/icon.png`.
+   `assets/logo.svg`, `assets/banner.svg`, and `src-tauri/icons/icon.png`.
 4. Delete what the app does not need: templates are generous on purpose.
 5. Every action goes in the `CommandPalette` too.
 6. Implement the Rust commands in `src-tauri/src/`, register each in

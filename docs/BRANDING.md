@@ -37,8 +37,33 @@ Keep the heptagram path and placement from the original SVG. Put texture,
 type, and decoration behind it, where they cannot cut up the mark. Preview
 the launcher tile at 16, 32, and 128 px on both dark and light grounds.
 Keep the composed SVG in `assets/logo.svg`, export its 1024×1024 PNG to
-`src-tauri/icons/icon.png`, and run `pnpm icons`. Use that same composition
-for the README masthead and launcher icon.
+`src-tauri/icons/icon.png`, and run `pnpm icons`. Use that same background
+and mark color in the README banner.
+
+## GitHub README banner
+
+Ateru's earlier masthead put the mark next to the name on a wide canvas.
+The scaffold uses the same layout at 500×300 and keeps the square launcher
+tile as a separate asset. The banner contains the app name, the canonical
+heptagram, and a rectangular crop of the launcher background.
+
+![Nexis Design repository banner](brand/readme-example.svg)
+
+Use the approved background from the icon. ChatGPT can extend a cropped
+raster background to fit the banner. Claude can reframe the SVG layers.
+Keep the heptagram and title as separate layers in either case. Give the
+title enough quiet space to read when the README narrows.
+
+```sh
+pnpm exec nexis-design brand banner "App Name" \
+  --background assets/icon-background.png \
+  --mark-color '#F0F3F7' --title-color '#F0F3F7'
+```
+
+The command embeds the background in `assets/banner.svg` so GitHub can
+render it without an external image. Omit the background to use frosted
+glass. Edit the composition for a name or background that needs a
+different layout.
 
 ## Apps with their own identity
 

@@ -577,6 +577,7 @@ if (wanted.length) {
 # icon.png and run `pnpm icons`.
 cp "$here/assets/brand/nexis-logo.png" "$dir/src-tauri/icons/icon.png"
 mkdir -p "$dir/assets" && cp "$here/assets/brand/nexis-logo.svg" "$dir/assets/logo.svg"
+node "$here/bin/nexis-design.mjs" brand banner "$display" --out "$dir_native/assets/banner.svg" >/dev/null
 cp "$here/templates/icons/"* "$dir/src-tauri/icons/"
 
 # The workspace's brand mark, for the README footer.
@@ -598,7 +599,8 @@ Read these before changing UI, in this order. They are in the installed package:
 3. \`node_modules/@nexis/design/docs/BACKEND.md\`: Rust commands, plugins,
    capabilities, persistence, long jobs.
 4. \`node_modules/@nexis/design/docs/BRANDING.md\`: confirm the icon background
-   and heptagram color with the user. Keep \`AppLogo\` as the shared mark.
+   and heptagram color with the user. Keep \`AppLogo\` as the shared mark
+   and reuse the background and color in \`assets/banner.svg\`.
 
 In short: colours only from tokens, one accent (\`brand\`), icons only via
 \`<Icon name>\`, Inter only, sizes from the type list, selection is neutral,
@@ -642,7 +644,7 @@ printf '@AGENTS.md\n' > "$dir/CLAUDE.md"
 
 cat > "$dir/README.md" <<MD
 <p align="center">
-  <img src="assets/logo.svg" alt="$display logo" width="128">
+  <img src="assets/banner.svg" alt="$display logo" width="500">
 </p>
 
 <h1 align="center">$display</h1>
@@ -707,7 +709,7 @@ echo "  pnpm install"
 echo "  pnpm tauri dev"
 echo
 echo "Branding: confirm the icon background and heptagram color with the user."
-echo "The starter icon is ready. See docs/BRANDING.md in @nexis/design."
+echo "Starter icon and README banner are ready. See docs/BRANDING.md in @nexis/design."
 echo
 echo "Preview entry for a .claude/launch.json:"
 echo "  { \"name\": \"$short\", \"runtimeExecutable\": \"pnpm\", \"runtimeArgs\": [\"--dir\", \"$dir_native\", \"dev\"], \"port\": $port }"

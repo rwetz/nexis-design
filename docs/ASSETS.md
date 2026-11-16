@@ -54,7 +54,8 @@ set generated from the PNG, copied into every scaffolded app.
 ## Logos and app icons
 
 - `src/AppLogo.tsx` renders the shared heptagram in `currentColor`.
-- `assets/logo.svg` is the composed launcher tile and README masthead.
+- `assets/logo.svg` is the square launcher tile. `assets/banner.svg` is the
+  rectangular README masthead with the title, mark and shared background.
 - Export that SVG at 1024×1024 to `src-tauri/icons/icon.png` and run
   `pnpm icons` to update the desktop icon set.
 - [Branding](BRANDING.md) defines the shared artwork, the choices to confirm
