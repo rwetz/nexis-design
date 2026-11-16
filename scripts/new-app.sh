@@ -2,12 +2,17 @@
 # Scaffold a new Nexis-family app (Tauri v2 + React 19 + Tailwind v4) from
 # one of the templates.
 #
-#   scripts/new-app.sh <name> [template] [dir]
+#   scripts/new-app.sh <name> [template] [dir] [--with plugin,plugin]
 #
 #   name      package name, e.g. nexis-pulse (family apps are nexis-<thing>)
-#   template  dashboard | workbench | settings | explorer | console | wizard | minimal
+#   template  dashboard | workbench | settings | settings-deep | explorer | console | wizard | minimal
 #             (default: minimal)
 #   dir       where to create it (default: ../<name>, next to this checkout)
+#   --with    Tauri plugins to wire end to end (npm dep, Cargo dep, lib.rs,
+#             capability): store dialog fs opener notification
+#             clipboard-manager process http sql global-shortcut.
+#             See docs/BACKEND.md. (updater is manual: it panics at startup
+#             without a signing key.)
 #
 # The app depends on @nexis/design from git, pinned to the commit this
 # checkout is on (override with NEXIS_REV=<rev>). NEXIS_PATH=<path> depends on
@@ -22,10 +27,19 @@
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-name="${1:-}"
-template="${2:-minimal}"
+with=""
+args=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --with) with="${2:-}"; shift 2 ;;
+    --with=*) with="${1#--with=}"; shift ;;
+    *) args+=("$1"); shift ;;
+  esac
+done
+name="${args[0]:-}"
+template="${args[1]:-minimal}"
 if [[ -z "$name" ]]; then
-  sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
   exit 1
 fi
 if [[ ! "$name" =~ ^[a-z][a-z0-9-]*$ ]]; then
@@ -33,10 +47,23 @@ if [[ ! "$name" =~ ^[a-z][a-z0-9-]*$ ]]; then
   exit 1
 fi
 case "$template" in
+  settings-deep) src="$here/templates/settings.tsx" ;;
   dashboard|workbench|settings|explorer|console|wizard|minimal) src="$here/templates/$template.tsx" ;;
   *) echo "error: unknown template '$template'" >&2; exit 1 ;;
 esac
-dir="${3:-$here/../$name}"
+# Plugin table: name | cargo features | the .plugin(...) expression | permissions.
+# Every entry is wired in four places, and the check script (nexis-design-check)
+# fails when any of the four is missing.
+plugin_known="store dialog fs opener notification clipboard-manager process http sql global-shortcut"
+if [[ -n "$with" ]]; then
+  for p in ${with//,/ }; do
+    case " $plugin_known " in
+      *" $p "*) ;;
+      *) echo "error: unknown plugin '$p' (known: $plugin_known)" >&2; exit 1 ;;
+    esac
+  done
+fi
+dir="${args[2]:-$here/../$name}"
 if [[ -e "$dir" ]]; then
   echo "error: $dir already exists" >&2
   exit 1
@@ -59,7 +86,7 @@ rev="${NEXIS_REV:-$(git -C "$here" rev-parse HEAD 2>/dev/null || echo main)}"
 
 # Display name: nexis-pulse -> Pulse. Identifier: app.nexis.pulse.
 short="${name#nexis-}"
-display="$(echo "$short" | sed -E 's/-+/ /g; s/(^| )([a-z])/\1\u\2/g')"
+display="$(node -e 'console.log(process.argv[1].split(/-+/).map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" "))' "$short")"
 ident="app.nexis.$(echo "$short" | tr -d '-')"
 year="$(date +%Y)"
 # 1420 is Tauri's default; spread apps over 1420..1819 by name.
@@ -72,7 +99,7 @@ dir_native="$(native "$dir")"
 if [[ -n "${NEXIS_PATH:-}" ]]; then
   # Relative, so the app installs from any shell and on any machine with the
   # same layout (file:../nexis-design).
-  dep="file:$(node -e 'const p=require("node:path");console.log(p.relative(process.argv[1],process.argv[2]).split(p.sep).join("/"))' "$dir_native" "$nexis_abs")"
+  dep="file:$(node -e 'const p=require("node:path");const real=require("node:fs").realpathSync;console.log(p.relative(real(process.argv[1]),real(process.argv[2])).split(p.sep).join("/"))' "$dir_native" "$nexis_abs")"
 else
   dep="github:rwetz/nexis-design#$rev"
 fi
@@ -88,7 +115,7 @@ header() {
 }
 
 # ── package.json: the design package plus exactly its peers ─────────────────
-DEP="$dep" NAME="$name" HERE="$(native "$here")" OUT="$dir_native/package.json" node --input-type=module -e '
+WITH="$with" DEP="$dep" NAME="$name" HERE="$(native "$here")" OUT="$dir_native/package.json" node --input-type=module -e '
 import { readFileSync, writeFileSync } from "node:fs";
 const self = JSON.parse(readFileSync(process.env.HERE + "/package.json", "utf8"));
 const dev = self.devDependencies;
@@ -98,6 +125,7 @@ const pkg = {
   private: true,
   version: "0.1.0",
   type: "module",
+  packageManager: self.packageManager,
   scripts: {
     dev: "vite",
     build: "tsc --noEmit && vite build",
@@ -109,13 +137,24 @@ const pkg = {
     // Cursors are CSS url()s resolved against the document, so the PNGs
     // must be in public/ (docs/ASSETS.md).
     postinstall: "nexis-design-assets",
+    // The family rules plus the Tauri wiring (docs/RULES.md R12.1), then the
+    // typecheck and bundle. Run it before calling anything done.
+    check: "nexis-design-check",
+    // Open the running app at the five sizes in RULES R12.2, dark and light.
+    look: "nexis-design-look",
+    verify: "nexis-design-check && tsc --noEmit && vite build",
   },
-  dependencies: { "@nexis/design": process.env.DEP, ...self.peerDependencies },
+  dependencies: {
+    "@nexis/design": process.env.DEP,
+    ...Object.fromEntries(Object.entries(self.peerDependencies).filter(([key]) =>
+      !["ogl", "@codemirror/view"].includes(key))),
+  },
   devDependencies: {
     "@tauri-apps/cli": "^2.12.0",
-    ...pick(["@tailwindcss/vite", "@vitejs/plugin-react", "@types/react", "@types/react-dom", "typescript", "vite"]),
+    ...pick(["@tailwindcss/vite", "@vitejs/plugin-react", "@types/react", "@types/react-dom", "typescript", "vite", "playwright-core"]),
   },
 };
+for (const p of (process.env.WITH || "").split(",").filter(Boolean)) pkg.dependencies["@tauri-apps/plugin-" + p] = "^2";
 writeFileSync(process.env.OUT, JSON.stringify(pkg, null, 2) + "\n");
 '
 
@@ -221,7 +260,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { domAnimation, LazyMotion } from "motion/react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { IN_TAURI, ThemeProvider, Toaster, TooltipProvider, USE_CUSTOM_WINDOW_CONTROLS } from "@nexis/design";
+import { ErrorBoundary, IN_TAURI, ThemeProvider, Toaster, TooltipProvider, USE_CUSTOM_WINDOW_CONTROLS } from "@nexis/design";
 import App from "./App";
 
 // Windows/Linux: the OS hands us a transparent, undecorated window and the
@@ -233,7 +272,9 @@ createRoot(document.getElementById("root")!).render(
     <LazyMotion features={domAnimation} strict>
       <ThemeProvider storageKey="$name">
         <TooltipProvider delayDuration={300}>
-          <App />
+          <ErrorBoundary label="The app" className="h-full">
+            <App />
+          </ErrorBoundary>
           <Toaster position="bottom-right" />
         </TooltipProvider>
       </ThemeProvider>
@@ -252,8 +293,7 @@ if (IN_TAURI) {
 TSX
 } > "$dir/src/main.tsx"
 
-# The app's own mark (RULES §17). It starts as the family's heptagram, in
-# currentColor; an app with a mark of its own draws it here.
+# The family heptagram in currentColor for app chrome (RULES §17).
 { header "//"; cat <<'TSX'
 
 import { NexisMark } from "@nexis/design";
@@ -264,25 +304,60 @@ export function AppLogo({ className }: { className?: string }) {
 TSX
 } > "$dir/src/AppLogo.tsx"
 
-# The template, with the workspace header in place of its banner, and its
-# name, title and logo made this app's.
+# The one door to Rust (docs/BACKEND.md). Outside Tauri there is no backend, so
+# a browser, a test and the headless screenshots get the fallback instead of a
+# crash. Errors from Rust arrive as strings; they leave here as Errors.
+cat > "$dir/src/backend.ts" <<'TS'
+import { invoke } from "@tauri-apps/api/core";
+import { IN_TAURI } from "@nexis/design";
+
+/**
+ * Call a Rust command. In a browser (no Tauri) it resolves `fallback` when one
+ * is given, and rejects with a plain message when not, so a view can show
+ * its error state instead of dying.
+ */
+export async function call<T>(command: string, args?: Record<string, unknown>, fallback?: T): Promise<T> {
+  if (!IN_TAURI) {
+    if (fallback !== undefined) return fallback;
+    throw new Error(`"${command}" needs the desktop app`);
+  }
+  try {
+    return await invoke<T>(command, args);
+  } catch (e) {
+    throw e instanceof Error ? e : new Error(String(e));
+  }
+}
+
+export type AppInfo = { name: string; version: string };
+export const appInfo = () => call<AppInfo>("app_info", undefined, { name: "browser", version: "0.0.0" });
+TS
+
+# The template, with its name, title and logo made this app's.
 title="$(grep -o 'title="[^"]*"' "$src" | head -1 | sed 's/title="//; s/"$//')"
 {
   header "//"
   echo "//"
   echo "// Started from the @nexis/design \`$template\` template."
   # Drop the template's own 4-line banner box.
-  # The template's Nexis mark becomes this app's own mark (RULES §17).
+  # The template uses the generated AppLogo wrapper (RULES §17).
   tail -n +5 "$src" | sed \
     -e "s#<NexisMark className=\"\([^\"]*\)\" />#<AppLogo className=\"\1\" />#g" \
     -e "/^  NexisMark,\$/d"
 } > "$dir/src/App.tsx"
-if [[ -n "$title" ]]; then
-  sed -i "s/title=\"$title\"/title=\"$display\"/" "$dir/src/App.tsx"
-fi
-if grep -q "<AppLogo" "$dir/src/App.tsx"; then
-  sed -i '0,/^import /s//import { AppLogo } from ".\/AppLogo";\nimport /' "$dir/src/App.tsx"
-fi
+node --input-type=module - "$dir_native/src/App.tsx" "$title" "$display" "$template" <<'JS'
+import { readFileSync, writeFileSync } from "node:fs";
+const [, , path, title, display, template] = process.argv;
+let source = readFileSync(path, "utf8");
+if (title) source = source.replace(`title="${title}"`, `title="${display}"`);
+if (source.includes("<AppLogo")) {
+  source = source.replace(/^import /m, 'import { AppLogo } from "./AppLogo";\nimport ');
+}
+if (template === "settings-deep") source = source.replace("deep = false", "deep = true");
+writeFileSync(path, source);
+JS
+
+mkdir -p "$dir/.github/workflows"
+cp "$here/scripts/release.yml" "$dir/.github/workflows/release.yml"
 
 # ── src-tauri ───────────────────────────────────────────────────────────────
 crate="$(echo "$name" | tr '-' '_')"
@@ -302,6 +377,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-os = "2"
+serde = { version = "1", features = ["derive"] }
 TOML
 
 { header "//"; cat <<'RS'
@@ -324,6 +400,8 @@ RS
 } > "$dir/src-tauri/src/main.rs"
 
 { header "//"; cat <<'RS'
+
+mod commands;
 
 #[cfg(target_os = "linux")]
 fn is_nvidia() -> bool {
@@ -357,11 +435,38 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
+        // Every #[tauri::command] must be listed here, or invoke() fails at
+        // runtime. `nexis-design-check` compares this list with the frontend.
+        .invoke_handler(tauri::generate_handler![commands::app_info])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 RS
 } > "$dir/src-tauri/src/lib.rs"
+
+cat > "$dir/src-tauri/src/commands.rs" <<'RS'
+// The app's Rust commands. Each is `#[tauri::command]`, takes owned/serde
+// arguments, and returns a serde type or `Result<T, String>` (the Err string
+// becomes the Error that src/backend.ts throws). Register it in
+// `generate_handler!` in lib.rs and call it with `call("name")` from the
+// frontend. Long work belongs on a thread or an async fn, with progress as
+// events (docs/BACKEND.md).
+use serde::Serialize;
+
+#[derive(Serialize)]
+pub struct AppInfo {
+    name: String,
+    version: String,
+}
+
+#[tauri::command]
+pub fn app_info() -> AppInfo {
+    AppInfo {
+        name: env!("CARGO_PKG_NAME").into(),
+        version: env!("CARGO_PKG_VERSION").into(),
+    }
+}
+RS
 
 window_base='"title": "'"$display"'", "width": 1280, "height": 820, "minWidth": 720, "minHeight": 480, "visible": false'
 cat > "$dir/src-tauri/tauri.conf.json" <<JSON
@@ -378,7 +483,10 @@ cat > "$dir/src-tauri/tauri.conf.json" <<JSON
   },
   "app": {
     "windows": [{ "label": "main", $window_base, "titleBarStyle": "Overlay", "hiddenTitle": true }],
-    "security": { "csp": null }
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: asset: http://asset.localhost; font-src 'self' data:; connect-src ipc: http://ipc.localhost; object-src 'none'; base-uri 'self'",
+      "devCsp": "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: ws://localhost:1420 http://localhost:1420 ipc: http://ipc.localhost asset: http://asset.localhost"
+    }
   },
   "bundle": { "active": true, "targets": "all", "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"] }
 }
@@ -418,11 +526,58 @@ cat > "$dir/src-tauri/capabilities/default.json" <<'JSON'
 }
 JSON
 
+# Wire the requested plugins in all three Rust-side places: Cargo.toml,
+# lib.rs and the capability file (the JS dependency is in package.json
+# already). One table, so the four never disagree; nexis-design-check fails
+# when they do.
+WITH="$with" DIR="$dir_native" node --input-type=module -e '
+import { readFileSync, writeFileSync } from "node:fs";
+const wanted = (process.env.WITH || "").split(",").filter(Boolean);
+if (wanted.length) {
+  const dir = process.env.DIR + "/src-tauri";
+  // One table: how each plugin is registered, what it needs in Cargo.toml and
+  // which permissions the capability gets. Every identifier here was read
+  // from the published plugin source (permissions/default.toml and
+  // autogenerated/), not remembered; `tauri_build` rejects an unknown one.
+  const TABLE = {
+    store: { init: "tauri_plugin_store::Builder::new().build()" },
+    dialog: {},
+    fs: { perms: ["fs:default", "fs:allow-appdata-write-recursive"] },
+    opener: {},
+    notification: {},
+    process: {},
+    "clipboard-manager": { perms: ["clipboard-manager:allow-read-text", "clipboard-manager:allow-write-text"] },
+    // No URL is allowed until the app names one: the placeholder fails
+    // nexis-design-check until it is replaced.
+    http: { perms: [{ identifier: "http:default", allow: [{ url: "https://REPLACE_ME.invalid/*" }] }] },
+    sql: { cargo: (p) => `tauri-plugin-${p} = { version = "2", features = ["sqlite"] }`, init: "tauri_plugin_sql::Builder::new().build()", perms: ["sql:default", "sql:allow-execute"] },
+    "global-shortcut": { init: "tauri_plugin_global_shortcut::Builder::new().build()", perms: ["global-shortcut:allow-register", "global-shortcut:allow-unregister", "global-shortcut:allow-is-registered"] },
+  };
+  const init = (p) => TABLE[p].init ?? `tauri_plugin_${p.replace(/-/g, "_")}::init()`;
+  const perms = (p) => TABLE[p].perms ?? [`${p}:default`];
+  const cargoLine = (p) => (TABLE[p].cargo ? TABLE[p].cargo(p) : `tauri-plugin-${p} = "2"`);
+
+  const cargo = readFileSync(dir + "/Cargo.toml", "utf8").trimEnd();
+  writeFileSync(dir + "/Cargo.toml", cargo + "\n" + wanted.map(cargoLine).join("\n") + "\n");
+
+  const lib = readFileSync(dir + "/src/lib.rs", "utf8");
+  const anchor = "        .plugin(tauri_plugin_os::init())\n";
+  if (!lib.includes(anchor)) throw new Error("new-app.sh: lib.rs anchor moved");
+  writeFileSync(dir + "/src/lib.rs", lib.replace(anchor, anchor + wanted.map((p) => `        .plugin(${init(p)})\n`).join("")));
+
+  const capPath = dir + "/capabilities/default.json";
+  const cap = JSON.parse(readFileSync(capPath, "utf8"));
+  cap.permissions.push(...wanted.flatMap(perms));
+  writeFileSync(capPath, JSON.stringify(cap, null, 2) + "\n");
+}
+'
+
 # Placeholder icons, the full desktop set, so `pnpm tauri dev` builds on the
 # first try (Windows needs icon.ico before it compiles anything). Replace
 # icon.png and run `pnpm icons`.
 cp "$here/assets/brand/nexis-logo.png" "$dir/src-tauri/icons/icon.png"
 mkdir -p "$dir/assets" && cp "$here/assets/brand/nexis-logo.svg" "$dir/assets/logo.svg"
+node "$here/bin/nexis-design.mjs" brand banner "$display" --out "$dir_native/assets/banner.svg" >/dev/null
 cp "$here/templates/icons/"* "$dir/src-tauri/icons/"
 
 # The workspace's brand mark, for the README footer.
@@ -433,35 +588,63 @@ cat > "$dir/AGENTS.md" <<MD
 
 A Nexis-family desktop app: Tauri v2 + React 19 + Tailwind v4 on
 [@nexis/design](https://github.com/rwetz/nexis-design), started from the
-\`$template\` template.
+\`$template\` template. Plugins wired: ${with:-none}.
 
-Read @nexis/design's AGENTS.md (node_modules/@nexis/design/AGENTS.md): the
-rules (§2) and the API cheat sheet (§3) apply here unchanged. In short:
-colours only from tokens (\`bg-card\`, \`text-muted-foreground\`, \`bg-brand\`),
-one accent, icons only via \`<Icon name="..." />\`, motion only from the house
-tokens, every action in the \`CommandPalette\`, no emoji, no em dashes.
+Read these before changing UI, in this order. They are in the installed package:
 
-- \`src/App.tsx\`: the app (from the template). Replace the fixture data at the
-  bottom with the real source; keep the shell.
-- \`src/AppLogo.tsx\`: this app's mark. Make it yours.
-- \`src-tauri/\`: window chrome config; see @nexis/design docs/SCAFFOLDING.md.
-  Replace \`src-tauri/icons/icon.png\` and run \`pnpm icons\`.
-- Dev server: port $port (\`vite.config.ts\` and \`devUrl\` in
-  \`src-tauri/tauri.conf.json\`; change both together).
+1. \`node_modules/@nexis/design/AGENTS.md\`: the rules (§2) and the API cheat
+   sheet (§3, compile-checked: copy prop names from it).
+2. \`node_modules/@nexis/design/docs/RULES.md\`: numbered rules, layout
+   patterns, which overlay to use, the control for each idea, sizes to check.
+3. \`node_modules/@nexis/design/docs/BACKEND.md\`: Rust commands, plugins,
+   capabilities, persistence, long jobs.
+4. \`node_modules/@nexis/design/docs/BRANDING.md\`: confirm the icon background
+   and heptagram color with the user. Keep \`AppLogo\` as the shared mark
+   and reuse the background and color in \`assets/banner.svg\`.
 
-Something in @nexis/design missing or wrong? Log it in nexis-design's
-\`docs/SCAFFOLD-ISSUES.md\` (scaffolding) or \`docs/APP-FINDINGS.md\` (components
-and rules) instead of patching \`node_modules\`.
+In short: colours only from tokens, one accent (\`brand\`), icons only via
+\`<Icon name>\`, Inter only, sizes from the type list, selection is neutral,
+every action in the \`CommandPalette\`, no emoji, no em dashes in text, window
+and backend APIs only behind \`IN_TAURI\` (use \`src/backend.ts\`).
 
-Verify: \`pnpm build\` (typecheck + bundle), then \`pnpm tauri dev\` and look at
-every screen in light and dark and one other theme.
+## Layout of this app
+
+- \`src/App.tsx\`: the app, from the template. Replace the fixture data at the
+  bottom with the real source; keep the shell (title bar, status bar, palette).
+- \`src/backend.ts\`: the one door to Rust. \`call("command", args, fallback)\`.
+  Works in a browser (returns the fallback) so headless checks still run.
+- \`src/AppLogo.tsx\`: the shared Nexis heptagram in chrome.
+- \`src-tauri/src/commands.rs\`: Rust commands. A new one is three edits: the
+  fn with \`#[tauri::command]\`, its name in \`generate_handler![…]\` in
+  \`lib.rs\`, and a \`call("name")\` in the frontend.
+- \`src-tauri/capabilities/default.json\`: what the window may do. A new
+  plugin is four edits (npm dep, Cargo dep, \`.plugin(…)\` in lib.rs, a
+  permission here). \`pnpm check\` fails if one is missing.
+
+## Definition of done
+
+\`\`\`bash
+pnpm verify      # nexis-design-check (rules + Tauri wiring), tsc, vite build
+\`\`\`
+
+Then run it and look: \`pnpm dev\` in a browser (headless screenshots work, the
+backend returns its fallbacks) or \`pnpm tauri dev\`. With \`pnpm dev\` running,
+\`pnpm look\` opens it at 1024x768 up to 3840x2160, dark and light, and reports
+console errors, sideways scroll, clipped text, small targets and unnamed
+controls; open its screenshots too. Then every screen on one other theme and
+high contrast.
+Every list has a loading, an empty and an error state. Report what you
+verified by looking and what you could not (native chrome per OS, the Rust
+build without WebKitGTK).
+
+First run: \`pnpm install && pnpm tauri icon src-tauri/icons/icon.png && pnpm tauri dev\`.
 MD
 
 printf '@AGENTS.md\n' > "$dir/CLAUDE.md"
 
 cat > "$dir/README.md" <<MD
 <p align="center">
-  <img src="assets/logo.svg" alt="$display logo" width="128">
+  <img src="assets/banner.svg" alt="$display logo" width="500">
 </p>
 
 <h1 align="center">$display</h1>
@@ -525,8 +708,8 @@ echo "  cd $dir"
 echo "  pnpm install"
 echo "  pnpm tauri dev"
 echo
-echo "Still to do: draw src/AppLogo.tsx and assets/logo.svg, replace"
-echo "src-tauri/icons/icon.png and run 'pnpm icons', take docs/main.png."
+echo "Branding: confirm the icon background and heptagram color with the user."
+echo "Starter icon and README banner are ready. See docs/BRANDING.md in @nexis/design."
 echo
 echo "Preview entry for a .claude/launch.json:"
 echo "  { \"name\": \"$short\", \"runtimeExecutable\": \"pnpm\", \"runtimeArgs\": [\"--dir\", \"$dir_native\", \"dev\"], \"port\": $port }"

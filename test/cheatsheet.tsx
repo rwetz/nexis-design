@@ -7,17 +7,17 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
   Alert, AlertDescription, AlertTitle,
   Avatar, Badge, BarChart, Button, CallChip, Calendar, Checkbox, IconWeightProvider, useEdgeFade,
-  type Column, CommandPalette, DataTable, DatePicker, dates,
+  type Column, Combobox, CommandPalette, DataBoundary, DataTable, DatePicker, dates,
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuSub,
   DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
-  Empty, EmptyDescription, EmptyHeader, EmptyTitle,
+  Empty, EmptyDescription, ErrorBoundary, EmptyHeader, EmptyTitle,
   Field, fmtShortcut, GlidingTabs, Heatmap, Icon, Input, LineChart, Meter, MOD_KEY, NumberInput,
   Pagination, Panel, PropertyList, ResultArrival, SceneEnter, ViewEnter, ContentEnter, SectionLabel, Segmented,
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-  Sheet, SheetContent, SheetHeader, SheetTitle, SHIFT_KEY,
+  Sheet, SheetContent, SheetHeader, SheetTitle, SHIFT_KEY, Skeleton,
   SidebarNav, Sparkline, Spinner, Stat, StatusBar, StatusDot, StatusItem, Steps, Switch,
   ThoughtLine, Timeline, TitleBar, toast, Toolbar, ToolbarSpacer, Tooltip, TooltipContent, TooltipTrigger,
-  Tree, type TreeNode, useCommandPaletteShortcut, useTheme, VirtualList, WindowResizeEdges,
+  Tree, type TreeNode, useCommandPaletteShortcut, useLoad, useTheme, VirtualList, WindowResizeEdges,
   ActiveFilters, CardBadge, EMPTY_FILTERS, RangeInput, type Facet, FilterPanel, type FilterState, PriceTag, ProductCard, Shelf,
   SettingRow, SettingsGroup, SettingsPage, SettingsTree, settingsTreeNodes, type SettingsChapter, ThumbnailCard, ThumbnailGrid,
   CardTilt, CollectionCard, DonutChart, NexisMark, ProportionBar, SkeletonCard, SkeletonGroup, SkeletonRow, SkeletonText,
@@ -39,11 +39,13 @@ export function Cheatsheet() {
   const [sel, setSel] = React.useState<string | null>(null);
   const [expanded, setExpanded] = React.useState<Set<string>>(() => new Set(["src"]));
   const [n, setN] = React.useState(8);
+  const [choice, setChoice] = React.useState<string | null>("atlas");
   const [day, setDay] = React.useState<dates.CalendarDate | null>(dates.date(2026, 10, 7));
   const [filters, setFilters] = React.useState<FilterState>(EMPTY_FILTERS);
   const [chapter, setChapter] = React.useState<[string, string | null]>(["look", null]);
   const theme = useTheme();
   const fade = useEdgeFade<HTMLDivElement>("x");
+  const { state: loaded, reload } = useLoad(async () => rows, []);
   useCommandPaletteShortcut(() => setOpen((o) => !o));
 
   // Columns
@@ -101,6 +103,8 @@ export function Cheatsheet() {
         <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
         <SelectContent><SelectItem value="a">A</SelectItem></SelectContent>
       </Select>
+      <Combobox value={choice} onValueChange={setChoice} clearable placeholder="Project" searchPlaceholder="Search projects"
+        options={[{ value: "atlas", label: "Atlas", keywords: ["maps"] }, { value: "press", label: "Press" }]} />
       <DatePicker selected={day} onSelect={setDay} min={dates.today()} />
       <Calendar selected={day} onSelect={setDay} weekStartsOn={1} />
       <Accordion type="single" collapsible>
@@ -157,6 +161,15 @@ export function Cheatsheet() {
             run: () => theme.setMode(theme.resolvedMode === "dark" ? "light" : "dark") },
         ]}
       />
+
+      <ErrorBoundary label="Log view" resetKey={sel} onError={() => {}}>
+        <p>content</p>
+      </ErrorBoundary>
+
+      <DataBoundary state={loaded} onRetry={reload} noun="services" empty={<Empty><EmptyHeader><EmptyTitle>No services</EmptyTitle></EmptyHeader></Empty>}>
+        {(data) => <p>{data.length} services</p>}
+      </DataBoundary>
+      {loaded.status === "ready" ? <Panel title="Loaded" meta={String(loaded.data.length)} actions={<Button size="xs" onClick={reload}>Retry</Button>}>ok</Panel> : <Skeleton className="h-8 w-full" />}
 
       {/* Navigation */}
       <GlidingTabs label="Request" value="body" onChange={() => {}} tabs={[{ id: "body", label: "Body" }, { id: "auth", label: "Auth", icon: "lock" }]} />

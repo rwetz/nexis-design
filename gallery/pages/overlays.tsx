@@ -20,6 +20,7 @@ import {
   ContextMenuTrigger,
   Dialog,
   DialogContent,
+  DialogClose,
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -67,6 +68,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  toast,
 } from "@nexis/design";
 import { Demo, Grid, Page, Row } from "../kit";
 
@@ -74,6 +76,11 @@ export function OverlaysPage() {
   const [wrap, setWrap] = React.useState(true);
   const [minimap, setMinimap] = React.useState(false);
   const [panel, setPanel] = React.useState("bottom");
+  const [workspace, setWorkspace] = React.useState("nexis-design");
+  const [name, setName] = React.useState(workspace);
+  const [renameOpen, setRenameOpen] = React.useState(false);
+  const [branches, setBranches] = React.useState(["feature/rail", "fix/contrast", "wip/orbs"]);
+  const [incidentAcked, setIncidentAcked] = React.useState(false);
 
   return (
     <Page
@@ -226,10 +233,13 @@ export function OverlaysPage() {
 
         <Demo title="Dialogs" meta="dialog · confirm · sheet">
           <Row>
-            <Dialog>
+            <Dialog open={renameOpen} onOpenChange={(open) => {
+              if (open) setName(workspace);
+              setRenameOpen(open);
+            }}>
               <DialogTrigger asChild>
                 <Button variant="secondary" data-shot="dialog-trigger">
-                  Rename…
+                  Rename workspace…
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
@@ -237,19 +247,28 @@ export function OverlaysPage() {
                   <DialogTitle>Rename workspace</DialogTitle>
                   <DialogDescription>Shown in the title bar and the window switcher.</DialogDescription>
                 </DialogHeader>
-                <Field label="Name">
-                  <Input defaultValue="nexis-design" />
-                </Field>
-                <DialogFooter>
-                  <Button variant="ghost">Cancel</Button>
-                  <Button variant="brand">Rename</Button>
-                </DialogFooter>
+                <form className="grid gap-6" onSubmit={(event) => {
+                  event.preventDefault();
+                  const next = name.trim();
+                  if (!next || next === workspace) return;
+                  setWorkspace(next);
+                  setRenameOpen(false);
+                  toast.success(`Workspace renamed to ${next}`);
+                }}>
+                  <Field label="Workspace name" required>
+                    <Input value={name} onChange={(event) => setName(event.target.value)} />
+                  </Field>
+                  <DialogFooter>
+                    <DialogClose asChild><Button variant="ghost">Keep current name</Button></DialogClose>
+                    <Button variant="brand" type="submit" disabled={!name.trim() || name.trim() === workspace}>Rename workspace</Button>
+                  </DialogFooter>
+                </form>
               </DialogContent>
             </Dialog>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" data-shot="confirm-trigger">
-                  Delete…
+                <Button variant="outline" data-shot="confirm-trigger" disabled={branches.length === 0}>
+                  Delete local branches…
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -257,14 +276,20 @@ export function OverlaysPage() {
                   <AlertDialogMedia className="bg-destructive/12 text-destructive">
                     <Icon name="delete" size="xl" />
                   </AlertDialogMedia>
-                  <AlertDialogTitle>Delete 3 branches?</AlertDialogTitle>
+                  <AlertDialogTitle>Delete {branches.length} local branches?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    feature/rail, fix/contrast and wip/orbs will be deleted locally. Their remotes are untouched.
+                    {branches.join(", ")} will be removed from this demo.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Keep them</AlertDialogCancel>
-                  <AlertDialogAction variant="destructive">Delete</AlertDialogAction>
+                  <AlertDialogCancel>Keep branches</AlertDialogCancel>
+                  <AlertDialogAction variant="destructive" onClick={() => {
+                    const deleted = branches;
+                    setBranches([]);
+                    toast.success(`Deleted ${deleted.length} local branches`, {
+                      action: { label: "Restore branches", onClick: () => setBranches(deleted) },
+                    });
+                  }}>Delete local branches</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
@@ -277,7 +302,7 @@ export function OverlaysPage() {
               <SheetContent>
                 <SheetHeader>
                   <SheetTitle>search</SheetTitle>
-                  <SheetDescription>us-east-1 · degraded since 11:58</SheetDescription>
+                  <SheetDescription>{incidentAcked ? "Incident acknowledged" : "us-east-1 · degraded since 11:58"}</SheetDescription>
                 </SheetHeader>
                 <div className="px-4">
                   <PropertyList
@@ -291,7 +316,10 @@ export function OverlaysPage() {
                   />
                 </div>
                 <SheetFooter>
-                  <Button variant="brand">Acknowledge</Button>
+                  <Button variant="brand" disabled={incidentAcked} onClick={() => {
+                    setIncidentAcked(true);
+                    toast.success("Search incident acknowledged");
+                  }}>{incidentAcked ? "Incident acknowledged" : "Acknowledge incident"}</Button>
                 </SheetFooter>
               </SheetContent>
             </Sheet>

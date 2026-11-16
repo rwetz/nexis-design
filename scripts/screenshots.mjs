@@ -14,10 +14,10 @@ import { chromium } from "playwright-core";
 import { createServer } from "vite";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = resolve(ROOT, "docs/img");
+const OUT = resolve(process.env.SCREENSHOT_DIR ?? resolve(ROOT, "docs/img"));
 mkdirSync(OUT, { recursive: true });
 
-const CHROMIUM = process.env.CHROMIUM ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+const CHROMIUM = process.env.CHROMIUM;
 const W = 1440;
 const H = 900;
 
@@ -46,7 +46,7 @@ const SHOTS = [
     route: "overview",
     q: { mode: "dark", theme: "ultraviolet" },
     act: async (p) => {
-      await p.keyboard.press("Control+Shift+P");
+      await p.keyboard.press(process.platform === "darwin" ? "Meta+Shift+P" : "Control+Shift+P");
       await p.waitForTimeout(250);
       await p.keyboard.type("templ");
       await p.waitForTimeout(300);
@@ -110,6 +110,7 @@ const SHOTS = [
   { name: "app-dashboard", route: "app/dashboard", q: { mode: "dark" } },
   { name: "app-workbench", route: "app/workbench", q: { mode: "dark", theme: "halcyon" } },
   { name: "app-settings", route: "app/settings", q: { mode: "light", theme: "aurelian" } },
+  { name: "app-settings-deep", route: "app/settings-deep", q: { mode: "light", theme: "aurelian" } },
   { name: "app-explorer", route: "app/explorer", q: { mode: "light" } },
   { name: "app-console", route: "app/console", q: { mode: "dark", theme: "cinder" } },
   {
@@ -133,8 +134,12 @@ const base = server.resolvedUrls.local[0];
 const browser = await chromium.launch({ executablePath: CHROMIUM });
 let failed = 0;
 for (const s of SHOTS.filter((x) => !filter || x.name.includes(filter))) {
-  const ctx = await browser.newContext({ viewport: { width: W, height: s.h ?? H }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({
+    viewport: { width: W, height: s.h ?? H },
+    deviceScaleFactor: 1, locale: "en-US", timezoneId: "UTC",
+  });
   const page = await ctx.newPage();
+  await page.clock.setFixedTime(new Date("2026-10-07T12:00:00Z"));
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const q = new URLSearchParams({ ...s.q, shot: "1", ...(s.still === false ? {} : { still: "1" }) });
@@ -142,7 +147,7 @@ for (const s of SHOTS.filter((x) => !filter || x.name.includes(filter))) {
   await page.evaluate(() => document.fonts.ready);
   await page.waitForTimeout(500);
   if (s.act) await s.act(page);
-  await page.screenshot({ path: resolve(OUT, `${s.name}.png`) });
+  await page.screenshot({ path: resolve(OUT, `${s.name}.png`), animations: s.still === false ? "allow" : "disabled" });
   if (errors.length) {
     failed++;
     console.error(`✗ ${s.name}: ${errors.join("; ")}`);

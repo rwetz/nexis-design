@@ -6,7 +6,7 @@ you need; the API cheat sheet is exact (it is compiled: `test/cheatsheet.tsx`),
 so copy from it rather than guessing prop names.
 
 - **Nexis Design** = the design system of the Nexis app family: tokens, 22
-  themes and the engine that applies them, ~70 React components, the motion
+  themes and the engine that applies them, ~70 React components (plus the layout patterns of RULES §4), the motion
   vocabulary, borderless window chrome and the cursor set. Tauri v2 + React
   19 + Tailwind v4 only.
 - **Not for** native GPUI apps (that is
@@ -18,15 +18,26 @@ so copy from it rather than guessing prop names.
 
 ```bash
 # from a checkout of nexis-design
-scripts/new-app.sh nexis-<thing> <template> [dir]
+scripts/new-app.sh nexis-<thing> <template> [dir] [--with store,dialog]
 cd ../nexis-<thing> && pnpm install && pnpm tauri icon src-tauri/icons/icon.png && pnpm tauri dev
 ```
+
+`--with` wires Tauri plugins end to end (npm dep, Cargo dep, `lib.rs`,
+capability): `store dialog fs opener notification clipboard-manager process
+http sql global-shortcut` (`http` ships a placeholder URL scope that
+`pnpm check` fails on until you name the origin; `updater` is manual).
+Decide them up front from what the app does: it needs `dialog` to open or
+save a file, `store` to remember settings, `fs` or a Rust command to read what
+it opened, `notification` for alerts, `clipboard-manager` for copy actions.
+Anything else: [docs/BACKEND.md](docs/BACKEND.md) §3.
 
 `new-app.sh` writes a complete Tauri v2 project: `package.json` (the package
 pinned by git rev + exactly its peers), the no-flash `index.html`, `main.tsx`
 with the providers, the template as `src/App.tsx` with its title renamed, a
-starter `AppLogo.tsx`, `src-tauri/` with the chrome config for all three
-platforms, and an `AGENTS.md` for the new app. The git pin only resolves once
+starter `AppLogo.tsx`, `src/backend.ts` (the one door to Rust, with browser
+fallbacks), `src-tauri/` with the chrome config for all three platforms and a
+registered example command, the `check` and `verify` scripts, and an
+`AGENTS.md` for the new app. The git pin only resolves once
 the rev is pushed; to work against a local checkout use
 `NEXIS_PATH=/path/to/nexis-design scripts/new-app.sh …`.
 
@@ -37,6 +48,7 @@ the rev is pushed; to work against a local checkout use
 | `dashboard` | sidebar · toolbar · KPI stats · live chart · sortable table · details sheet · incidents | monitoring, analytics, fleet/system status, finance, home-lab |
 | `workbench` | resizable split: tree · tabs · virtualised document · inspector | editors, notes, IDE-likes, asset browsers, API clients, git clients |
 | `settings` | sidebar sections · inline fields · draft with save/discard · destructive confirm | preferences windows, config tools, admin consoles |
+| `settings-deep` | settings chapters and groups · search · palette deep links | settings with many groups |
 | `explorer` | search + filters toolbar · paginated sortable table · details sheet | CRUD/admin panels, issue trackers, CRMs, database browsers, inventories |
 | `console` | filtered virtual log · follow-tail · level toggles · command prompt · job chip | log viewers, REPLs, job runners, serial monitors, chat transcripts |
 | `wizard` | centred steps · validated pages · progress · done | installers, onboarding, setup and export flows |
@@ -44,6 +56,10 @@ the rev is pushed; to work against a local checkout use
 
 See them running first: `pnpm dev` in this repo, then **App templates** in
 the sidebar (or `#/app/<template>`).
+
+For identity decisions use [BRANDING.md](docs/BRANDING.md). Match an app to
+one reference and keep the heptagram geometry. Ask the user about the
+icon background and mark color before finalizing the artwork.
 
 ### Recipes for app types without a template
 
@@ -91,6 +107,53 @@ Combine templates; every piece below is in the package.
   lands.
 - **Kanban / tracker**: `explorer` data + columns of `Panel`s with `Item`
   cards; `Badge` tones for status; `Sheet` for details.
+- **Notes / markdown editor**: `workbench`: `Tree` of notes, tabs, an editor
+  in the document pane, `PropertyList` for metadata in the inspector. An editor
+  (CodeMirror, ProseMirror) is the app's own dependency: import
+  `globals.ide.css` instead of `globals.css` and read PITFALLS 9. Save with
+  `store` or a Rust command to a file the user chose (BACKEND §4).
+- **Terminal / REPL**: `console` for a command log; a real PTY is xterm.js plus
+  a Rust PTY command and `globals.ide.css`; theme it from tokens on
+  `paletteEpoch`.
+- **Launcher / quick-action / menubar utility**: `minimal` where the
+  `CommandPalette` is the main surface (open it by default, `Dialog`-style
+  centred, no sidebar). A tray icon needs Tauri's `tray-icon` feature and
+  Rust, not covered by the scaffold; keep the window small and hide it on blur.
+- **Mail / feed / RSS reader**: `workbench` in three columns: `SidebarNav` of
+  folders (unread as `meta`), a `VirtualList` of items, the open item as
+  prose at `max-w-prose`. Unread is `font-medium` plus a neutral dot, not a
+  colour.
+- **Calendar / planner**: `Calendar` for the month, `Timeline` for the day,
+  `Sheet` + `Field`s to edit; events are `Item`s with a `Badge` for the
+  category (tones only).
+- **Image / design / creative tool**: `workbench` with the canvas as the
+  document; the inspector is `PanelSection`s of `ControlRow`s; assets in a
+  `ThumbnailGrid`; previews are the real render (RULES R9).
+- **Database / data browser**: `explorer` for the rows, `workbench`'s tree for
+  schemas, `Combobox` for picking a table, `DataTable` sorting server-side
+  (`sort`/`onSortChange`).
+- **Form-heavy business app (invoices, inventory, CRM)**: `explorer` for the
+  list, a `Sheet` or full page of `Field`s for the record (RULES R4.8),
+  `Steps` when the record has more than one stage, `AlertDialog` for delete.
+- **Installer / setup / export flow**: `wizard`; the last page is the result,
+  with a `CallChip`/`Progress` while it runs (BACKEND §5).
+
+### The build loop
+
+1. **Pick** the template and the plugins from the app's shape (above), and
+   scaffold. Run `pnpm install`, `pnpm tauri icon`, and `pnpm verify` once
+   before touching anything: it must be clean.
+2. **Contract first.** Write the types for the app's data and the list of Rust
+   commands (name, arguments, result) before any screen. Put them in
+   `src/backend.ts` as typed wrappers over `call(…, fallback)` with believable
+   fallbacks, so every screen can be built and looked at in a browser.
+3. **Screens.** Replace fixtures with `useLoad(…)` (BACKEND §2) and give every
+   data view its four states (RULES R7.3). Actions go in the palette as you
+   add them.
+4. **Rust.** Implement the commands, register them, add plugins if the check
+   says one is missing. `cargo check` on a desktop.
+5. **Verify.** `pnpm verify`, then look (§5). Fix what the check names rather
+   than silencing it.
 
 ---
 
@@ -116,7 +179,7 @@ this list and RULES.md disagree, RULES.md wins.
    `destructive` (`Badge`, `StatusDot`, `text-success`). They are the theme's
    ANSI roles.
 5. **Icons only via `<Icon name="…" />`**, sizes `xs sm md lg xl`, `active`
-   for selected, bold beside `font-medium` text (R7.3), `swap` when a user
+   for selected, bold beside `font-medium` text (R7.5), `swap` when a user
    action changes the glyph (R8.4). Never import `@phosphor-icons/react` (or any icon library)
    directly; add a name to `src/icon/icon.tsx` if the idea has none.
    **No emoji, anywhere.** Both tripwired.
@@ -157,6 +220,28 @@ this list and RULES.md disagree, RULES.md wins.
     for an aside, parentheses for a list, a period between two sentences,
     `·` between parts of a title ("Epoch · Nexis") and `–` for "no value" in
     a cell. Code comments are exempt. Tripwired.
+14. **Space and size:** the 4px grid; named spaces `gap-inline` / `gap-row` /
+    `gap-group` / `mt-section` / `px-gutter` / `p-page`; fixed heights are
+    48 (title bar, toolbar, panel header), 28 (status bar), 32 (control in a
+    panel), 36 (in a dialog), 32 and 28 (rows). Everything is in rem, so the
+    interface scale (RULES R2) moves it together; never `zoom`.
+15. **Use the pattern's component** (RULES R4): `SettingsLayout` for settings,
+    `PanelSection` + `ControlRow` for inspectors, `ThumbnailGrid` / `Strip` for
+    galleries. If you are hand-building one, stop.
+16. **Pick the overlay by the job** (RULES R5): `Select` for up to 12,
+    `Combobox` beyond, `DropdownMenu` for actions, `Popover` to adjust,
+    `AlertDialog` to confirm a destructive act, `Dialog` for a short blocking
+    task (6 fields at most), `Sheet` for a side panel, `toast` for finished
+    background work.
+17. **Every data view has four states** (RULES R7.3): `Skeleton`, `Empty` with
+    one action, an `Alert` with Retry, and the data. Reversible actions toast
+    with Undo; irreversible ones ask in an `AlertDialog` (R7.4). Forms:
+    RULES R4.8.
+18. **The backend** (docs/BACKEND.md): reach Rust only through
+    `src/backend.ts`; a command is the fn, its `generate_handler!` entry and
+    a wrapper; a plugin is four edits; nothing slow on the main thread;
+    narrowest permissions; data in the right home. `pnpm check` fails on the
+    ones it can see.
 
 ---
 
@@ -177,7 +262,7 @@ export default function App() {
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <WindowResizeEdges />                                    {/* Linux only; self-gating */}
-      <TitleBar brand={<AppLogo className="size-[18px] text-brand" />} title="My App" center={…} actions={…} />
+      <TitleBar brand={<AppLogo className="size-[18px] text-foreground" />} title="My App" center={…} actions={…} />
       <div className="flex min-h-0 flex-1">
         <SidebarNav value={page} onChange={setPage} collapsed={false}
           sections={[{ title: "Monitor", items: [{ id: "overview", label: "Overview", icon: "home", meta: 3 }] }]} />
@@ -204,7 +289,7 @@ export default function App() {
 <Button variant="brand|default|secondary|outline|ghost|destructive|link|arrow" size="xs|sm|default|lg|icon-xs|icon-sm|icon|icon-lg">
 <Button variant="ghost" size="icon-sm" aria-label="Refresh"><Icon name="refresh" /></Button>   // icon-only: label the button
 <Icon name={copied ? "check" : "copy"} swap />   // a glyph a user action changes blurs through (R8.4)
-<IconWeightProvider weight="bold">…</IconWeightProvider>   // icons beside font-medium text in a hand-built control (R7.3)
+<IconWeightProvider weight="bold">…</IconWeightProvider>   // icons beside font-medium text in a hand-built control (R7.5)
 <Badge variant="brand|success|warning|info|destructive|secondary|outline">ok</Badge>
 <StatusDot tone="neutral|brand|success|warning|info|danger" live />
 <Meter label="cpu" value={0.49} warnAt={0.75} dangerAt={0.9} />      <Progress value={64} />
@@ -230,7 +315,7 @@ export default function App() {
 <SettingsTree nodes={settingsTreeNodes(SETTINGS)} chapter={c} section={s} onSelect={(c, s) => …} openAll={searching} />
 findSettings(query, SETTINGS)  locateSetting("Mode", SETTINGS)   // SettingsPage/Group/Row take id and data-*; SettingsPage titleClassName, inset={false}
 const data = await fetchJson<Data>("/data/x.json")              // rejects on a missing file, even Vite's 200 text/html fallback
-const fade = useEdgeFade<HTMLDivElement>("x"); <div ref={fade.ref} style={fade.style} className="overflow-x-auto">…</div>   // any other sideways scroller (R4.8)
+const fade = useEdgeFade<HTMLDivElement>("x"); <div ref={fade.ref} style={fade.style} className="overflow-x-auto">…</div>   // any other sideways scroller (R4.9)
 <Strip>{cards}</Strip>   <ColorPicker label="Ink" value="#163a70" onChange={set} swatches={others} />
 <ListPresence>{rows.map((r) => <PresenceItem key={r.id}>…</PresenceItem>)}</ListPresence>
 
@@ -238,7 +323,11 @@ const fade = useEdgeFade<HTMLDivElement>("x"); <div ref={fade.ref} style={fade.s
 <Field label="Name" required hint="…" error={msg | null} inline?><Input … /></Field>   // wires id/aria for the child
 <NumberInput value={n} onChange={setN} min={1} max={64} step={1} decimals={0} suffix="ms" />
 <Select value={v} onValueChange={…}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="a">A</SelectItem></SelectContent></Select>
+<Combobox value={id} onValueChange={setId} clearable placeholder="Project" searchPlaceholder="Search projects"
+  options={[{ value: "atlas", label: "Atlas", keywords: ["maps"] }]} />     // long or searchable list; Select is for 12 or fewer
 <DatePicker selected={d} onSelect={setD} min={dates.today()} />      <Calendar selected={d} onSelect={setD} weekStartsOn={1} />
+<DateRangePicker value={range} onChange={setRange} min={dates.today()} />
+<Combobox label="Region" options={options} value={region} onValueChange={setRegion} />
 // dates.date(2026, 10, 7)  dates.addDays(d, n)  dates.addMonths(d, n)  dates.iso(d)  dates.parseIso(s)
 <Accordion type="single" collapsible><AccordionItem value="a"><AccordionTrigger meta="3">General</AccordionTrigger><AccordionContent>…</AccordionContent></AccordionItem></Accordion>
 <Accordion type="multiple" defaultValue={["a", "b"]}>…</Accordion>   // several open at once; meta={2} shows a count
@@ -270,6 +359,7 @@ const columns: Column<Row, "name" | "rps">[] = [
 <DataTable label="Services" columns={columns} rows={rows} rowKey={(r) => r.id} defaultSort={{ key: "rps", dir: "desc" }}
   selected={sel} onSelect={setSel} density="compact" />               // sort/onSortChange to control it (server-side)
 <Tree label="Files" nodes={[{ id, label, icon?, meta?, children? }]} expanded={set} onExpandedChange={setSet} selected={id} onSelect={(id, node) => …} />
+// DataTable and Tree accept selection={keys} onSelectionChange={setKeys}. For a bounded table viewport, add virtual={{}}.
 <VirtualList label="Log" count={n} rowHeight={24} follow renderRow={(i) => …} className="h-64" />
 <PropertyList items={[{ label: "pid", value: "4412", mono: true }]} />
 <Avatar name="Ada Lovelace" size={28} presence="online|away|busy|offline" />   <AvatarStack names={[…]} />
@@ -287,6 +377,12 @@ const columns: Column<Row, "name" | "rps">[] = [
 <SkeletonGroup label="Loading services"><SkeletonRow /><SkeletonText lines={3} /><SkeletonCard aspect="portrait" /></SkeletonGroup>
 <CardTilt foil? enter? />   // once, near the root, in a browsing app (RULES R8.3); then <ProductCard tilt foil? media? aspect={1.5} …/>, <Shelf enter>, <CollectionCard name count covers tone? />
 <NexisMark className="size-[18px]" />   // the heptagram in currentColor (RULES §17)
+
+// Failure and loading
+<DataBoundary state={state} onRetry={reload} noun="issues" empty={<Empty>…one action…</Empty>}>{(rows) => <DataTable … />}</DataBoundary>
+<ErrorBoundary label="Log view" resetKey={fileId} onError={report}>…</ErrorBoundary>   // root of the app, and around any view of external data
+<Skeleton className="h-8 w-full" />                                                    // loading: the content's shape, never a lone spinner
+const { state, reload } = useLoad(() => call<Row[]>("list_rows", {}, FIXTURE), []);   // state.status: "loading" | "error" (state.error) | "ready" (state.data)
 
 // Framing, motion
 <Panel title="Services" meta="8" actions={…} flush>…</Panel>   <SectionLabel>Danger zone</SectionLabel>
@@ -341,6 +437,20 @@ ultraviolet synthwave tokyo-night catppuccin nord gruvbox rose-pine`.
   path in a `file:` dependency; use `file:../nexis-design` (PITFALLS §16).
 - **Port 1420 in use** → another app, or a Vite left from an aborted
   `pnpm tauri dev`; each app has its own port (docs/SCAFFOLDING.md Step 4).
+
+- **A Rust argument arrives missing** → JS keys are camelCase: `project_id` is
+  `{ projectId }` (BACKEND B1.3).
+- **The window freezes while a command runs** → a non-`async` command runs on
+  the main thread (B1.5).
+- **`invoke` says a command or plugin is not allowed/found** → a command is
+  missing from `generate_handler!`, or a plugin is missing one of its four
+  edits; `pnpm check` names which.
+- **A `Select` with 40 items** → `Combobox`. **A `Dialog` with 9 fields** → a
+  page or `wizard`.
+- **A page that is blank in the browser but works in Tauri** → a Tauri API
+  called outside `IN_TAURI`; use `src/backend.ts`.
+- **A release window is white and has no devtools** → a render error; wrap in
+  `ErrorBoundary` (the scaffold does at the root).
 - Pick a template that is close and delete; do not build a shell from
   scratch.
 
@@ -349,17 +459,34 @@ ultraviolet synthwave tokyo-night catppuccin nord gruvbox rose-pine`.
 ## 5. Verify before you call it done
 
 ```bash
-pnpm build               # tsc + vite
+pnpm verify              # nexis-design-check (rules + Tauri wiring) + tsc + vite build
 pnpm tauri dev           # look at it: every screen, dark and light, one other theme, high contrast
 ```
 
-**Headless (CI, a cloud container):** the frontend runs in any browser.
-`pnpm dev` and drive it with Playwright (Chromium is enough; Tauri APIs are
-gated off): `scripts/shot.mjs <url> <out.png>` in this repo is a one-file
-example. Look at the screenshot: overflow, a missing class, a wrong colour
-are only visible that way. The native chrome (traffic lights, real min/max,
-resize) can only be checked in `tauri dev` on each OS: say so if you could
-not.
+`pnpm look` is `nexis-design-look`: it opens the running app (`pnpm dev`) at
+1024x768 to 3840x2160, dark and light, writes a screenshot of each, and
+reports console errors, sideways scroll, elements outside the window, clipped
+text, text under 10px, targets under 24px and unnamed controls. It does not
+replace looking at the screenshots.
+
+`pnpm check` is the package's `nexis-design-check`: the tripwires in §2 over
+your `src/`, plus the Tauri wiring (plugins in all four places, every
+`call("x")` registered, the Linux override present). It exits 1 on errors;
+warnings (missing icons, no palette) do not fail. Fix what it names; a line
+that must break a rule on purpose carries `nexis-ok: <rule-id> <why>`.
+
+Look at it at the sizes in RULES §12 (1024x768 up to 3840x2160), not just
+your window. **Headless (CI, a cloud container):** the frontend runs in any
+browser. `pnpm dev` and drive it with Playwright (Chromium is enough; Tauri
+APIs are gated off and `call` returns its fallbacks):
+`scripts/shot.mjs <url> <out.png>` in this repo is a one-file example. Look at
+the screenshot: overflow, a missing class, a wrong colour are only visible
+that way. The native chrome (traffic lights, real min/max, resize) and the
+Rust build (`cargo check` needs WebKitGTK on Linux) can only be checked on a
+desktop: say so if you could not.
+
+Report: what you built, what `pnpm verify` said, what you saw, and what you
+could not check.
 
 ---
 
@@ -393,7 +520,7 @@ app has it. Existing apps pin a commit, so nothing reaches them by itself.
    app gets its own branch and PR that bumps the pin and does its **Apps
    must** lines. An unpinned app is pinned first. Nexis, the source of most
    components, takes the same fix in its own copy until it consumes this
-   package (ROADMAP Phase 1).
+   package.
 5. **Nothing is silently left behind.** An app that cannot take a change yet
    gets a line under that change in CHANGES.md saying why.
 
@@ -405,12 +532,15 @@ app has it. Existing apps pin a commit, so nothing reaches them by itself.
 - `pnpm test`: theme contrast floors for all 22 themes × 2 modes, the design
   rules (icon vendor, emoji, raw colours, stock palette, `animate-spin`,
   `motion.*`, every component exported), the logic of every component, every
-  template mounting, the cheat sheet mounting, 0.1 compatibility.
+  template mounting, the cheat sheet mounting, 0.1 compatibility, and
+  `design-check.test.ts`: every template scaffolded for real and run through
+  `nexis-design-check`, and each way of getting an app wrong named. A new
+  tripwire goes in both `test/design-rules.test.ts` and
+  `bin/nexis-design-check.mjs`.
 - A new component: [docs/COMPONENTS.md](docs/COMPONENTS.md#rules-for-writing-a-component):
   exported from `src/index.ts`, shown in the gallery, logic tested, added
   to the cheat sheet if it is common, screenshots regenerated.
-- A new theme: generate it with Nexis's `scripts/generate-theme-palettes.py`
-  and copy the file in; it must pass `themes.contrast.test.ts`. Add its folder
+- A new theme: generate it with `nexis-design theme new <id> --hue <degrees>`; it must pass `themes.contrast.test.ts`. Add its folder
   colour to `theme/folderColor.ts`.
 - A new icon: a semantic name in `REGISTRY` (one name per idea).
 - What changed and what it asks of apps: [docs/CHANGES.md](docs/CHANGES.md);

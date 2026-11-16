@@ -16,9 +16,10 @@
 
 ```bash
 # from a checkout of nexis-design
-scripts/new-app.sh nexis-<thing> <template> [dir]
+scripts/new-app.sh nexis-<thing> <template> [dir] [--with store,dialog]
 cd ../nexis-<thing>
 pnpm install
+pnpm verify                                  # rules + Tauri wiring + tsc + vite build
 pnpm tauri dev
 ```
 
@@ -55,8 +56,9 @@ nexis-<thing>/
 ├─ docs/brand/                 # heptagram marks for the footer
 ├─ public/cursors/             # synced by postinstall, gitignored
 ├─ src/
-│  ├─ main.tsx                 # providers, borderless flag, show-after-paint
+│  ├─ main.tsx                 # providers, ErrorBoundary, borderless flag, show-after-paint
 │  ├─ App.tsx                  # the template
+│  ├─ backend.ts               # call(): the one door to Rust, with browser fallbacks
 │  ├─ AppLogo.tsx              # your mark, make it yours
 │  └─ styles.css               # @import "@nexis/design/styles/globals.css"
 └─ src-tauri/
@@ -65,7 +67,8 @@ nexis-<thing>/
    ├─ tauri.linux.conf.json    # same, sizes repeated (PITFALLS §1)
    ├─ capabilities/default.json
    ├─ icons/                   # placeholder desktop set + icon.png source; `pnpm icons`
-   └─ src/lib.rs               # os plugin, NVIDIA/Wayland guard, GTK_CSD
+   └─ src/lib.rs               # os plugin, NVIDIA/Wayland guard, GTK_CSD, generate_handler!
+   └─ src/commands.rs          # app_info: the example command
 ```
 
 ---
@@ -93,7 +96,7 @@ pnpm add github:rwetz/nexis-design#<rev>
 pnpm add react react-dom radix-ui class-variance-authority clsx tailwind-merge \
   @phosphor-icons/react motion cmdk sonner react-resizable-panels @tanstack/react-virtual \
   @fontsource-variable/inter @fontsource-variable/geist-mono \
-  @tauri-apps/api @tauri-apps/plugin-os tailwindcss tw-animate-css shadcn
+  @tauri-apps/api @tauri-apps/plugin-os tailwindcss tw-animate-css
 pnpm add -D @tailwindcss/vite @vitejs/plugin-react
 ```
 
@@ -222,20 +225,21 @@ core:window:allow-set-focus             os:default
 Register `tauri_plugin_os::init()`, `IN_TAURI`, `IS_MAC` and
 `USE_CUSTOM_WINDOW_CONTROLS` come from it.
 
-## Step 8: Icons and logo ⚠
+## Step 8: Icons and logo
 
-```bash
-cp path/to/your-1024.png src-tauri/icons/icon.png && pnpm icons
+Confirm the tile background and heptagram color with the user using
+[BRANDING.md](BRANDING.md). Keep the shared mark in chrome. Adapt
+`assets/logo.svg`, export it at 1024×1024, and regenerate the platform icons.
+
+```sh
+cp path/to/icon-1024.png src-tauri/icons/icon.png
+pnpm icons
 ```
 
-`pnpm icons` runs `tauri icon` and removes the Android and iOS sets it also
-writes. The scaffold ships placeholder desktop icons, so the first build
-works before you draw yours.
-
-⚠ Before the first `cargo check`: `generate_context!` fails if the files in
-`bundle.icon` (or `../dist`) do not exist (PITFALLS §7). Draw `AppLogo.tsx` in
-the family grammar: 48×48, `rx=12` tile in `currentColor`, the mark in
-`var(--background)` (PITFALLS §5).
+The scaffold includes a working starter icon set and a README banner.
+Refresh the banner with `pnpm exec nexis-design brand banner` and the
+chosen title, background and mark color. The icon script replaces
+the desktop assets and removes the mobile sets emitted by Tauri.
 
 ## Step 9: Compose the root
 
@@ -250,7 +254,7 @@ export default function App() {
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
       <WindowResizeEdges />                                    {/* Linux only, self-gating */}
-      <TitleBar brand={<AppLogo className="size-[18px] text-brand" />} title="My App" />
+      <TitleBar brand={<AppLogo className="size-[18px] text-foreground" />} title="My App" />
       <div className="flex min-h-0 flex-1">
         <SidebarNav … />
         <main className="zoom-content min-w-0 flex-1">…</main>
@@ -294,3 +298,16 @@ pnpm tauri build
 - [ ] No raw colours, no emoji, no direct icon-vendor import.
 - [ ] Reduced-motion OS setting stops the motion.
 - [ ] `pnpm tauri build` produces a bundle with your icons and identifier.
+
+## Desktop releases
+
+Generated apps include `.github/workflows/release.yml`. Commit the
+generated app's `pnpm-lock.yaml` before running it. A manual run builds
+desktop bundles and archives each platform's complete bundle directory
+so permissions and symlinks are preserved in the GitHub Actions artifact. A `v*` tag also attaches the platform archives
+to a draft GitHub release. The workflow fails if a platform builds no
+bundles. Adapt the platform targets and signing setup to your app.
+
+Use `settings-deep` with `new-app.sh` for a settings app with chapter and
+group navigation. The same registry drives the tree, search and command
+palette throughout the template.

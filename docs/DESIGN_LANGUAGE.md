@@ -341,7 +341,7 @@ Linux/Windows Chromium bars break the chrome and macOS flashes its overlay bar
 during layout, and come back per-region via `ScrollArea` or the 3px
 `.nexis-scrollbar`.
 
-**Nexis-only:** the `SurfaceLayer` (animated WebGL backgrounds behind every
+**Optional:** the `SurfaceLayer` (animated WebGL backgrounds behind every
 pane, image backgrounds with blur) lives in Nexis, not here: it pulls in
 `ogl` and five shaders that most apps should not ship.
 

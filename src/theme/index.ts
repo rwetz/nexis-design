@@ -36,3 +36,5 @@ export type {
   ThemeMode,
   TerminalPalette,
 } from "./types";
+
+export { exportLumenPalette, importLumenPalette, type LumenPaletteExchange } from "./lumenExchange";

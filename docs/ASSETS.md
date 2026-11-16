@@ -53,11 +53,12 @@ set generated from the PNG, copied into every scaffolded app.
 
 ## Logos and app icons
 
-- **`src/AppLogo.tsx`** (`new-app.sh` writes it): starts as `<NexisMark />`.
-  An app with a mark of its own draws it here in `currentColor`, in the same
-  flat, single-weight line language as the heptagram (PITFALLS.md §5).
-- **`assets/logo.svg`**: the README's logo, starting as the tile.
-- **App icons**: generate the platform set from one 1024² source with
-  `pnpm tauri icon <source>.png`.
-- **Windows installer header**: supply your own image for
-  `bundle.windows.nsis.headerImage`, or drop the key.
+- `src/AppLogo.tsx` renders the shared heptagram in `currentColor`.
+- `assets/logo.svg` is the square launcher tile. `assets/banner.svg` is the
+  rectangular README masthead with the title, mark and shared background.
+- Export that SVG at 1024×1024 to `src-tauri/icons/icon.png` and run
+  `pnpm icons` to update the desktop icon set.
+- [Branding](BRANDING.md) defines the shared artwork, the choices to confirm
+  with the user, and the BibleLM and Vitrine references.
+- For the Windows installer header, set `bundle.windows.nsis.headerImage`
+  to the app's own artwork if it has one.

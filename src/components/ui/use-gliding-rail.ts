@@ -13,26 +13,16 @@
  * copies of a measuring hook is how the two stop agreeing about how fast the
  * rail moves.
  *
- * Measurement uses `offsetLeft`/`offsetTop` rather than
- * `getBoundingClientRect`. Those are already expressed relative to the
- * container (its nearest positioned ancestor), which is exactly the
- * coordinate space an absolutely-positioned rail draws in. Client rects would
- * additionally carry the app's ancestor CSS `zoom` and any scroll offset,
- * both of which would then have to be divided back out — the same class of
- * mistake as AGENTS.md pitfall #15.
- *
- * That also means **no positioned element may sit between the items and the
- * container**: `offsetTop` is relative to the nearest positioned ancestor,
- * so a `relative` wrapper around a group of items (a collapsible section in
- * a tree, say) puts the rail in the wrong place. Items themselves may be
- * `relative`; their wrappers stay `position: static`.
+ * Measure in layout pixels so the mark uses the same coordinate space as
+ * the buttons, regardless of ancestor zoom, scrolling, or entrance motion.
+ * A positioned wrapper contributes its offset and border to that space.
  *
  * Two rails can share one container (a highlight and a separate mark, as in
  * `SettingsTree`): attach a callback ref that calls both `setContainer`s.
  */
 
 import { useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 /** Offset and extent along the rail's axis, in container-relative pixels. */
 export type RailRect = { offset: number; extent: number };
@@ -81,60 +71,53 @@ export function useGlidingRail<Id>(
     else itemRefs.current.delete(id);
   }, []);
 
-  const measure = useCallback(
-    (id: Id | null): RailRect | null => {
-      if (id === null || id === undefined) return null;
-      const el = itemRefs.current.get(id);
-      if (!el) return null;
-      return axis === "horizontal"
-        ? { offset: el.offsetLeft, extent: el.offsetWidth }
-        : { offset: el.offsetTop, extent: el.offsetHeight };
-    },
-    [axis],
-  );
+  const measure = useCallback((el: HTMLElement): RailRect | null => {
+    const container = containerRef.current;
+    if (!container || !el.isConnected || el.getClientRects().length === 0) return null;
 
-  // Layout effects, so the rail never paints a frame at a stale position
-  // after the item set or the selection changes.
-  const measureContainer = useCallback(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    // The far edge of the last item, or the visible box if that is larger.
-    // Not `scrollWidth`: the indicator is itself an absolutely positioned
-    // child sized to this value, and abs-pos children count toward scroll
-    // overflow, so a strip would stay as wide as it ever was after shrinking.
-    let end = axis === "horizontal" ? el.clientWidth : el.clientHeight;
-    for (const item of itemRefs.current.values()) {
-      end = Math.max(
-        end,
-        axis === "horizontal"
-          ? item.offsetLeft + item.offsetWidth
-          : item.offsetTop + item.offsetHeight,
-      );
+    let offset = axis === "horizontal" ? el.offsetLeft : el.offsetTop;
+    let parent = el.offsetParent;
+    while (parent instanceof HTMLElement && parent !== container) {
+      offset += axis === "horizontal" ? parent.offsetLeft + parent.clientLeft : parent.offsetTop + parent.clientTop;
+      parent = parent.offsetParent;
     }
-    setContainerExtent(end);
+    if (parent !== container) return null;
+    return { offset, extent: axis === "horizontal" ? el.offsetWidth : el.offsetHeight };
   }, [axis]);
 
   useLayoutEffect(() => {
-    setActiveRect(measure(activeId));
-    measureContainer();
-  }, [activeId, revision, measure, measureContainer]);
+    const container = containerRef.current;
+    if (!container) return;
 
-  useLayoutEffect(() => {
-    setHoverRect(measure(hoverId));
-  }, [hoverId, revision, measure]);
+    const update = () => {
+      let end = axis === "horizontal" ? container.clientWidth : container.clientHeight;
+      let active: RailRect | null = null;
+      let hover: RailRect | null = null;
+      for (const [id, item] of itemRefs.current) {
+        const rect = measure(item);
+        if (!rect) continue;
+        end = Math.max(end, rect.offset + rect.extent);
+        if (id === activeId) active = rect;
+        if (id === hoverId) hover = rect;
+      }
+      const keepIfEqual = (previous: RailRect | null, next: RailRect | null) =>
+        previous?.offset === next?.offset && previous?.extent === next?.extent ? previous : next;
+      setActiveRect((before) => keepIfEqual(before, active));
+      setHoverRect((before) => keepIfEqual(before, hover));
+      setContainerExtent(end);
+    };
 
-  // The container is flexible in both navs, so its items move when the
-  // window does even though nothing about the selection changed.
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const observer = new ResizeObserver(() => {
-      setActiveRect(measure(activeId));
-      measureContainer();
-    });
-    observer.observe(el);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(container);
+    for (const item of itemRefs.current.values()) {
+      observer.observe(item);
+      for (let parent = item.parentElement; parent && parent !== container; parent = parent.parentElement) {
+        observer.observe(parent);
+      }
+    }
     return () => observer.disconnect();
-  }, [activeId, measure, measureContainer]);
+  }, [activeId, hoverId, revision, axis, measure]);
 
   return {
     containerRef,

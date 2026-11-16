@@ -236,6 +236,17 @@ the exception, its shape set by R7.1. Tripwired for menus.
 
 ---
 
+**R3.5 Nested shapes and alignment.** For two circular arcs that share a
+center, the inner radius is `max(0, outer radius − inset)`. Include any
+physical border in the inset measured from the outer contour. A ring drawn
+outside the contour adds no layout width. Use one spacing value for the
+two edges of an inset corner. For a straight text block near a rounded edge,
+use the visual gutter instead of forcing a 2:1 padding rule. Give peer
+choices equal tracks when content widths make the group look uneven, align
+unlike text sizes on their baseline, and keep numbers in tabular columns.
+Use a translucent token-based line for quiet separation. Reserve stronger
+outlines for focus, selection, and other essential boundaries.
+
 ## 4. Layout patterns
 
 Pick the pattern by what the screen is. Each names its component; if you're
@@ -262,8 +273,8 @@ the current view has facts to show; otherwise it's absent, not empty.
 - Groups have an overline (`SectionLabel`) and `--space-section` above.
 - Destructive settings go last, in a group of their own, with a
   `destructive` outline button that opens an `AlertDialog`.
-- **The deep case** (more than about eight sections): the flat nav stops
-  working, and so does one long page. Use `SettingsTree` as the nav:
+- **The deep case** (more than about eight sections): start with the
+  `settings-deep` scaffold and use `SettingsTree` as the nav:
   chapters with a mark, their groups on a spine under each, a search box
   above it that narrows the tree to matching settings (the group as `meta`,
   Enter opens the first). Drive the tree, the search and the palette's
@@ -310,7 +321,27 @@ actions step aside into a More menu or the command palette. The search field
 shrinks (`min-w-0 shrink`) rather than pushing actions off. Nothing ever
 overlaps or wraps to a second row.
 
-**R4.8 Clipped edges fade.** Anything that
+**R4.8 Forms.** A form is a column of `Field`s.
+
+- Label above the control in dialogs and wizards; `inline` (label left) in
+  settings pages. A `Dialog` has at most six fields (R5): more is a page or a
+  wizard.
+- Validate on blur the first time, then on every change once a field has an
+  error, so a message appears when the user leaves the field and disappears
+  the moment it is fixed. Never validate an untouched field.
+- The error goes in `Field error`, under the control, and says how to fix it
+  ("Use lowercase letters, digits and dashes"), never "Invalid".
+- The submit button is `brand`, names the verb ("Create project"), and is
+  disabled only while busy (`Spinner` in place of its icon, same width), never
+  because the form is invalid. Pressing it with errors focuses the first
+  invalid field.
+- Enter submits a `Dialog`; Escape cancels it, and asks first only when the
+  user has unsaved edits.
+- Controls by data: a number `NumberInput`, a date `DatePicker`, a colour
+  `ColorPicker`, a choice from more than 12 or one people search `Combobox`,
+  a choice from 6 to 12 `Select`, 2 to 5 `Segmented`, on/off `Switch`.
+
+**R4.9 Clipped edges fade.** Anything that
 scrolls sideways (a `Strip`, a `Shelf`, a tab strip) masks the edge that has
 more to show, so a clipped item fades out rather than being cut by a hard
 line. `Strip` does it itself; anything else uses `useEdgeFade`. The resting
@@ -357,6 +388,15 @@ doesn't pop. `SheetContent` and `PopoverContent` do it by default
 least as wide as its trigger.
 
 ---
+
+**R5.6 Modal actions.** Name the operation and object on the button when the
+label is read alone. Use a clear dismissal such as “Keep branches” or “Close
+details.” Put the consequence next to the action and focus the safe choice
+in destructive confirmations. When work takes time, make the pending state
+visible and prevent duplicate submits. Close only after success or explicit
+dismissal. Keep failures and retry in context, and announce a completed
+change through the updated view or a toast. Offer Undo when the reversal
+is available. A read-only Close control needs no toast.
 
 ## 6. Colour
 
@@ -447,7 +487,28 @@ stylesheets.
 icon buttons, `lg` (20) in empty states. Never mix two icon sizes in one
 row.
 
-**R7.3 Icons weigh what their text weighs.** Phosphor's regular stroke is
+**R7.3 Four states, every time.** A view that shows data from anywhere
+(a file, the backend, a network) is written with all four before it is called
+done, and the app can show each one:
+
+| State | Shows | Never |
+|---|---|---|
+| Loading | `Skeleton` in the shape of the content; the toolbar and nav stay put | a lone `Spinner` in an empty window, a layout that jumps when data lands |
+| Empty | `Empty` with one action that fills it ("Open a folder"). When a filter caused it: "No matches" and a button that clears the filter | a blank panel, a table with only headers |
+| Error | `Alert variant="destructive"` in place of the content, the message from the error, and a Retry button | a toast for a failed load, a console log, a blank panel |
+| Ready | the data | |
+
+A background failure the user did not start (autosave, a poll) is a `toast`;
+a failure of something they are looking at is the Error state. Anything that
+can throw while rendering external data sits under an `ErrorBoundary`.
+
+**R7.4 Undo before confirm.** A reversible action just happens and offers
+Undo in a `toast`. An irreversible one asks first with an `AlertDialog` that
+names what is lost and how much ("Delete 3 projects and their files?"), with
+a `destructive` button that repeats the verb ("Delete 3 projects"), and the
+focus on Cancel.
+
+**R7.5 Icons weigh what their text weighs.** Phosphor's regular stroke is
 0.88px at 14px, lighter than Inter at 400; its bold is 1.31px at 14px and
 1.5px at 16px, Inter Medium's stem at 13 to 14px. So an icon beside
 `font-medium` text is bold and one beside text at 400 is regular. Controls
@@ -528,6 +589,14 @@ heading above it. Tripwired over templates, the scaffold and the package's
 shipped strings (`test/design-rules.test.ts`); the habits a pattern cannot
 catch are a review item (§12).
 
+**R10.3 Errors say what happened and what to do.** "Couldn't save notes.md.
+The disk is full. Free some space and try again." Name the thing, give the
+cause when it is known, give the next step. No "Error:", no codes without a
+sentence, no stack traces (they go to the log), no blame.
+
+**R10.4 Empty states and first runs** say what the view is for in one
+sentence and offer the one action. No tutorials in the empty state.
+
 ---
 
 ## 11. Templates
@@ -540,11 +609,20 @@ one, fix the template in the same commit as the rule.
 
 ## 12. Checking it
 
-**R12.1 Tripwires.** `pnpm test` runs `test/design-rules.test.ts` over
-every app source file. An app copies the test or depends on the package's
-`nexis-design-check` **(planned)** script.
+**R12.1 Tripwires.** This package's `pnpm test` runs
+`test/design-rules.test.ts`. An app runs the same rules, plus the Tauri
+wiring checks (docs/BACKEND.md), with `pnpm check` (the package's
+`nexis-design-check` bin); `pnpm verify` is check, typecheck and build, and
+the scaffold sets both up. The checker reads source: it cannot see a layout.
+`pnpm look` (`nexis-design-look`) opens the running app at the sizes below,
+dark and light, and reports what is measurable: console errors, a page that
+scrolls sideways, elements outside the window, text cut off with no ellipsis,
+text under 10px, targets under 24px, controls with no accessible name. A line that must break a rule on purpose carries
+`nexis-ok: <rule-id> <why>`. Use it rarely: an app full of them has stopped
+following the rules.
 
-**R12.2 Look at it.** Before calling UI work done, look at every screen at:
+**R12.2 Look at it.** Before calling UI work done, run `pnpm look`, then
+look at every screen (the probe writes a screenshot per size and mode) at:
 
 | Size (CSS px) | Scale | Stands for |
 |---|---|---|
@@ -684,30 +762,23 @@ done; it never fakes the last 10%. Unknown duration is indeterminate.
 
 ## 17. Brand
 
-**R17.1 One mark.** The family's mark is the heptagram (`Dev/brand/heptagram`).
-In the UI it is `<NexisMark />`: inline SVG, `currentColor`, `text-foreground`
-in chrome. Never a raster in the UI, never recoloured with a gradient or a
-per-app tint in chrome. The title bar's brand slot is the mark at 18px.
+**R17.1 The family mark.** Use the canonical heptagram. In chrome it is an
+inline SVG in `currentColor` at 18 px, with the title supplying the app name.
 
-**R17.2 Where it lives.** Every app's title bar shows its `AppLogo` (which
-starts as the mark); its icons are generated from one 1024² tile
-(`assets/brand/nexis-logo.png`, `pnpm icons`); its README starts with the
-tile at 128px and ends with the heptagram footer (`docs/brand/`). The
-gallery's favicon and overview use the tile.
+**R17.2 The launcher icon.** Place the SVG heptagram over the tile. Keep its
+shape, placement and scale. Change its color and the background composition
+to suit the app. Use the same background and mark color for platform icon
+exports and the rectangular README banner.
+Check the icon at 16, 32 and 128 px.
 
-**R17.3 The tile.** The app icon is the mark in frost-to-glacier on an
-obsidian-to-slate glass tile, with a hairline rim: the Nexis Frosted Glass
-palette (`Dev/brand/heptagram/palettes/nexis-frosted-glass`). Brand hex lives
-in the brand files only, never in components (R6.1).
+**R17.3 Confirm the look.** Before finalizing an icon, ask about the
+background and the mark color. The frosted glass tile is the scaffold default.
+See [BRANDING.md](BRANDING.md) for directions and product references.
 
-**R17.4 An app's own mark** is drawn in the heptagram's language: flat,
-one stroke weight, geometric, `currentColor`, readable at 16px. It replaces
-`AppLogo` and the icon tile's mark; the tile itself stays, so the family
-reads as one on a dock or taskbar.
-
-**R17.5 When the mark changes**, it changes in `Dev/brand` first, then here
-(`assets/brand`, `NexisMark`, `templates/icons`), then in every app through
-`docs/CHANGES.md` (AGENTS.md §6). Never hand-edit an app's copy.
+**R17.4 Product identity.** An app can own its name, wordmark, typography and
+art. The launcher keeps the heptagram for apps presented as part of the
+Nexis family. Keep product identity and family affiliation visible in About
+and the README.
 
 ---
 
@@ -748,22 +819,24 @@ a tween shows values that never existed.
 
 ---
 
-## 13. Work to make the rules true
+## 13. Shared defaults
 
-Done on the `rules` branch, one commit each: Inter and the type tripwires
-(R1); the interface scale and its setting (R2); named spaces and chrome
-heights (R3); neutral selection and no rainbow (R6); popper selects with a
-visible hover and surfaces that focus themselves (R5); `SettingsLayout`,
-`SettingRow`, `PanelSection`, `ControlRow`, `ThumbnailGrid`, `Strip`,
-`ColorPicker` and `ListPresence` (R4, R7, R8); and the settings template
-rebuilt on them.
+The [scaffold](SCAFFOLDING.md) wires providers, shell, commands and release
+checks once. Data templates show loading, empty, error and ready states.
+The gallery renders them alongside the shared controls. See
+[CHANGES.md](CHANGES.md) for shipped work and [BRANDING.md](BRANDING.md)
+for special-purpose app references.
 
-Still to do:
+---
 
-1. The workbench and dashboard templates' side panels on `PanelSection`
-   and `ControlRow`, and the start-screen pattern on `ThumbnailGrid`.
-2. `nexis-design-check`: the tripwires as a script an app runs on its own
-   source (R12.1).
-3. `docs/img` screenshots regenerated at 100% and 150% (`pnpm screenshots`).
+## 14. The backend
 
-Then each app moves its pin and deletes its local versions of these.
+**R14.1 The Rust half has its own rules**, numbered `B` in
+[BACKEND.md](BACKEND.md): commands go through `src/backend.ts`, nothing slow
+runs on the main thread, plugins are wired in four places, permissions are
+the narrowest that work, data lives in the right place, long jobs report with
+events and can be cancelled. `pnpm check` fails on the ones it can see.
+
+**R14.2 The UI works with no backend.** Every view renders in a browser with
+`call`'s fallbacks, so it can be built, looked at headless and tested without
+a Tauri build.

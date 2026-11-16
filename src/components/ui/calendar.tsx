@@ -22,6 +22,7 @@ import {
   addDays,
   addMonths,
   type CalendarDate,
+  compare,
   inRange,
   iso,
   MONTH_NAMES,
@@ -34,7 +35,10 @@ import { cn } from "../../lib/utils";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
+export type CalendarRange = { start: CalendarDate; end: CalendarDate };
+
 type CalendarProps = {
+  range?: CalendarRange | { start: CalendarDate; end: null } | null;
   selected?: CalendarDate | null;
   onSelect?: (d: CalendarDate) => void;
   min?: CalendarDate | null;
@@ -50,6 +54,7 @@ type CalendarProps = {
 
 export function Calendar({
   selected,
+  range,
   onSelect,
   min,
   max,
@@ -60,13 +65,18 @@ export function Calendar({
 }: CalendarProps) {
   const now = today ?? todayOf();
   const [view, setView] = React.useState<CalendarDate>(() => {
-    const d = defaultMonth ?? selected ?? now;
+    const boundedToday = min && compare(now, min) < 0 ? min : max && compare(now, max) > 0 ? max : now;
+    const d = defaultMonth ?? selected ?? range?.start ?? boundedToday;
     return { year: d.year, month: d.month, day: 1 };
   });
-  const [focus, setFocus] = React.useState<CalendarDate>(selected ?? now);
+  const [focus, setFocus] = React.useState<CalendarDate>(selected ?? range?.start ?? now);
   const gridRef = React.useRef<HTMLDivElement>(null);
 
   const cells = monthGrid(view.year, view.month, weekStartsOn);
+  const focusDay = cells.find((d) => sameDay(d, focus) && inRange(d, min, max))
+    ?? cells.find((d) => d.month === view.month && inRange(d, min, max))
+    ?? cells.find((d) => inRange(d, min, max));
+  const monthLabel = `${MONTH_NAMES[view.month - 1]} ${view.year}`;
   const heads = Array.from({ length: 7 }, (_, i) => WEEKDAY_SHORT[(i + weekStartsOn) % 7]);
 
   const moveFocus = (d: CalendarDate) => {
@@ -90,65 +100,76 @@ export function Calendar({
           <Icon name="chevron-right" />
         </Button>
       </div>
-      <div role="grid" ref={gridRef} className="grid grid-cols-7 gap-0.5 text-center text-ui">
-        {heads.map((h) => (
-          <span key={h} role="columnheader" className="pb-1 text-caption text-muted-foreground">
-            {h}
-          </span>
+      <div role="grid" aria-label={monthLabel} aria-multiselectable={range ? true : undefined} ref={gridRef} className="flex flex-col gap-0.5 text-center text-ui">
+        <div role="row" className="grid grid-cols-7 gap-0.5">
+          {heads.map((h) => (
+            <span key={h} role="columnheader" className="pb-1 text-caption text-muted-foreground">
+              {h}
+            </span>
+          ))}
+        </div>
+        {Array.from({ length: 6 }, (_, week) => (
+          <div key={week} role="row" className="grid grid-cols-7 gap-0.5">
+            {cells.slice(week * 7, week * 7 + 7).map((d) => {
+              const outside = d.month !== view.month;
+              const disabled = !inRange(d, min, max);
+              const isSel = sameDay(d, selected) || sameDay(d, range?.start) || sameDay(d, range?.end);
+              const inside = !!range?.end && inRange(d, range.start, range.end);
+              const isToday = sameDay(d, now);
+              return (
+                <div key={iso(d)} role="gridcell" aria-selected={isSel || inside}>
+                  <button
+                    type="button"
+                    data-date={iso(d)}
+                    aria-label={formatCalendarDate(d)}
+                    aria-current={isToday ? "date" : undefined}
+                    disabled={disabled}
+                    tabIndex={sameDay(d, focusDay) ? 0 : -1}
+                    onClick={() => {
+                      setFocus(d);
+                      onSelect?.(d);
+                    }}
+                    onKeyDown={(e) => {
+                      const step: Record<string, CalendarDate> = {
+                        ArrowLeft: addDays(d, -1),
+                        ArrowRight: addDays(d, 1),
+                        ArrowUp: addDays(d, -7),
+                        ArrowDown: addDays(d, 7),
+                        PageUp: addMonths(d, -1),
+                        PageDown: addMonths(d, 1),
+                      };
+                      const next = step[e.key];
+                      if (next) {
+                        e.preventDefault();
+                        const bounded = min && compare(next, min) < 0 ? min : max && compare(next, max) > 0 ? max : next;
+                        if (inRange(bounded, min, max)) moveFocus(bounded);
+                      }
+                    }}
+                    className={cn(
+                      "grid h-8 w-full place-items-center rounded-full tabular-nums transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
+                      outside ? "text-muted-foreground/45" : "text-foreground",
+                      !isSel && !disabled && "hover:bg-muted",
+                      isToday && !isSel && "ring-1 ring-foreground/40 ring-inset",
+                      inside && !isSel && "bg-muted text-foreground",
+                      isSel && "bg-foreground font-medium text-background",
+                      disabled && "cursor-not-allowed opacity-35",
+                    )}
+                  >
+                    {d.day}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         ))}
-        {cells.map((d) => {
-          const outside = d.month !== view.month;
-          const disabled = !inRange(d, min, max);
-          const isSel = sameDay(d, selected);
-          const isToday = sameDay(d, now);
-          return (
-            <button
-              key={iso(d)}
-              type="button"
-              role="gridcell"
-              data-date={iso(d)}
-              aria-selected={isSel}
-              aria-current={isToday ? "date" : undefined}
-              disabled={disabled}
-              tabIndex={sameDay(d, focus) ? 0 : -1}
-              onClick={() => {
-                setFocus(d);
-                onSelect?.(d);
-              }}
-              onKeyDown={(e) => {
-                const step: Record<string, CalendarDate> = {
-                  ArrowLeft: addDays(d, -1),
-                  ArrowRight: addDays(d, 1),
-                  ArrowUp: addDays(d, -7),
-                  ArrowDown: addDays(d, 7),
-                  PageUp: addMonths(d, -1),
-                  PageDown: addMonths(d, 1),
-                };
-                const next = step[e.key];
-                if (next) {
-                  e.preventDefault();
-                  moveFocus(next);
-                }
-              }}
-              className={cn(
-                "grid h-8 place-items-center rounded-full tabular-nums transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-                outside ? "text-muted-foreground/45" : "text-foreground",
-                !isSel && !disabled && "hover:bg-muted",
-                isToday && !isSel && "ring-1 ring-foreground/40 ring-inset",
-                isSel && "bg-foreground font-medium text-background",
-                disabled && "cursor-not-allowed opacity-35",
-              )}
-            >
-              {d.day}
-            </button>
-          );
-        })}
       </div>
     </div>
   );
 }
 
-type DatePickerProps = Omit<CalendarProps, "className"> & {
+const formatCalendarDate = (d: CalendarDate) => `${MONTH_NAMES[d.month - 1].slice(0, 3)} ${d.day}, ${d.year}`;
+
+type DatePickerProps = Omit<CalendarProps, "className" | "range"> & {
   placeholder?: string;
   className?: string;
   format?: (d: CalendarDate) => string;
@@ -162,7 +183,7 @@ export function DatePicker({
   onSelect,
   placeholder = "Pick a date",
   className,
-  format = (d) => `${MONTH_NAMES[d.month - 1].slice(0, 3)} ${d.day}, ${d.year}`,
+  format = formatCalendarDate,
   id,
   "aria-describedby": describedBy,
   "aria-invalid": invalid,
@@ -190,6 +211,56 @@ export function DatePicker({
           onSelect={(d) => {
             onSelect?.(d);
             setOpen(false);
+          }}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+type DateRangePickerProps = Omit<DatePickerProps, "selected" | "onSelect"> & {
+  value: CalendarRange | null;
+  onChange: (range: CalendarRange) => void;
+  label?: string;
+};
+
+export function DateRangePicker({
+  value, onChange, label = "Date range", placeholder = "Pick a date range",
+  className, format = formatCalendarDate, id,
+  "aria-describedby": describedBy, "aria-invalid": invalid, ...calendar
+}: DateRangePickerProps) {
+  const [open, setOpen] = React.useState(false);
+  const [start, setStart] = React.useState<CalendarDate | null>(null);
+  const summary = value ? `${format(value.start)} – ${format(value.end)}` : placeholder;
+  const changeOpen = (next: boolean) => {
+    setStart(null);
+    setOpen(next);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={changeOpen}>
+      <PopoverTrigger asChild>
+        <Button id={id} variant="outline" aria-label={`${label}: ${summary}`}
+          aria-describedby={describedBy} aria-invalid={invalid}
+          className={cn("justify-start font-normal", !value && "text-muted-foreground", className)}>
+          <Icon name="calendar" />
+          {summary}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" aria-label={label} className="w-auto p-3">
+        <p aria-live="polite" className="mb-2 text-ui text-muted-foreground">
+          {start ? `Start: ${format(start)}. Choose an end date.` : "Choose a start date."}
+        </p>
+        <Calendar
+          {...calendar}
+          range={start ? { start, end: null } : value}
+          onSelect={(day) => {
+            if (!start) {
+              setStart(day);
+              return;
+            }
+            onChange(compare(day, start) < 0 ? { start: day, end: start } : { start, end: day });
+            changeOpen(false);
           }}
         />
       </PopoverContent>

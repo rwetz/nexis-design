@@ -29,14 +29,14 @@ keep serving the old package (PITFALLS §17).
   and the collection tint interpolate `in oklch`; a tone fading into the
   card gives the card end hue `none`, so it never sweeps through a third
   colour.
-- **Icon weight follows text weight (R7.3).** New `IconWeightProvider`.
+- **Icon weight follows text weight (R7.5).** New `IconWeightProvider`.
   `Button`, `Badge`, `Toggle`, `TabsTrigger`, `Segmented` and menu and
   palette contents make their icons Phosphor bold, which matches Inter
   Medium's stem; text at 400 keeps regular icons.
 - **Icon swaps blur through (R8.4).** `<Icon swap>` brings a changed glyph
   in out of a short blur. On the sort chevron, the window's maximise and
   restore, and the gallery's add-to-cart.
-- **Clipped edges fade (R4.8).** New `useEdgeFade` hook (and
+- **Clipped edges fade (R4.9).** New `useEdgeFade` hook (and
   `edgeFadeStyle`); `Strip` uses it, and the workbench template's tab strip
   fades the edge it clips.
 - **Depth in the dark (R6.6).** The dark popover is a step above the card
@@ -77,6 +77,38 @@ app CSS gradient gets `in oklch`. Look at a dark theme: a custom
 it neutral. Look at every screen on one non-default theme: default buttons
 and checked controls are now neutral there. Nexis takes the same change in
 its own `applyTheme`.
+
+## Unreleased · Layout, modal feedback, and identity
+
+- Shared controls align nested corners, rails, peer segment widths and
+  avatar stacks. Dialogs keep their titles and actions reachable.
+- Gallery and scaffold examples give modal buttons specific names and
+  connect feedback to the result.
+- The [branding guide](BRANDING.md) documents the canonical icon workflow
+  and the BibleLM and Vitrine references. New app READMEs start with a 500×300
+  banner generated from the title, heptagram, and the icon background.
+  The scaffold also includes
+  backend commands, plugin wiring, and the app verification tools.
+
+**Apps must** use the new icon workflow when creating or revising Nexis
+launcher artwork. Keep the canonical SVG mark and pick a background plus
+mark color with the user.
+
+## Unreleased
+
+- **Components.** `Combobox`, `DateRangePicker`, multi-select tables and
+  trees, virtualized table rows, and time axes and legends for line charts.
+- **Optional exports.** `@nexis/design/surface` provides WebGL backgrounds.
+  `@nexis/design/ide` provides editor and terminal adapters, and
+  `@nexis/design/ide/terminal` supports terminal-only consumers.
+- **Tooling.** `settings-deep` uses the shared settings registry. The
+  scaffold includes a desktop release workflow. The theme CLI checks both
+  variants before writing a file, and Lumen palette exchange has a round-trip test.
+
+**Apps must** bump the pin and reinstall to use the new exports. Install
+`ogl` for the surface entry point or `@codemirror/view` for the editor.
+Existing apps can copy `scripts/release.yml` into `.github/workflows` and
+adapt the platform matrix to their supported targets.
 
 ## Unreleased (`vitrine-findings`)
 
@@ -145,7 +177,7 @@ needs it mounted.
 `--radix-collapsible-content-height` on an accordion. Rows of `Item`s in
 outline cards with gaps become hairline rows (`divide-y`), unless they are
 cards on purpose. Replace the app's logo `<img>` with `NexisMark` (or its
-own mark per R17.4) and regenerate its icons from the new tile. Replace
+legacy app mark, where it was already used) and regenerate its icons from the new tile. Replace
 `animate-pulse` placeholders with the `Skeleton` presets. Vitrine: replace
 `useCardPhysics`, `.fun-face` and the fan CSS with `CardTilt`,
 `ProductCard tilt` and `CollectionCard`, keeping its Showmanship levels as

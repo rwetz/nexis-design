@@ -238,7 +238,8 @@ export function Gallery() {
   const themeName = listBuiltinThemes().find((t) => t.id === theme.themeId)?.name ?? "Nexis Default";
 
   return (
-    <div className="flex h-full flex-col bg-background text-foreground">
+    <div className="flex h-full flex-col bg-background text-foreground"
+      data-gallery-routes={[...Object.keys(PAGES), ...Object.keys(APPS).map((id) => `app/${id}`)].join(" ")}>
       <CardTilt />
       <TitleBar
         controls="preview"

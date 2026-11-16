@@ -20,6 +20,7 @@ import {
   CardBadge,
   type Column,
   CommandPalette,
+  DataBoundary,
   DataTable,
   Empty,
   EmptyDescription,
@@ -52,6 +53,7 @@ import {
   ToolbarSeparator,
   ToolbarSpacer,
   useCommandPaletteShortcut,
+  useLoad,
   WindowResizeEdges,
   Checkbox,
   NexisMark,
@@ -64,7 +66,18 @@ type K = "id" | "title" | "status" | "owner" | "points" | "updated";
 const PAGE = 14;
 const STATUS_TONE = { open: "secondary", "in-progress": "info", done: "success" } as const;
 
+// The data arrives through one async function, so the view already has its
+// loading, error and empty states (RULES R7.3). Replace the body with
+// `call<Issue[]>("list_issues", {}, ISSUES)` from src/backend.ts.
+const fetchIssues = async () => ISSUES;
+const NONE: Issue[] = [];
+
 export default function App() {
+  const { state, reload } = useLoad(fetchIssues, []);
+  const [closed, setClosed] = React.useState<ReadonlySet<string>>(() => new Set());
+  const issues = React.useMemo(() => state.status === "ready"
+    ? state.data.map((issue) => closed.has(issue.id) ? { ...issue, status: "done" as const } : issue)
+    : NONE, [closed, state]);
   const [query, setQuery] = React.useState("");
   const [status, setStatus] = React.useState<"all" | Status>("all");
   const [mine, setMine] = React.useState(false);
@@ -84,7 +97,7 @@ export default function App() {
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
-    const rows = ISSUES.filter(
+    const rows = issues.filter(
       (r) =>
         (status === "all" || r.status === status) &&
         (!mine || r.owner === "Ryan Wetzstein") &&
@@ -92,12 +105,12 @@ export default function App() {
         (q === "" || r.title.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)),
     );
     return sortRows(rows, sort, (r, k) => r[k]);
-  }, [query, status, mine, owners, sort]);
+  }, [issues, query, status, mine, owners, sort]);
 
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
   const current = Math.min(page, pages);
   const rows = filtered.slice((current - 1) * PAGE, current * PAGE);
-  const issue = ISSUES.find((i) => i.id === selected) ?? null;
+  const issue = issues.find((i) => i.id === selected) ?? null;
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
@@ -171,7 +184,25 @@ export default function App() {
         </Button>
       </Toolbar>
 
-      <div className="min-h-0 flex-1 px-4 pt-2">
+      <div className="flex min-h-0 flex-1 flex-col px-4 pt-2">
+        <DataBoundary
+          state={state}
+          onRetry={reload}
+          noun="issues"
+          className="h-full"
+          empty={
+            <Empty className="h-full">
+              <EmptyHeader>
+                <EmptyTitle>No issues yet</EmptyTitle>
+                <EmptyDescription>Create the first one to start tracking work.</EmptyDescription>
+              </EmptyHeader>
+              <Button variant="brand" onClick={() => toast("New issue")}>
+                <Icon name="add" /> New issue
+              </Button>
+            </Empty>
+          }
+        >
+          {() => (<>
         {rows.length === 0 ? (
           <Empty className="h-full">
             <EmptyHeader>
@@ -212,6 +243,8 @@ export default function App() {
             className="h-full"
           />
         )}
+          </>)}
+        </DataBoundary>
       </div>
 
       <div className="flex h-12 shrink-0 items-center gap-3 border-t border-border/60 px-4">
@@ -224,7 +257,7 @@ export default function App() {
 
       <StatusBar
         left={<StatusItem icon="database">issues.sqlite</StatusItem>}
-        right={<StatusItem live>{filtered.length} rows</StatusItem>}
+        right={state.status === "ready" ? <StatusItem live>{filtered.length} rows</StatusItem> : undefined}
       />
 
       <Sheet open={issue !== null} onOpenChange={(o) => !o && setSelected(null)}>
@@ -245,13 +278,23 @@ export default function App() {
                   ]}
                 />
               </div>
-              <SheetFooter className="flex-row">
-                <Button variant="brand" className="flex-1" onClick={() => toast.success(`${issue.id} closed`)}>
-                  Close issue
-                </Button>
-                <Button variant="outline" onClick={() => setSelected(null)}>
-                  Done
-                </Button>
+              <SheetFooter>
+                {closed.has(issue.id) ? (
+                  <Button variant="secondary" onClick={() => {
+                    setClosed((previous) => {
+                      const next = new Set(previous);
+                      next.delete(issue.id);
+                      return next;
+                    });
+                    toast.success(`${issue.id} reopened`);
+                  }}>Reopen issue</Button>
+                ) : issue.status !== "done" && (
+                  <Button variant="brand" onClick={() => {
+                    setClosed((previous) => new Set(previous).add(issue.id));
+                    toast.success(`${issue.id} closed`);
+                  }}>Close issue</Button>
+                )}
+                <Button variant="outline" onClick={() => setSelected(null)}>Close details</Button>
               </SheetFooter>
             </>
           )}
@@ -271,7 +314,7 @@ export default function App() {
           })),
           { id: "mine", label: mine ? "Show everyone's" : "Show only mine", group: "Filter", icon: "user" as const, run: () => setMine((m) => !m) },
           { id: "view", label: view === "table" ? "Show as grid" : "Show as table", group: "View", icon: "grid" as const, run: () => setView((v) => (v === "table" ? "grid" : "table")) },
-          ...ISSUES.slice(0, 40).map((i) => ({
+          ...issues.slice(0, 40).map((i) => ({
             id: i.id,
             label: `${i.id} ${i.title}`,
             group: "Issues",

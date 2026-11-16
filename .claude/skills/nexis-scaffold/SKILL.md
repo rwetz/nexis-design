@@ -6,7 +6,10 @@ description: Scaffold and build a Tauri desktop app with @nexis/design (React 19
 # Scaffold a Nexis app
 
 @nexis/design is the design system of the Nexis family of Tauri apps.
-AGENTS.md (repo root) is the contract; this skill is the procedure.
+AGENTS.md (repo root) is the contract, docs/RULES.md the numbered rules,
+docs/BACKEND.md the Rust half; this skill is the procedure. The scaffold
+output is verified: all seven templates build, and `nexis-design-check`
+passes on each.
 
 ## 1. Choose a template from the app's shape
 
@@ -15,20 +18,32 @@ AGENTS.md (repo root) is the contract; this skill is the procedure.
 | live numbers, charts, a status table | `dashboard` |
 | a tree/list of things + an open document + an inspector | `workbench` |
 | labelled options grouped in sections | `settings` |
+| Many settings chapters, with search and grouped navigation | `settings-deep` |
 | records to search, filter, sort, page and inspect | `explorer` |
 | a stream of lines and a command prompt | `console` |
 | a linear sequence of steps | `wizard` |
-| one small screen | `minimal` |
+| one small screen, or a launcher | `minimal` |
 
-If none fits, pick the closest and use AGENTS.md §1 "Recipes" to adapt it.
-Ask the user only if two templates fit equally and the choice changes the
-layout substantially.
+If none fits, pick the closest and use AGENTS.md §1 "Recipes" (chat, file
+manager, media player, API client, editor, mail reader, calendar, creative
+tool, database browser, business forms, installer…) to adapt it. Ask the
+user only if two templates fit equally and the choice changes the layout
+substantially.
+
+Then choose the plugins from what the app *does*, before scaffolding (they
+are four edits each to add later): open/save a file `dialog`, remember
+settings or recents `store`, read/write files `fs`, links or reveal in the OS
+`opener`, alerts `notification`, copy buttons `clipboard-manager`, restart
+`process`, network from Rust `http` (name the origin afterwards), a local
+database `sql`, system-wide keys `global-shortcut`. `updater` is manual
+(BACKEND.md §3.2).
 
 ## 2. Create it
 
 ```bash
-scripts/new-app.sh nexis-<thing> <template> [dir]
+scripts/new-app.sh nexis-<thing> <template> [dir] [--with store,dialog]
 cd <dir> && pnpm install
+pnpm verify        # must be clean before you change anything
 ```
 
 - Name apps `nexis-<thing>`, lowercase.
@@ -40,26 +55,48 @@ cd <dir> && pnpm install
   every source file. The dev port is derived from the app name.
 - `pnpm dev` here and open `#/app/<template>` to see what you are starting
   from.
+- `pnpm tauri icon src-tauri/icons/icon.png` before the first `cargo check`.
+
+## Branding
+
+Read [the branding guide](../../../docs/BRANDING.md) and pick the nearest
+product reference. Before finalizing a launcher icon, ask the user for the
+background direction and heptagram color. Keep the canonical path and
+placement. Use the starter tile for the first build and regenerate the
+platform icons from the chosen 1024×1024 composition. Use an image-generated
+background in ChatGPT or an SVG-generated background in Claude. Place the
+canonical SVG over the background. Generate a README banner with
+`nexis-design brand banner` and the same background and mark color. In chrome
+keep `AppLogo` as the monochrome heptagram.
 
 ## 3. Make it the user's app
 
-1. Replace the fixture data at the bottom of `src/App.tsx` with the real
-   source. Keep the view a function of state; keep filtering/sorting in one
-   `useMemo`.
-2. Rename views, sidebar items, palette commands and titles; redraw
-   `src/AppLogo.tsx` and replace `src-tauri/icons/icon.png`, then
-   `pnpm icons`.
-3. Delete what the app does not need — templates are generous on purpose.
-4. Every action goes in the `CommandPalette` too.
-5. Copy component usage from AGENTS.md §3 (compile-checked).
+1. **Contract first.** Define the data types and the Rust commands in
+   `src/backend.ts` as typed wrappers over `call(name, args, fallback)` with
+   believable fallbacks, so every screen is buildable and viewable in a
+   browser.
+2. Replace the fixture data at the bottom of `src/App.tsx` with `useLoad(…)`
+   over those wrappers. Keep the view a function of state; keep
+   filtering/sorting in one `useMemo`. Every data view gets its four states
+   (RULES R7.3).
+3. Rename views, sidebar items, palette commands and titles; update
+   `assets/logo.svg`, `assets/banner.svg`, and `src-tauri/icons/icon.png`.
+4. Delete what the app does not need: templates are generous on purpose.
+5. Every action goes in the `CommandPalette` too.
+6. Implement the Rust commands in `src-tauri/src/`, register each in
+   `generate_handler!` (BACKEND B1.2).
+7. Copy component usage from AGENTS.md §3 (compile-checked).
 
 ## 4. Hold the line on the rules
 
-Colours only from tokens (no hex, no `emerald-500`); one accent (`brand`);
-state from `success`/`warning`/`info`/`destructive`; icons only via
-`<Icon name>`; no emoji; no em dashes; one UI face (no `font-heading`); motion only from the
-house vocabulary, never on live data; `Panel` for regions; window APIs behind
-`IN_TAURI`. Full list: AGENTS.md §2.
+Short list in AGENTS.md §2, full ruleset in docs/RULES.md. The ones that
+bite: colours only from tokens; one accent (`brand`), selection is neutral;
+Inter only, sizes from the type list, numbers `tabular-nums` and never mono;
+the 4px grid and the named spaces; the pattern's component (`SettingsLayout`,
+`PanelSection`, `ControlRow`); the right overlay for the job (`Combobox` past
+12 options); no emoji, no em dashes; window and backend calls only behind
+`IN_TAURI`. `pnpm check` enforces what it can: fix what it names, do not
+silence it.
 
 ## 5. Register it in the workspace
 
@@ -77,12 +114,15 @@ Anything in @nexis/design that got in the way goes in this repo's
 ## 6. Verify, then report
 
 ```bash
-pnpm build
+pnpm verify        # nexis-design-check (rules + Tauri wiring) + tsc + vite build
+pnpm dev           # in one shell
+pnpm look          # in another: five sizes x dark/light, measured, with screenshots
 ```
 
 Then **run it and look**: `pnpm dev` and screenshot it headless (Playwright
-against the Vite URL works — Tauri APIs are gated off in a browser), or
-`pnpm tauri dev` on a desktop. Check each screen in dark and light, one other
-theme and high contrast. Report what you built, what you verified by looking,
+against the Vite URL works: Tauri APIs are gated off and `call` returns its
+fallbacks), or `pnpm tauri dev` on a desktop. Check each screen in dark and
+light, one other theme, high contrast, at 1024x768 and at 1920x1080 or wider.
+Report what you built, what `pnpm verify` said, what you verified by looking,
 and what you could not check (native chrome on macOS/Windows/Linux, the Rust
-build if no WebKitGTK was available).
+build with `cargo check` if no WebKitGTK was available).

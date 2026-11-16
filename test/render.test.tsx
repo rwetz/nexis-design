@@ -111,7 +111,7 @@ describe("SidebarNav collapsed", () => {
   });
 });
 
-describe("icons follow their text (RULES R7.3, R8.4)", () => {
+describe("icons follow their text (RULES R7.5, R8.4)", () => {
   // Phosphor marks its weight on the svg root as a path set; regular and bold
   // draw different paths, so compare against a known-weight render.
   const paths = (el: Element | null) => el?.querySelector("svg")?.innerHTML ?? "";

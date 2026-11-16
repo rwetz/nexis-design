@@ -13,6 +13,7 @@ import {
   ThoughtLine,
   ViewEnter,
 } from "@nexis/design";
+import { SurfaceLayer, type SurfaceKind } from "../../src/surface";
 import { Demo, Grid, Page } from "../kit";
 
 function Curve({ d, label, color }: { d: string; label: string; color: string }) {
@@ -28,6 +29,7 @@ function Curve({ d, label, color }: { d: string; label: string; color: string })
 }
 
 export function MotionPage() {
+  const [surface, setSurface] = React.useState<SurfaceKind | "off">("off");
   const [n, setN] = React.useState(0);
   const [range, setRange] = React.useState<"1h" | "24h" | "7d" | "30d">("24h");
   return (
@@ -130,6 +132,15 @@ export function MotionPage() {
         </Demo>
       </Grid>
 
+      <Demo title="Background effects">
+        <Segmented label="Background effect" value={surface} onChange={setSurface} segments={[
+          { id: "off", label: "Off" }, { id: "aurora", label: "Aurora" },
+          { id: "particles", label: "Particles" }, { id: "threads", label: "Threads" },
+        ]} />
+        <div className="relative isolate h-36 overflow-hidden rounded-lg bg-background">
+          <SurfaceLayer kind={surface === "off" ? null : surface} />
+        </div>
+      </Demo>
     </Page>
   );
 }

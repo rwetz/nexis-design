@@ -4,10 +4,10 @@ name: CI
 # pushes to main only; docs-only changes skip it.
 on:
   pull_request:
-    paths-ignore: ['**.md', 'docs/**']
+    paths-ignore: ['**.md']
   push:
     branches: [main]
-    paths-ignore: ['**.md', 'docs/**']
+    paths-ignore: ['**.md']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,16 +15,94 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright-core install --with-deps chromium
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - run: node bin/nexis-design.mjs theme new ci-demo --hue 258 --out "$RUNNER_TEMP/ci-demo.ts"
+
+  # Scaffold a real app from this checkout, with every plugin wired, and prove
+  # it: nexis-design-check + tsc + vite build, then the Rust half.
+  scaffold:
+    timeout-minutes: 45
+    name: scaffold ${{ matrix.template }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Frontend on every template; Rust and a launch on the two that
+          # carry the most (a data app and the smallest).
+          - { os: ubuntu-24.04, template: dashboard, flags: "" }
+          - { os: ubuntu-24.04, template: workbench, flags: "" }
+          - { os: ubuntu-24.04, template: settings, flags: "" }
+          - { os: ubuntu-24.04, template: settings-deep, flags: "--cargo" }
+          - { os: ubuntu-24.04, template: console, flags: "" }
+          - { os: ubuntu-24.04, template: wizard, flags: "" }
+          - { os: ubuntu-24.04, template: explorer, flags: "--cargo --smoke" }
+          - { os: ubuntu-24.04, template: minimal, flags: "--cargo" }
+          - { os: macos-latest, template: minimal, flags: "--cargo" }
+          - { os: windows-latest, template: minimal, flags: "--cargo" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: dtolnay/rust-toolchain@stable
+        if: contains(matrix.flags, '--cargo')
+      - uses: Swatinem/rust-cache@v2
+        if: contains(matrix.flags, '--cargo')
+        with:
+          workspaces: ${{ runner.temp }}/ci/nexis-ci-${{ matrix.template }}/src-tauri
+      - name: Tauri prerequisites (Linux)
+        if: runner.os == 'Linux' && contains(matrix.flags, '--cargo')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential libssl-dev librsvg2-dev libxdo-dev libayatana-appindicator3-dev xvfb
+      - name: Scaffold, verify, compile
+        shell: bash
+        env:
+          CI_WORKDIR: ${{ runner.temp }}/ci
+        run: |
+          mkdir -p "$CI_WORKDIR"
+          scripts/ci-scaffold.sh ${{ matrix.template }} ${{ matrix.flags }}
+      - if: runner.os == 'Linux' && matrix.template == 'settings-deep'
+        shell: bash
+        run: pnpm bundle:check "${{ runner.temp }}/ci/nexis-ci-settings-deep"
+
+  browser:
+    runs-on: ubuntu-24.04-arm
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      options: --ipc=host
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm a11y
+      - run: pnpm visual:check
+        if: success() || failure()
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: visual-regression
+          path: dist/visual/
+          if-no-files-found: ignore

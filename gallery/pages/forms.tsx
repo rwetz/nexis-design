@@ -6,8 +6,11 @@ import {
   AccordionTrigger,
   Button,
   Calendar,
+  Combobox,
   dates,
   DatePicker,
+  DateRangePicker,
+  type CalendarRange,
   Field,
   Icon,
   Input,
@@ -34,6 +37,10 @@ export function FormsPage() {
   const [timeout, setTimeoutMs] = React.useState(2500);
   const [when, setWhen] = React.useState<CalendarDate | null>(dates.date(2026, 10, 14));
   const [cal, setCal] = React.useState<CalendarDate | null>(dates.date(2026, 10, 21));
+  const [region, setRegion] = React.useState<string | null>(null);
+  const [range, setRange] = React.useState<CalendarRange | null>(null);
+
+  const [crate, setCrate] = React.useState<string | null>("serde");
   const nameError = /^[a-z][a-z0-9-]*$/.test(name) ? null : "Lowercase letters, digits and dashes; start with a letter.";
 
   return (
@@ -54,10 +61,21 @@ export function FormsPage() {
               <InputGroupInput placeholder="owner/repo" defaultValue="rwetz/nexis-design" />
             </InputGroup>
           </Field>
+          <Field label="Crate" hint="A long list you search: a Combobox, not a Select.">
+            <Combobox
+              value={crate}
+              onValueChange={setCrate}
+              clearable
+              className="w-full"
+              placeholder="Pick a crate"
+              searchPlaceholder="Search crates"
+              options={["serde", "tokio", "clap", "anyhow", "thiserror", "tracing", "reqwest", "rayon", "regex", "chrono", "uuid", "itertools", "once_cell", "bytes", "futures"].map((c) => ({ value: c, label: c }))}
+            />
+          </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Template">
               <Select defaultValue="dashboard">
-                <SelectTrigger className="w-full">
+                <SelectTrigger aria-label="Template" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -103,14 +121,22 @@ export function FormsPage() {
             </div>
           </Demo>
 
+          <Demo title="Search and date ranges">
+            <Combobox label="Region" value={region} onValueChange={setRegion} options={[
+              { value: "iad", label: "Virginia", keywords: ["US East"] },
+              { value: "sfo", label: "California", keywords: ["US West"] },
+              { value: "ams", label: "Amsterdam", keywords: ["Europe"] },
+            ]} />
+            <DateRangePicker label="Reporting period" value={range} onChange={setRange}
+              today={TODAY} min={TODAY} />
+          </Demo>
+
           <Demo title="Settings rows" meta="inline fields">
             <Field label="Editor font size" inline hint="Applies to every editor pane.">
               <NumberInput value={13} onChange={() => {}} min={8} max={32} suffix="px" className="w-32" />
             </Field>
             <Field label="Vim mode" inline>
-              <div className="pt-1.5">
-                <Switch />
-              </div>
+              <Switch className="mt-1.5" />
             </Field>
           </Demo>
 

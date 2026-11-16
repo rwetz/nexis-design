@@ -170,6 +170,7 @@ export function ControlsPage() {
           <Row label="Segmented: the pill travels">
             <Segmented
               label="Range"
+              equalWidth
               value={range}
               onChange={setRange}
               segments={[

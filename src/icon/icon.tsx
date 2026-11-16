@@ -479,12 +479,12 @@ export type IconProps = Omit<
   swap?: boolean;
 };
 
-/** The weight an icon takes from the text around it (RULES R7.3). */
+/** The weight an icon takes from the text around it (RULES R7.5). */
 const IconWeightContext = React.createContext<IconWeight | null>(null);
 
 /**
  * Sets the weight of every `Icon` inside, so an icon matches the text it
- * sits beside (RULES R7.3). Phosphor's regular stroke is 16/256 of the icon
+ * sits beside (RULES R7.5). Phosphor's regular stroke is 16/256 of the icon
  * (0.88px at 14px), lighter than Inter at 400; its bold, 24/256 (1.31px at
  * 14px, 1.5px at 16px), is Inter Medium's stem at 13 to 14px. So a control
  * whose label is `font-medium` (buttons, badges, menu items, tabs, toggles)

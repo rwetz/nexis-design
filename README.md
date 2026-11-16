@@ -153,7 +153,9 @@ pnpm screenshots               # regenerate every image in this README from the 
 - [PITFALLS.md](docs/PITFALLS.md): field notes; read before scaffolding.
 - [APP-FINDINGS.md](docs/APP-FINDINGS.md): what apps in the family found
   that belongs back in the package.
-- [ASSETS.md](docs/ASSETS.md): cursors, and why logos are per app.
+- [ASSETS.md](docs/ASSETS.md): cursors and icon export.
+- [BRANDING.md](docs/BRANDING.md): heptagram icon directions and app references.
+- [UI/UX tip review](docs/UI-UX-REVIEW.md): applicability and changes.
 - [ROADMAP.md](docs/ROADMAP.md): what "one design layer for the family"
   still needs.
 

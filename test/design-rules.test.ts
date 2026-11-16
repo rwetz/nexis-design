@@ -146,7 +146,7 @@ describe("design rules", () => {
   });
 
   it("no rainbow, aurora or gradient text in the family (RULES R6.4)", () => {
-    expect(offenders(EVERYTHING, /rainbow|aurora|bg-clip-text/i, (_rel, line) => /^\s*(\/\/|\*)/.test(line))).toEqual([]);
+    expect(offenders(EVERYTHING, /(?:rainbow|aurora)[- ]text|text[- ](?:rainbow|aurora)|bg-clip-text/i, (_rel, line) => /^\s*(\/\/|\*)/.test(line))).toEqual([]);
   });
 
   it("layout keeps to the 4px grid: no half steps in templates (RULES R3.1)", () => {

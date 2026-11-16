@@ -35,10 +35,16 @@
     "./styles/code-highlight.css": "./src/styles/code-highlight.css",
     "./styles/dockview.css": "./src/styles/dockview.css",
     "./assets/*": "./assets/*",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./surface": "./src/surface/index.tsx",
+    "./ide": "./src/ide/index.ts",
+    "./ide/terminal": "./src/ide/terminalTheme.ts"
   },
   "bin": {
-    "nexis-design-assets": "./bin/sync-assets.mjs"
+    "nexis-design-assets": "./bin/sync-assets.mjs",
+    "nexis-design": "./bin/nexis-design.mjs",
+    "nexis-design-check": "./bin/nexis-design-check.mjs",
+    "nexis-design-look": "./bin/nexis-design-look.mjs"
   },
   "files": [
     "src",
@@ -47,7 +53,8 @@
     "docs",
     "templates",
     "scripts/new-app.sh",
-    "AGENTS.md"
+    "AGENTS.md",
+    "scripts/release.yml"
   ],
   "scripts": {
     "dev": "vite",
@@ -57,7 +64,10 @@
     "test": "vitest run",
     "screenshots": "node scripts/screenshots.mjs",
     "new-app": "bash scripts/new-app.sh",
-    "consumers": "node scripts/consumers.mjs"
+    "consumers": "node scripts/consumers.mjs",
+    "a11y": "node scripts/a11y.mjs",
+    "bundle:check": "node scripts/bundle-size.mjs",
+    "visual:check": "node scripts/visual-check.mjs"
   },
   "peerDependencies": {
     "@fontsource-variable/geist-mono": "^5.3.0",
@@ -77,9 +87,12 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.3",
-    "tw-animate-css": "^1.4.0"
+    "tw-animate-css": "^1.4.0",
+    "ogl": "^1.0.11",
+    "@codemirror/view": "^6.43.15"
   },
   "devDependencies": {
+    "@codemirror/view": "^6.43.15",
     "@fontsource-variable/geist-mono": "^5.3.0",
     "@fontsource-variable/inter": "^5.3.0",
     "@phosphor-icons/react": "^2.1.10",
@@ -94,12 +107,16 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^5.2.0",
+    "axe-core": "^4.14.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "jsdom": "^30.0.1",
     "motion": "^13.4.0",
+    "ogl": "^1.0.11",
+    "pixelmatch": "^8.0.0",
     "playwright-core": "1.56.1",
+    "pngjs": "^7.0.0",
     "radix-ui": "^1.4.3",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -118,6 +135,12 @@
       "optional": true
     },
     "@tauri-apps/plugin-os": {
+      "optional": true
+    },
+    "ogl": {
+      "optional": true
+    },
+    "@codemirror/view": {
       "optional": true
     }
   }

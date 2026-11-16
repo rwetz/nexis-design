@@ -83,7 +83,7 @@ export function Avatar({
  * positioned, so they stack in reading order and the "+N" is never covered.
  */
 export function AvatarStack({ names, max = 4, size = 28, label }: { names: readonly string[]; max?: number; size?: number; label?: string }) {
-  const shown = names.slice(0, max);
+  const shown = names.slice(0, Math.max(0, max));
   const rest = names.length - shown.length;
   const overlap = rem(Math.round(size * 0.2));
   return (
@@ -94,7 +94,7 @@ export function AvatarStack({ names, max = 4, size = 28, label }: { names: reado
       {rest > 0 && (
         <span
           className="relative grid place-items-center rounded-full bg-muted font-medium text-muted-foreground tabular-nums ring-2 ring-background"
-          style={{ width: rem(size), height: rem(size), marginLeft: `-${overlap}`, fontSize: rem(Math.max(10, Math.round(size * 0.36))) }}
+          style={{ width: rem(size), height: rem(size), marginLeft: shown.length ? `-${overlap}` : undefined, fontSize: rem(Math.max(10, Math.round(size * 0.36))) }}
           aria-label={`and ${rest} more`}
         >
           +{rest}
