@@ -6,7 +6,7 @@ import * as React from "react";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
   Alert, AlertDescription, AlertTitle,
-  Avatar, Badge, BarChart, Button, CallChip, Calendar, Checkbox,
+  Avatar, Badge, BarChart, Button, CallChip, Calendar, Checkbox, IconWeightProvider, useEdgeFade,
   type Column, CommandPalette, DataTable, DatePicker, dates,
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuShortcut, DropdownMenuSub,
   DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
@@ -43,6 +43,7 @@ export function Cheatsheet() {
   const [filters, setFilters] = React.useState<FilterState>(EMPTY_FILTERS);
   const [chapter, setChapter] = React.useState<[string, string | null]>(["look", null]);
   const theme = useTheme();
+  const fade = useEdgeFade<HTMLDivElement>("x");
   useCommandPaletteShortcut(() => setOpen((o) => !o));
 
   // Columns
@@ -74,6 +75,9 @@ export function Cheatsheet() {
       {/* Controls */}
       <Button variant="brand" size="sm" onClick={() => toast.success("Saved", { description: "2 changes" })}>Run</Button>
       <Button variant="ghost" size="icon-sm" aria-label="Refresh"><Icon name="refresh" /></Button>
+      <Icon name={open ? "check" : "copy"} swap />
+      <IconWeightProvider weight="bold"><Icon name="add" /></IconWeightProvider>
+      <div ref={fade.ref} style={fade.style} className="flex overflow-x-auto">…</div>
       <Button variant="destructive"><Icon name="delete" /> Delete</Button>
       <Badge variant="success">ok</Badge>
       <StatusDot tone="warning" live />

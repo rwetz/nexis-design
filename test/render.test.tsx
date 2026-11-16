@@ -5,7 +5,7 @@
 import { render } from "@testing-library/react";
 import type * as React from "react";
 import { describe, expect, it } from "vitest";
-import { SidebarNav, ThemeProvider, TooltipProvider } from "../src";
+import { Button, Icon, IconWeightProvider, SidebarNav, ThemeProvider, TooltipProvider } from "../src";
 import Console from "../templates/console";
 import Dashboard from "../templates/dashboard";
 import Explorer from "../templates/explorer";
@@ -55,8 +55,18 @@ describe("theme engine", () => {
     const root = document.documentElement;
     expect(root.style.getPropertyValue("--background")).toBe("#15110c");
     expect(root.style.getPropertyValue("--brand")).toBe("#e5a323");
+    // The theme's accent is --brand only; --primary stays a neutral (R6.2).
+    const aurelian = getBuiltinTheme("aurelian")!.variants.dark!.colors!;
+    expect(root.style.getPropertyValue("--primary")).toBe(aurelian.foreground);
+    expect(root.style.getPropertyValue("--primary-foreground")).toBe(aurelian.background);
+    expect(root.style.getPropertyValue("--primary")).not.toBe(root.style.getPropertyValue("--brand"));
+    // In the dark the popover is a step above the card, not equal to it.
+    expect(root.style.getPropertyValue("--popover")).toContain("var(--card)");
+    applyTheme(getBuiltinTheme("aurelian")!, "light");
+    expect(root.style.getPropertyValue("--popover")).toBe(getBuiltinTheme("aurelian")!.variants.light!.colors!.popover);
     clearTheme();
     expect(root.style.getPropertyValue("--background")).toBe("");
+    expect(root.style.getPropertyValue("--primary")).toBe("");
   });
 });
 
@@ -98,5 +108,39 @@ describe("SidebarNav collapsed", () => {
     const { getByRole } = mount(Nav);
     expect(getByRole("button", { name: "Home" })).toBeInTheDocument();
     expect(getByRole("button", { name: "Cart, 3" })).toBeInTheDocument();
+  });
+});
+
+describe("icons follow their text (RULES R7.3, R8.4)", () => {
+  // Phosphor marks its weight on the svg root as a path set; regular and bold
+  // draw different paths, so compare against a known-weight render.
+  const paths = (el: Element | null) => el?.querySelector("svg")?.innerHTML ?? "";
+
+  it("takes bold inside a medium-weight control and regular outside", () => {
+    const bold = render(<Icon name="add" weight="bold" />).container;
+    const regular = render(<Icon name="add" />).container;
+    const inButton = render(<Button><Icon name="add" /> New</Button>).container;
+    const inProvider = render(<IconWeightProvider weight="bold"><Icon name="add" /></IconWeightProvider>).container;
+    expect(paths(regular)).not.toBe(paths(bold));
+    expect(paths(inButton)).toBe(paths(bold));
+    expect(paths(inProvider)).toBe(paths(bold));
+  });
+
+  it("keeps its own weight and active over the provider", () => {
+    const fill = render(<Icon name="star" weight="fill" />).container;
+    const active = render(<IconWeightProvider weight="bold"><Icon name="star" active /></IconWeightProvider>).container;
+    expect(paths(active)).toBe(paths(fill));
+  });
+
+  it("animates a swap only when the name changes, never on first render", () => {
+    const { container, rerender } = render(<Icon name="copy" swap />);
+    expect(container.querySelector("svg")?.classList.contains("nexis-icon-swap")).toBe(false);
+    rerender(<Icon name="copy" swap />);
+    expect(container.querySelector("svg")?.classList.contains("nexis-icon-swap")).toBe(false);
+    rerender(<Icon name="check" swap />);
+    expect(container.querySelector("svg")?.classList.contains("nexis-icon-swap")).toBe(true);
+    const plain = render(<Icon name="copy" />);
+    plain.rerender(<Icon name="check" />);
+    expect(plain.container.querySelector("svg")?.classList.contains("nexis-icon-swap")).toBe(false);
   });
 });

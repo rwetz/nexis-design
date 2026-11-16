@@ -84,19 +84,19 @@
   cursor: pointer;
 }
 .cm-breakpoint-verified {
-  background: #ef4444;
-  box-shadow: 0 0 4px rgba(239, 68, 68, 0.6);
+  background: var(--destructive);
+  box-shadow: 0 0 4px color-mix(in oklab, var(--destructive) 60%, transparent);
 }
 .cm-breakpoint-unverified {
-  background: rgba(239, 68, 68, 0.4);
-  border: 1.5px solid #ef4444;
+  background: color-mix(in oklab, var(--destructive) 40%, transparent);
+  border: 1.5px solid color-mix(in oklab, var(--destructive) 70%, transparent);
 }
 .cm-current-line-arrow {
   width: 0;
   height: 0;
   border-top: 6px solid transparent;
   border-bottom: 6px solid transparent;
-  border-left: 10px solid #f59e0b;
+  border-left: 10px solid var(--warning);
   margin: 2px 3px;
 }
 

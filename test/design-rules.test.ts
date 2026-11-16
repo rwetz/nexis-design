@@ -230,6 +230,39 @@ describe("design rules", () => {
     expect(offenders(SHIPPED, /<motion\.[a-z]/)).toEqual([]);
   });
 
+  it("nested corners are concentric: a menu's items are its radius minus its padding (RULES R3.6)", () => {
+    // Menus are rounded-3xl with p-1.5, so their items are rounded-menu-item;
+    // a bare radius on an item makes its curve rounder than the menu's.
+    for (const f of ["dropdown-menu", "context-menu", "menubar"]) {
+      const src = readFileSync(join(ROOT, `src/components/ui/${f}.tsx`), "utf8");
+      expect(src, f).toMatch(/rounded-3xl bg-popover p-1\.5/);
+      expect(src, f).not.toMatch(/\brounded-(?:xl|2xl)\b/);
+    }
+    const css = readFileSync(join(ROOT, "src/styles/globals.css"), "utf8");
+    expect(css).toMatch(/--radius-menu-item: calc\(var\(--radius-3xl\) - 0\.375rem\)/);
+    expect(css).toMatch(/--radius-palette-item: calc\(var\(--radius-4xl\) - 0\.625rem\)/);
+  });
+
+  it("hairlines are alpha, not solid, so they read the same on every surface (RULES R6.7)", () => {
+    const css = readFileSync(join(ROOT, "src/styles/globals.css"), "utf8");
+    const solid = [...css.matchAll(/^\s*--(border|input|sidebar-border):\s*oklch\(([^)]*)\);/gm)].filter((m) => !m[2].includes("/"));
+    expect(solid.map((m) => m[0].trim())).toEqual([]);
+  });
+
+  it("gradients interpolate in OKLCH (RULES R6.8)", () => {
+    const hits: string[] = [];
+    for (const [rel, text] of walk(join(ROOT, "src/styles"), [".css"])) {
+      const lines = text.split(/\r?\n/);
+      lines.forEach((line, i) => {
+        // The method can sit on the next line of a multi-line gradient.
+        if (!/-gradient\(/.test(line) || /\bin oklch\b/.test(line + (lines[i + 1] ?? ""))) return;
+        if (lines.slice(Math.max(0, i - 3), i).some((l) => l.includes("oklab fallback"))) return;
+        hits.push(`${rel}:${i + 1}: ${line.trim()}`);
+      });
+    }
+    expect(hits).toEqual([]);
+  });
+
   it("high-contrast tokens are declared on body, where they beat inline theme vars", () => {
     const css = readFileSync(join(ROOT, "src/styles/globals.css"), "utf8");
     expect(css).toMatch(/html\[data-contrast="high"\] body \{[^}]*--muted-foreground:/);

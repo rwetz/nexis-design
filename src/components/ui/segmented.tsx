@@ -74,7 +74,7 @@ export function Segmented<Id extends string>({
               on ? "text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {s.icon && <Icon name={s.icon} active={on} />}
+            {s.icon && <Icon name={s.icon} active={on} weight={on ? undefined : "bold"} />}
             {s.label}
           </button>
         );

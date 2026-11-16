@@ -222,6 +222,18 @@ and its header row is 48px with the title on the gutter. Content never
 touches the panel edge except full-bleed thumbnails strips, which bleed by
 exactly the gutter (`-mx-4 px-4`).
 
+**R3.6 Concentric corners.** Something rounded inside something rounded,
+near its corner, takes the outer radius minus the padding between them, so
+the two curves share a centre. A larger inner radius bulges against the
+outer curve; a smaller one pinches. The common pairs are tokens derived
+from `--radius`: `rounded-menu-item` (a `rounded-3xl` menu with `p-1.5`),
+`rounded-palette-item` (the `rounded-4xl` palette, `p-1` plus its group's
+`p-1.5`), `rounded-tab-item` (a vertical `rounded-2xl` tab list, `p-1`). A
+pill inside a pill is already concentric. A new pair gets a token, not an
+ad hoc number. Card pictures are `rounded-2xl` so a badge pill at their 8px
+inset sits concentric; a circular action button in a picture's corner is
+the exception, its shape set by R7.1. Tripwired for menus.
+
 ---
 
 ## 4. Layout patterns
@@ -298,6 +310,12 @@ actions step aside into a More menu or the command palette. The search field
 shrinks (`min-w-0 shrink`) rather than pushing actions off. Nothing ever
 overlaps or wraps to a second row.
 
+**R4.8 Clipped edges fade.** Anything that
+scrolls sideways (a `Strip`, a `Shelf`, a tab strip) masks the edge that has
+more to show, so a clipped item fades out rather than being cut by a hard
+line. `Strip` does it itself; anything else uses `useEdgeFade`. The resting
+edge never fades.
+
 ---
 
 ## 5. Overlays: which one
@@ -368,6 +386,31 @@ package (Nexis keeps its own copy). Tripwired.
 mean status and nothing else. An "edited" marker is a neutral dot
 (`bg-foreground/60`), not a status.
 
+**R6.6 Depth in the dark.** A shadow that works on a white page barely
+reads on a near-black one, so dark surfaces are lit from above. A floating
+surface (menu, popover, select, dialog, sheet) is a step lighter than the
+card (`--popover` is the card mixed 3% toward the foreground; `applyTheme`
+sets it for a theme whose popover equals its card), and in dark mode panels,
+cards and floating surfaces carry a 1px top-edge highlight, the hairline and
+a deeper shadow (`globals.css`, keyed on `data-slot`). Light mode keeps its
+own shadows.
+
+**R6.7 Hairlines are alpha.** `--border`, `--input` and `--sidebar-border`
+are the foreground at a low alpha, never a solid colour, so a line reads the
+same on the page, a card and a popover instead of jumping in contrast from
+one surface to the next. High contrast is the exception: its borders are
+solid on purpose. Tripwired.
+
+**R6.8 Gradients interpolate in OKLCH.** Write `linear-gradient(in oklch …)`
+and `radial-gradient(… in oklch, …)`, so a gradient between two hues stays
+saturated through the middle instead of greying out as sRGB does. When one
+end is a neutral surface, give that end `none` for a hue
+(`oklch(from var(--card) l c none / alpha)`), or it sweeps through a third
+colour on the way. An `oklab` line kept only as a fallback says so in a
+comment. The `ColorPicker`'s fields are the exception: they draw sRGB's own
+HSV space. Masks are alpha only and need no method. Tripwired for the
+stylesheets.
+
 ---
 
 ## 7. Controls: one expression per idea
@@ -404,6 +447,16 @@ mean status and nothing else. An "edited" marker is a neutral dot
 icon buttons, `lg` (20) in empty states. Never mix two icon sizes in one
 row.
 
+**R7.3 Icons weigh what their text weighs.** Phosphor's regular stroke is
+0.88px at 14px, lighter than Inter at 400; its bold is 1.31px at 14px and
+1.5px at 16px, Inter Medium's stem at 13 to 14px. So an icon beside
+`font-medium` text is bold and one beside text at 400 is regular. Controls
+whose label is `font-medium` (`Button`, `Badge`, `Toggle`, `TabsTrigger`,
+`Segmented`, menu and palette items) set this for every icon inside through
+`IconWeightProvider`; a hand-built control does the same. `active` (fill)
+and an explicit `weight` still win. A nav item's resting text is 400, so its
+icon stays regular until it is selected and fills.
+
 ---
 
 ## 8. Motion
@@ -431,6 +484,13 @@ leaves room for a lifted card (`Shelf` does). All of it is off under reduced
 motion and on touch. An app with levels of showmanship maps them onto
 whether `CardTilt` is mounted and its `foil` and `enter` props; every effect
 is gated on those, so there is nothing to override. From Vitrine.
+
+**R8.4 An icon that swaps blurs through.** When a user action changes a
+glyph (copy to check, add to added, maximise to restore, a sort direction),
+mark it `<Icon swap>`: the new glyph comes up out of a 2px blur, fading and
+scaling from 60% on `--dur-panel`. Only a change of `name` animates, never
+the first glyph and never live data (a `Stat`'s trend arrow stays still).
+Off under reduced motion.
 
 ---
 

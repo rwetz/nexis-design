@@ -10,6 +10,7 @@
 
 import * as React from "react";
 import {
+  useEdgeFade,
   CommandPalette,
   ContextMenu,
   ContextMenuContent,
@@ -67,6 +68,7 @@ export function tabsReducer(s: Tabs, a: TabAction): Tabs {
 }
 
 export default function App() {
+  const tabFade = useEdgeFade<HTMLDivElement>("x", "1.5rem");
   const [expanded, setExpanded] = React.useState<Set<string>>(() => new Set(["src", "src/components"]));
   const [tabs, dispatch] = React.useReducer(tabsReducer, {
     open: ["src/components/Panel.tsx", "src/theme/applyTheme.ts", "README.md"],
@@ -127,7 +129,13 @@ export default function App() {
         <ResizableHandle />
         <ResizablePanel defaultSize="58%" minSize="30%">
           <div className="flex h-full flex-col">
-            <div role="tablist" className="flex h-9 shrink-0 items-end gap-1 overflow-x-auto border-b border-border/60 bg-sidebar/40 px-2">
+            <div className="shrink-0 border-b border-border/60 bg-sidebar/40">
+            <div
+              role="tablist"
+              ref={tabFade.ref}
+              style={tabFade.style}
+              className="flex h-9 items-end gap-1 overflow-x-auto px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
               {open.map((id) => (
                 <div
                   key={id}
@@ -154,6 +162,7 @@ export default function App() {
                   </button>
                 </div>
               ))}
+            </div>
             </div>
             {active === null ? (
               <Empty className="flex-1">

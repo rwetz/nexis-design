@@ -12,6 +12,72 @@ Every **Apps must** starts the same way: bump the pin, `pnpm install`, then
 delete `node_modules/.vite` (or run `pnpm dev --force` once) so Vite does not
 keep serving the old package (PITFALLS §17).
 
+## Unreleased (detail pass)
+
+- **Concentric corners (RULES R3.6).** Menu, context-menu and menubar
+  items were 18px inside a 22px menu with 6px padding; they are now
+  `rounded-menu-item` (16px). Palette items are `rounded-palette-item`,
+  vertical tabs `rounded-tab-item`, the menubar trigger a pill. All are
+  derived from `--radius`. `ProductCard` and `ThumbnailCard` pictures are
+  `rounded-2xl`, so a badge pill at their 8px inset sits concentric.
+- **Alpha hairlines (R6.7).** The default light theme's `--border`,
+  `--input` and `--sidebar-border` were solid; they are the foreground at
+  10%, which looks the same on the page and reads the same on a card. The
+  generated themes were alpha already. The IDE stylesheet's breakpoint and
+  current-line marks use `--destructive` and `--warning` instead of hex.
+- **OKLCH gradients (R6.8).** The skeleton sheen, the tilt light, the foil
+  and the collection tint interpolate `in oklch`; a tone fading into the
+  card gives the card end hue `none`, so it never sweeps through a third
+  colour.
+- **Icon weight follows text weight (R7.3).** New `IconWeightProvider`.
+  `Button`, `Badge`, `Toggle`, `TabsTrigger`, `Segmented` and menu and
+  palette contents make their icons Phosphor bold, which matches Inter
+  Medium's stem; text at 400 keeps regular icons.
+- **Icon swaps blur through (R8.4).** `<Icon swap>` brings a changed glyph
+  in out of a short blur. On the sort chevron, the window's maximise and
+  restore, and the gallery's add-to-cart.
+- **Clipped edges fade (R4.8).** New `useEdgeFade` hook (and
+  `edgeFadeStyle`); `Strip` uses it, and the workbench template's tab strip
+  fades the edge it clips.
+- **Depth in the dark (R6.6).** The dark popover is a step above the card
+  (it was equal to it on every theme), and in dark mode panels, cards and
+  floating surfaces get a top-edge highlight, the hairline and a deeper
+  shadow.
+
+**Apps must:** bump the pin. Replace any hand-set radius on items inside a
+rounded menu or list with the matching token, or derive one (outer minus
+padding). A hand-built control with `font-medium` text wraps its icons in
+`<IconWeightProvider weight="bold">`. Add `swap` to icons that change on a
+user action. Move hand-rolled sideways scrollers onto `useEdgeFade`. Any
+app CSS gradient gets `in oklch`. Look at a dark theme: a custom
+`box-shadow` on a `[data-slot]` panel or menu is now overridden there.
+
+## Unreleased (neutral `primary`)
+
+- **`primary` is a neutral on every theme.** Every theme but the default
+  ships its accent as `primary`, and `--brand` is that same colour, so the
+  default button, checked checkboxes, radios and switches, the slider's
+  range and the selected `GlidingTabs` tab were all a second accent (RULES
+  R6.2). `applyTheme` now sets `--primary` to the theme's foreground and
+  `--primary-foreground` to its background; the theme's accent reaches
+  `--brand` only. The default theme looks the same.
+- **Live progress is the accent.** `Progress` and `ThoughtLine` fill with
+  `brand` (they were `primary`, so neutral on the default theme).
+- **Text on the accent follows the theme.** `--brand-foreground` was white
+  on every theme, which is hard to read on a dark theme's light accent.
+  `applyTheme` now sets it from the theme (`primaryForeground`, or the
+  background when the accent is a separate `ring`), keeping white where
+  white reads better. A test holds it to 4.5:1 on every Nexis theme and
+  mode, and 3:1 on the community ones: the light variants of Nord, Gruvbox
+  and Rose Pine have a mid-tone accent that no text reaches 4.5 on.
+
+**Apps must:** bump the pin. Anything that used `bg-primary` or
+`text-primary` to mean "the theme's colour" becomes `bg-brand` or
+`text-brand`, if it is one of the three things R6.2 allows; otherwise leave
+it neutral. Look at every screen on one non-default theme: default buttons
+and checked controls are now neutral there. Nexis takes the same change in
+its own `applyTheme`.
+
 ## Unreleased (`vitrine-findings`)
 
 - **From moving Vitrine onto the package** (APP-FINDINGS, Vitrine 1 to 8):

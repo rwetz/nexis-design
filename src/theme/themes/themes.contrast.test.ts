@@ -5,6 +5,7 @@
 // ╚══════════════════════════════════════╝
 
 import { describe, expect, it } from "vitest";
+import { brandOf } from "../applyTheme";
 import { getFolderColor } from "../folderColor";
 import type { Theme, ThemeMode } from "../types";
 import {
@@ -201,4 +202,27 @@ describe("theme registry", () => {
       expect(migrateThemeId(t.id)).toBe(t.id);
     }
   });
+});
+
+describe("the accent's own text", () => {
+  // Text on the brand button. The stylesheet's white only suits the default
+  // theme's coral: on a dark theme the accent is a light colour. Nexis themes
+  // hold 4.5:1. Community palettes are kept as authored, and three light
+  // ones (Nord, Gruvbox, Rose Pine) have a mid-tone accent that nothing
+  // reaches 4.5 on, so they hold the 3:1 floor for bold UI text.
+  const themed = listBuiltinThemes().filter((t) => t.id !== "nexis-default");
+  const community = new Set(listCommunityThemes().map((t) => t.id));
+
+  it.each(themed.flatMap((t) => MODES.map((m) => [t.id, m, t] as const)))(
+    "%s/%s reads on its accent",
+    (_id, mode, theme) => {
+      const c = variantOf(theme, mode)?.colors;
+      if (!c) return;
+      const { brand, brandForeground } = brandOf(c);
+      expect(brand).toBeDefined();
+      // No brandForeground means the stylesheet's white stays.
+      const text = brandForeground ?? "#ffffff";
+      expect(contrast(text, brand as string)).toBeGreaterThanOrEqual(community.has(theme.id) ? 3 : 4.5);
+    },
+  );
 });

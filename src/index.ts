@@ -18,7 +18,7 @@
 export * from "./theme";
 
 // ── Icons: the single choke point. Never import the vendor directly. ──────
-export { Icon, ICON_SIZE, ICON_NAMES, type IconName, type IconSize, type IconProps } from "./icon/icon";
+export { Icon, IconWeightProvider, ICON_SIZE, ICON_NAMES, type IconName, type IconSize, type IconProps } from "./icon/icon";
 
 // ── Chrome ─────────────────────────────────────────────────────────────────
 export { TitleBar, ChromePreviewContext } from "./components/TitleBar";
@@ -93,6 +93,7 @@ export * from "./components/ui/panel-section";
 export * from "./components/ui/control-row";
 export * from "./components/ui/thumbnail";
 export * from "./components/ui/strip";
+export * from "./components/ui/use-edge-fade";
 export * from "./components/ui/product-card";
 export * from "./components/ui/filter-panel";
 export * from "./components/ui/settings-tree";

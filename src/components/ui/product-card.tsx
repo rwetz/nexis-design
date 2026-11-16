@@ -134,7 +134,7 @@ export function ProductCard({
       <button type="button" className="flex min-w-0 flex-col gap-2 text-left outline-none" {...props}>
         <div
           className={cn(
-            "relative w-full overflow-hidden rounded-xl bg-muted ring-1 ring-foreground/8 group-hover/product:ring-foreground/25 group-has-[:focus-visible]/product:ring-2 group-has-[:focus-visible]/product:ring-ring",
+            "relative w-full overflow-hidden rounded-2xl bg-muted ring-1 ring-foreground/8 group-hover/product:ring-foreground/25 group-has-[:focus-visible]/product:ring-2 group-has-[:focus-visible]/product:ring-ring",
             // A tilting card lifts on the spring (.nexis-face); a plain one lifts 2px (R8.1).
             tilt || foil ? "nexis-face" : "transition-[translate,box-shadow] group-hover/product:-translate-y-0.5",
             typeof aspect === "string" && ASPECT[aspect],
