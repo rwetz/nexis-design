@@ -14,6 +14,11 @@
  * column says it can. A status column is a `StatusDot` and its `toneText`
  * (R6), not a word in the body colour.
  *
+ * Rows bleed 12px into the gutter on both sides (`-mx-3`), so the art and
+ * the title line up with the heading above the list while the hover wash
+ * reaches past them. Leave room for it: no `overflow-hidden` right at the
+ * list's edge.
+ *
  * A `DataTable` is for records you compare; this is for things you open.
  * From Stipple.
  */
@@ -89,7 +94,7 @@ export function MediaList<T, K extends string = string>({
 
   // tailwind-merge drops `@container` next to `flex`: keep it outside cn()
   return (
-    <div data-slot="media-list" role="table" aria-label={label} className={`@container ${cn("flex flex-col gap-1", className)}`}>
+    <div data-slot="media-list" role="table" aria-label={label} className={`@container ${cn("-mx-3 flex flex-col gap-1", className)}`}>
       <div role="row" className="flex items-center gap-group px-3 pb-1 text-caption text-muted-foreground">
         <span role="columnheader" className="min-w-0 flex-1 pl-[5.5rem]">
           Title
