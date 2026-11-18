@@ -116,6 +116,7 @@ with no space for `%`, `°` and `×`, and with a thin space (` `) for
 | `text-sm` | 14px | 500 | panel and section headings, dialog buttons, settings field labels |
 | `text-lg` | 18px | 600 | page titles (Settings section, empty state title) |
 | `text-2xl` | 24px | 600 | a single big figure (a stat), the start screen's app name |
+| `text-display` | 32px | 600 | a hero's title (`MediaHero`), one per screen; tight leading, -0.015em |
 
 Never `text-[Npx]`, never `text-xs` or `text-base`. These are sizes at 100%
 interface scale; R2 scales all of them together. Tripwired.
@@ -350,16 +351,24 @@ edge never fades.
 **R4.10 Launchers.** A library of things you open, install and run (games,
 plugins, models, media) starts from the `launcher` template:
 
-- **Library:** a `MediaHero` for the thing last used (else a featured one),
-  then tabs, search and sort on one row, then covers in a `ThumbnailGrid`
-  of `ProductCard tilt` with `CoverArt`, or a `DataTable` as a list. A
+- **Places:** Home, Library, Search, Settings (R4.11).
+- **Home:** a `MediaHero` for the thing last used (else a featured one),
+  then shelves of wide cards: recently used, favourites, the rest.
+- **Library:** a title, then tabs, search and sort on one row, then covers
+  in a `ThumbnailGrid` of `ProductCard tilt` with `CoverArt`, or a
+  `MediaList` as a list (status as a `StatusDot` with its `toneText`). A
   `FilterPanel` rail beside it from `xl`. A card's `...` menu runs, opens
   and manages it in place.
+- **Search:** one wide field over everything a person would look for:
+  titles, kinds, the description, and the controls.
 - **Item page:** `MediaHero variant="page"` with one `LaunchButton` (its
   label is the state: Install, Installing 42%, Play, Resume), a favourite
   toggle, a manage menu (deletes behind an `AlertDialog`), and `HeroFact`s
-  (last used, time spent); then `GlidingTabs` (Overview, Controls,
-  Options, Records).
+  (last used, time spent); then `GlidingTabs size="lg"` (Overview,
+  Controls, Options, Records). Overview is the description at reading
+  width beside cards (details as label over value, the first few
+  controls); no feature bullets. Controls is `KeybindTable layout="grid"`;
+  Options is its settings groups as cards.
 - **Running:** the thing owns the body; the sidebar and toolbar step aside,
   the title bar keeps a Pause action. **Its options are never in the shell's
   toolbar while it runs:** they are pages in its `PauseMenu` and tabs on its
@@ -367,7 +376,17 @@ plugins, models, media) starts from the `launcher` template:
   and sound; losing window focus and opening the palette pause too.
 - **Art is the real output** (R9.1): covers rendered by the thing itself
   where it can (Stipple renders each game), never stock art. Badges on art
-  are `CardBadge`. Hero titles are `text-2xl` until a display size exists.
+  are `CardBadge`. `MediaHero` titles are `text-display` (R1.4).
+
+**R4.11 Primary navigation lists places, not things.** The sidebar is the
+app's map: a handful of places (Home, the collection, Search, the app's
+other pages), with Settings (and Help, the account) in a `pin: "end"`
+section at the bottom. Never the collection's items: games, documents,
+projects and channels live on the collection's page, where they can be
+searched, sorted and filtered. A recent few may show as a titled section
+only in a `workbench` app whose items are where you work (chats, files).
+Seven places at most; each a noun with its icon (`home`, `gamepad` or
+`library`, `search`, `settings`), never the grid glyph for a collection.
 
 ---
 

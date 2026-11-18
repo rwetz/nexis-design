@@ -61,7 +61,7 @@ export function MediaHero({
       <div className={cn("flex max-w-3xl flex-col gap-row", variant === "feature" ? "p-6" : "px-page pt-24 pb-6")}>
         {eyebrow && <span className="text-ui font-medium text-muted-foreground">{eyebrow}</span>}
         <div className="flex flex-wrap items-center gap-row">
-          <h1 className="text-2xl font-semibold">{title}</h1>
+          <h1 className="text-display font-semibold">{title}</h1>
           {badges}
         </div>
         {description && <p className="max-w-xl text-sm text-muted-foreground">{description}</p>}

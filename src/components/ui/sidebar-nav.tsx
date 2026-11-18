@@ -8,6 +8,11 @@
  * An app's primary navigation: a brand row, grouped items with optional
  * counts, and a footer.
  *
+ * It lists places, not things (RULES R4.11): Home, the collection, Search,
+ * the app's other pages, and Settings in a `pin: "end"` section, which sits
+ * at the bottom of the rail. The collection's items (games, documents,
+ * projects) live on the collection's page, never here.
+ *
  * The selection is a single highlight that glides between items
  * (`useGlidingRail`, vertical) with a short accent bar on its leading edge —
  * the same rail Nexis's Settings nav uses. `collapsed` shrinks it to an icon
@@ -34,6 +39,8 @@ export type SidebarNavItem<Id extends string = string> = {
 export type SidebarNavSection<Id extends string = string> = {
   title?: string;
   items: readonly SidebarNavItem<Id>[];
+  /** "end" pins the section to the bottom of the rail (Settings, Help, the account). */
+  pin?: "end";
 };
 
 export function SidebarNav<Id extends string>({
@@ -78,6 +85,7 @@ export function SidebarNav<Id extends string>({
         <RailIndicator rail={rail} rect={rail.activeRect} radius={10} className="inset-x-2 bg-sidebar-accent" />
         {sections.map((section, si) => (
           <React.Fragment key={section.title ?? si}>
+            {section.pin === "end" && sections[si - 1]?.pin !== "end" && <div aria-hidden className="min-h-4 flex-1" />}
             {section.title && !collapsed && (
               <div className="relative z-10 px-2.5 pt-3 pb-1 text-caption font-medium tracking-wide text-muted-foreground/80 uppercase first:pt-1">
                 {section.title}

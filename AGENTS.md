@@ -328,7 +328,12 @@ export default function App() {
 <LaunchButton state={{ kind: "installing", stage: "Unpacking", frac: 0.42 }} onInstall={install} onPlay={play} labels?={{ play: "Open" }} />   // checking | install | installing | play | resume
 <PauseMenu title="Ridge" subtitle="Seed 11" onResume={resume} items={[{ id: "resume", label: "Resume", icon: "play", hint: "Esc", run: resume },
   { id: "keys", label: "Controls", icon: "keyboard", page: <KeybindTable …/> }, { id: "quit", label: "Quit", exit: true, run: quit }]} />   // inside a `relative` view
-<KeybindTable actions={keyActions([{ label: "Move", keys: ["W", "A", "S", "D"] }])} bindings={b} onChange={setB} compact? />   // keyRemap(b) -> { map, blocked } for your key handler
+<KeybindTable actions={keyActions([{ label: "Move", keys: ["W", "A", "S", "D"] }])} bindings={b} onChange={setB} compact? layout?="grid" />   // keyRemap(b) -> { map, blocked } for your key handler
+<MediaList label="Games" rows={items} rowKey={(i) => i.id} art={(i) => <CoverArt src={i.art} />} title={(i) => i.title} subtitle?={(i) => i.tagline}
+  columns={[{ key: "status", header: "Status", width: "8rem", hideBelow?: "md|lg|xl", cell: (i) => <StatusDot tone="info" /> }]} onOpen={open} action?={(i) => <Button size="sm">Play</Button>} />
+<SidebarNav value={page} onChange={go} sections={[{ items: [{ id: "home", label: "Home", icon: "home" }, …] }, { pin: "end", items: [{ id: "settings", label: "Settings", icon: "settings" }] }]} />   // places, not things (R4.11)
+<GlidingTabs size="lg" label="Sections" value={tab} onChange={setTab} tabs={[{ id: "overview", label: "Overview", icon: "info" }]} />   // a page's own tabs
+<h1 className="text-display">Ridge</h1>   // a hero's title, once per screen (MediaHero does this)
 // Deep settings (R4.2): one registry drives the tree, the search and the palette
 <SettingsTree nodes={settingsTreeNodes(SETTINGS)} chapter={c} section={s} onSelect={(c, s) => …} openAll={searching} />
 findSettings(query, SETTINGS)  locateSetting("Mode", SETTINGS)   // SettingsPage/Group/Row take id and data-*; SettingsPage titleClassName, inset={false}

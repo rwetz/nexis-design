@@ -129,6 +129,7 @@ shared version yet.
 | `LaunchButton` | Stipple | one brand button whose label is the state (`LaunchState`: checking, install, installing, play, resume); fixed width, progress fills the button, the stage in a caption under it; `launchFace` is the pure part |
 | `PauseMenu` | Stipple | list over a frozen view with pages beside it; arrows glide, Enter picks, Esc closes a page then resumes; exits set apart; `pauseStep` is the pure part |
 | `KeyCapture`, `KeybindTable` | Stipple | rebindable keys: click and press; conflicts flagged on both rows; mouse rows fixed; Reset. `keyActions`, `keyRemap`, `keyConflicts`, `keyCodeLabel`, `keyLabelToCode` |
+| `MediaList` | Stipple | a library as rows: art, title and a line, short columns that hide by the list's own width (container queries), a hover action, sortable headers; for things you open, where `DataTable` is for records you compare |
 | `CoverArt` | Stipple | a picture that falls back to its icon and title on `bg-muted` when missing or broken |
 
 ### Chrome

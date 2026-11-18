@@ -91,6 +91,7 @@ export function KeyCapture({
   onChange,
   label,
   bindable = BINDABLE_KEYS,
+  size = "md",
 }: {
   /** The bound `KeyboardEvent.code`. */
   value: string;
@@ -100,6 +101,8 @@ export function KeyCapture({
   /** What the key does, for screen readers. */
   label: string;
   bindable?: RegExp;
+  /** "lg" is the keycap on a `KeybindTable layout="grid"` tile. */
+  size?: "md" | "lg";
 }) {
   const [armed, setArmed] = React.useState(false);
   const change = React.useRef(onChange);
@@ -125,7 +128,8 @@ export function KeyCapture({
       onBlur={() => setArmed(false)}
       aria-label={armed ? `Press a key for ${label}` : `${label}: ${keyCodeLabel(value)}. Change`}
       className={cn(
-        "inline-flex h-7 min-w-9 items-center justify-center rounded-md border px-2 text-ui font-medium tabular-nums outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+        "inline-flex items-center justify-center border font-medium tabular-nums outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+        size === "lg" ? "h-10 min-w-10 rounded-lg border-b-2 px-3 text-sm" : "h-7 min-w-9 rounded-md px-2 text-ui",
         armed
           ? "border-ring bg-background text-muted-foreground"
           : conflict
@@ -145,6 +149,7 @@ export function KeybindTable({
   bindings,
   onChange,
   compact = false,
+  layout = "table",
   bindable,
   className,
 }: {
@@ -152,6 +157,12 @@ export function KeybindTable({
   bindings: KeyBindings;
   onChange: (b: KeyBindings) => void;
   compact?: boolean;
+  /**
+   * "table" (default): rows of action and keys, for a pause menu's page.
+   * "grid": a tile per action, keycaps over the label, for an item page's
+   * Controls tab where there is room to read it as a controls screen.
+   */
+  layout?: "table" | "grid";
   bindable?: RegExp;
   className?: string;
 }) {
@@ -163,21 +174,13 @@ export function KeybindTable({
     else next[def] = code;
     onChange(next);
   };
-  return (
-    <div data-slot="keybind-table" className={cn("flex flex-col gap-row", className)}>
-      <table className={cn("w-full", compact ? "text-ui" : "text-body")}>
-        <tbody>
-          {actions.map((a) => (
-            <tr key={a.label} className="border-b border-border last:border-b-0">
-              <td className="py-2 pr-group text-muted-foreground">{a.label}</td>
-              <td className="py-2 text-right whitespace-nowrap">
-                <span className="inline-flex flex-wrap justify-end gap-1">
-                  {a.keys.map((k) => {
+  const keys = (a: KeyAction, size: "md" | "lg") =>
+                  a.keys.map((k) => {
                     if (!k.code)
                       return (
                         <Tooltip key={k.label}>
                           <TooltipTrigger asChild>
-                            <span tabIndex={0} className="outline-none">
+                            <span tabIndex={0} className={cn("outline-none", size === "lg" && "inline-flex h-10 items-center")}>
                               <Kbd>{k.label}</Kbd>
                             </span>
                           </TooltipTrigger>
@@ -194,16 +197,42 @@ export function KeybindTable({
                         conflict={clash.has(def)}
                         label={`${a.label} (${k.label})`}
                         bindable={bindable}
+                        size={size}
                         onChange={(c) => set(def, c)}
                       />
                     );
-                  })}
-                </span>
-              </td>
-            </tr>
+                  });
+  return (
+    <div data-slot="keybind-table" data-layout={layout} className={cn("flex flex-col", layout === "grid" ? "gap-group" : "gap-row", className)}>
+      {layout === "grid" ? (
+        <ul className="grid grid-cols-[repeat(auto-fill,minmax(11rem,1fr))] gap-3">
+          {actions.map((a) => (
+            <li
+              key={a.label}
+              className={cn(
+                "flex flex-col gap-3 rounded-xl border bg-card p-4 transition-colors",
+                a.keys.some((k) => k.code && clash.has(k.code)) ? "border-warning/60" : "border-border hover:border-foreground/20",
+              )}
+            >
+              <span className="flex flex-wrap items-center gap-1.5">{keys(a, "lg")}</span>
+              <span className="mt-auto text-body text-muted-foreground">{a.label}</span>
+            </li>
           ))}
-        </tbody>
-      </table>
+        </ul>
+      ) : (
+        <table className={cn("w-full", compact ? "text-ui" : "text-body")}>
+          <tbody>
+            {actions.map((a) => (
+              <tr key={a.label} className="border-b border-border last:border-b-0">
+                <td className="py-2 pr-group text-muted-foreground">{a.label}</td>
+                <td className="py-2 text-right whitespace-nowrap">
+                  <span className="inline-flex flex-wrap justify-end gap-1">{keys(a, "md")}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
       <div className="flex items-center justify-between gap-row">
         <span className={cn("flex items-center gap-inline text-caption", clash.size ? "text-warning" : "text-muted-foreground")}>
           {clash.size ? (

@@ -36,12 +36,31 @@ pause). Its pieces are now the package's.
   scaffolding (AGENTS.md §1, the `nexis-scaffold` skill); `minimal` is for
   one-screen utilities, not "none of the above". `new-app.sh` prints the
   reminder when given `minimal`.
+- **Second pass, from Stipple's review.**
+  - **`text-display`** (32px, 600, tight leading): a hero's title, once per
+    screen (R1.4). `MediaHero` uses it.
+  - **Navigation lists places, not things** (RULES R4.11): Home, the
+    collection, Search, then Settings pinned to the bottom with
+    `SidebarNav`'s new `pin: "end"` section. Never the collection's items.
+  - **`MediaList`**: a launcher library as rows (art, title and a line,
+    short columns that hide by the list's own width, a hover action,
+    sortable headers). A status column is a `StatusDot` and its `toneText`.
+  - **`GlidingTabs size="lg"`** for a page's own tabs; **`KeybindTable
+    layout="grid"`** (a tile per action) for an item page's Controls tab;
+    `KeyCapture size="lg"`.
+  - **Icons** `gamepad` and `library`.
+  - **`Spinner` runs on the compositor.** The heptagram is a CSS mask and the
+    comet a turning conic gradient, so it keeps moving while the main thread
+    is busy; the dash-offset version froze exactly while things loaded. It is
+    a `span` now (was an `svg`); pass `className` as before.
 
 **Apps must:** bump the pin. An app with its own copy of any of these
 (Stipple's `src/launcher/`) deletes it and imports from the package; its
 keybind data becomes `KeyAction[]` (`keyActions(info.keys)`) and its remap
 `keyRemap`. An app on `minimal` that is really a launcher, store or library
-moves its shell onto the `launcher` template's shape (R4.10).
+moves its shell onto the `launcher` template's shape (R4.10). A sidebar that
+lists the collection's items moves them to the collection's page and keeps
+places only (R4.11). A `<Spinner>` given SVG-only props drops them.
 
 ## Unreleased (detail pass)
 

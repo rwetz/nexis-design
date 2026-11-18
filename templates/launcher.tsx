@@ -3,9 +3,10 @@
 // ║  launcher                            ║
 // ╚══════════════════════════════════════╝
 //
-// Shape: sidebar · library (hero, tabs, search, cover grid) · an item's page
-// (hero, launch button, tabs) · the running item, which owns the body, with a
-// pause menu on Esc · command palette.
+// Shape: sidebar of places (Home, Library, Settings at the bottom; never the
+// items, R4.11) · home (hero, covers) · library (tabs, search, covers or a
+// MediaList) · an item's page (hero, launch button, large tabs) · the running
+// item, which owns the body, with a pause menu on Esc · command palette.
 // Start here for: game launchers, app or plugin stores with installs, media
 // libraries, emulator front ends, model managers: a library of things you
 // open, install and run (RULES R4.10). From Stipple.
@@ -34,6 +35,13 @@ import {
   type KeyBindings,
   KeybindTable,
   LaunchButton,
+  MediaList,
+  Segmented,
+  SettingRow,
+  SettingsGroup,
+  StatusDot,
+  toneText,
+  cn,
   type LaunchState,
   MediaHero,
   NexisMark,
@@ -94,7 +102,9 @@ const ITEMS: Item[] = [
 
 const APP_NAME = "My Launcher";
 
-type Route = { page: "library" } | { page: "item"; id: string } | { page: "running"; id: string };
+type Place = "home" | "library" | "settings";
+type Route = { page: Place } | { page: "item"; id: string } | { page: "running"; id: string };
+const PLACE_TITLE: Record<Place, string> = { home: "Home", library: "Library", settings: "Settings" };
 type Install = { kind: "missing" } | { kind: "installing"; frac: number } | { kind: "ready" };
 
 function Art({ item }: { item: Item }) {
@@ -112,7 +122,7 @@ function Art({ item }: { item: Item }) {
 export default function App() {
   const theme = useTheme();
   const [paletteOpen, setPaletteOpen] = React.useState(false);
-  const [route, setRoute] = React.useState<Route>({ page: "library" });
+  const [route, setRoute] = React.useState<Route>({ page: "home" });
   const [favourites, setFavourites] = React.useState<Set<string>>(() => new Set(["isle"]));
   const [installs, setInstalls] = React.useState<Record<string, Install>>({ ridge: { kind: "missing" } });
   const [bindings, setBindings] = React.useState<Record<string, KeyBindings>>({});
@@ -159,7 +169,7 @@ export default function App() {
   }, [route.page, paused]);
 
   const running = route.page === "running";
-  const current = route.page === "library" ? null : find(route.id);
+  const current = route.page === "item" || route.page === "running" ? find(route.id) : null;
 
   return (
     <div className="flex h-full flex-col bg-background text-foreground">
@@ -168,7 +178,7 @@ export default function App() {
       <TitleBar
         className="nexis-shell-header"
         brand={<NexisMark className="size-[18px]" />}
-        title={`${current ? current.title : "Library"} · ${APP_NAME}`}
+        title={`${current ? current.title : PLACE_TITLE[route.page as Place]} · ${APP_NAME}`}
         actions={
           running &&
           !paused && (
@@ -185,18 +195,45 @@ export default function App() {
       />
       <div className="nexis-shell-body flex min-h-0 flex-1">
         {!running && (
-          <SidebarNav
-            value={route.page === "library" ? "library" : route.id}
-            onChange={(id) => setRoute(id === "library" ? { page: "library" } : { page: "item", id })}
+          <SidebarNav<Place>
+            value={route.page === "item" ? "library" : (route.page as Place)}
+            onChange={(page) => setRoute({ page })}
             sections={[
-              { title: "Launcher", items: [{ id: "library", label: "Library", icon: "grid" }] },
-              { title: "Installed", items: ITEMS.map((i) => ({ id: i.id, label: i.title, icon: i.icon })) },
+              {
+                items: [
+                  { id: "home", label: "Home", icon: "home" },
+                  { id: "library", label: "Library", icon: "gamepad", meta: ITEMS.length },
+                ],
+              },
+              { pin: "end", items: [{ id: "settings", label: "Settings", icon: "settings" }] },
             ]}
           />
         )}
         <main className="flex min-w-0 flex-1 flex-col">
-          {route.page === "library" && (
+          {route.page === "settings" && (
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+              <ViewEnter replayKey="settings" className="flex max-w-2xl flex-col gap-section p-page">
+                <h1 className="text-lg font-semibold">Settings</h1>
+                <SettingsGroup title="Appearance">
+                  <SettingRow label="Mode" description="Light, dark, or follow the system.">
+                    <Segmented
+                      label="Mode"
+                      value={theme.mode}
+                      onChange={(m) => theme.setMode(m as typeof theme.mode)}
+                      segments={[
+                        { id: "light", label: "Light" },
+                        { id: "dark", label: "Dark" },
+                        { id: "system", label: "System" },
+                      ]}
+                    />
+                  </SettingRow>
+                </SettingsGroup>
+              </ViewEnter>
+            </div>
+          )}
+          {(route.page === "home" || route.page === "library") && (
             <Library
+              home={route.page === "home"}
               favourites={favourites}
               launchState={launchState}
               onOpen={(id) => setRoute({ page: "item", id })}
@@ -247,7 +284,7 @@ export default function App() {
                       ),
                     },
                     { id: "quit", label: "Quit to its page", icon: "chevron-left", exit: true, run: () => setRoute({ page: "item", id: current.id }) },
-                    { id: "library", label: "Quit to library", icon: "grid", exit: true, run: () => setRoute({ page: "library" }) },
+                    { id: "library", label: "Quit to library", icon: "gamepad", exit: true, run: () => setRoute({ page: "library" }) },
                   ]}
                 />
               )}
@@ -260,7 +297,9 @@ export default function App() {
         open={paletteOpen}
         onOpenChange={setPaletteOpen}
         commands={[
-          { id: "library", label: "Go to library", group: "Go", icon: "grid", run: () => setRoute({ page: "library" }) },
+          { id: "home", label: "Go home", group: "Go", icon: "home", run: () => setRoute({ page: "home" }) },
+          { id: "library", label: "Go to library", group: "Go", icon: "gamepad", run: () => setRoute({ page: "library" }) },
+          { id: "settings", label: "Open settings", group: "Go", icon: "settings", run: () => setRoute({ page: "settings" }) },
           ...ITEMS.map((i) => ({ id: `run-${i.id}`, label: `Play ${i.title}`, group: "Play", icon: "play" as const, run: () => run(i.id) })),
           ...(running ? [{ id: "pause", label: paused ? "Resume" : "Pause", group: "Running", icon: "pause" as const, run: () => setPaused((p) => !p) }] : []),
           { id: "mode", label: "Toggle light / dark", group: "View", icon: "contrast", run: () => theme.setMode(theme.resolvedMode === "dark" ? "light" : "dark") },
@@ -270,7 +309,9 @@ export default function App() {
   );
 }
 
+/** Home (a hero, then the covers) and Library (a title, tabs, search, covers or a list) share this. */
 function Library({
+  home,
   favourites,
   launchState,
   onOpen,
@@ -278,6 +319,7 @@ function Library({
   onInstall,
   onFavourite,
 }: {
+  home: boolean;
   favourites: Set<string>;
   launchState: (i: Item) => LaunchState;
   onOpen: (id: string) => void;
@@ -287,12 +329,15 @@ function Library({
 }) {
   const [tab, setTab] = React.useState<"all" | "favourites">("all");
   const [query, setQuery] = React.useState("");
+  const [layout, setLayout] = React.useState<"grid" | "list">("grid");
   const q = query.trim().toLowerCase();
   const shown = ITEMS.filter((i) => (tab === "all" || favourites.has(i.id)) && (!q || `${i.title} ${i.genre}`.toLowerCase().includes(q)));
   const hero = ITEMS[0];
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-      <ViewEnter replayKey="library" className="flex flex-col gap-section p-page">
+      <ViewEnter replayKey={home ? "home" : "library"} className="flex flex-col gap-section p-page">
+        {!home && <h1 className="text-lg font-semibold">Library</h1>}
+        {home && (
         <MediaHero
           art={<Art item={hero} />}
           eyebrow="Continue playing"
@@ -309,13 +354,58 @@ function Library({
           }
           meta={<HeroFact label="Last played" value="Yesterday" />}
         />
+        )}
         <div className="flex items-center gap-row">
           <GlidingTabs label="Library" value={tab} onChange={setTab} tabs={[{ id: "all", label: "All" }, { id: "favourites", label: "Favourites" }]} />
           <div className="relative ml-auto w-56 min-w-28 shrink">
             <Icon name="search" size="sm" className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-muted-foreground" />
             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search the library" aria-label="Search the library" className="pl-8" />
           </div>
+          <Segmented
+            label="Layout"
+            value={layout}
+            onChange={(v) => setLayout(v as "grid" | "list")}
+            segments={[
+              { id: "grid", label: "Grid", icon: "grid" },
+              { id: "list", label: "List", icon: "list-bullet" },
+            ]}
+          />
         </div>
+        {layout === "list" ? (
+          <MediaList
+            label="Library"
+            rows={shown}
+            rowKey={(i) => i.id}
+            art={(i) => <Art item={i} />}
+            title={(i) => i.title}
+            subtitle={(i) => i.tagline}
+            columns={[
+              { key: "genre", header: "Genre", width: "7rem", hideBelow: "md", cell: (i) => <span className="text-muted-foreground">{i.genre}</span> },
+              {
+                key: "state",
+                header: "Status",
+                width: "8rem",
+                cell: (i) => {
+                  const ready = launchState(i).kind === "play";
+                  return (
+                    <span className={cn("flex items-center gap-2 font-medium", toneText(ready ? "success" : "neutral"))}>
+                      <StatusDot tone={ready ? "success" : "neutral"} /> {ready ? "Ready" : "Not installed"}
+                    </span>
+                  );
+                },
+              },
+            ]}
+            onOpen={(i) => onOpen(i.id)}
+            action={(i) => {
+              const ready = launchState(i).kind === "play";
+              return (
+                <Button size="sm" variant={ready ? "brand" : "secondary"} onClick={() => (ready ? onRun(i.id) : onInstall(i.id))}>
+                  <Icon name={ready ? "play" : "download"} /> {ready ? "Play" : "Install"}
+                </Button>
+              );
+            }}
+          />
+        ) : (
         <ThumbnailGrid min="11rem" maxColumns={6}>
           {shown.map((i) => (
             <ProductCard
@@ -351,6 +441,7 @@ function Library({
             />
           ))}
         </ThumbnailGrid>
+        )}
       </ViewEnter>
     </div>
   );
@@ -407,9 +498,10 @@ function ItemPage({
             }
           />
         </div>
-        <div className="flex flex-col gap-group px-page pb-page">
-          <div className="border-b border-border">
+        <div className="flex flex-col gap-section px-page pt-group pb-page">
+          <div className="border-b border-border pb-2">
             <GlidingTabs
+              size="lg"
               label={`${item.title} sections`}
               value={tab}
               onChange={setTab}
@@ -419,16 +511,22 @@ function ItemPage({
               ]}
             />
           </div>
-          <SceneEnter replayKey={tab} className="max-w-[760px]">
+          <SceneEnter replayKey={tab} className="w-full max-w-6xl">
             {tab === "overview" ? (
-              <PropertyList
-                items={[
-                  { label: "Genre", value: item.genre },
-                  { label: "Install", value: item.install ? `${item.install.what}, ${item.install.estimate}` : "None needed" },
-                ]}
-              />
+              <div className="grid items-start gap-section lg:grid-cols-[minmax(0,40rem)_22rem]">
+                <p className="max-w-prose text-sm leading-relaxed text-foreground/90">{item.tagline}</p>
+                <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5">
+                  <h2 className="text-sm font-medium">Details</h2>
+                  <PropertyList
+                    items={[
+                      { label: "Genre", value: item.genre },
+                      { label: "Install", value: item.install ? `${item.install.what}, ${item.install.estimate}` : "None needed" },
+                    ]}
+                  />
+                </section>
+              </div>
             ) : (
-              <KeybindTable actions={keyActions(item.keys)} bindings={bindings} onChange={onBindings} />
+              <KeybindTable layout="grid" actions={keyActions(item.keys)} bindings={bindings} onChange={onBindings} />
             )}
           </SceneEnter>
         </div>
