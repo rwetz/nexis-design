@@ -347,6 +347,28 @@ more to show, so a clipped item fades out rather than being cut by a hard
 line. `Strip` does it itself; anything else uses `useEdgeFade`. The resting
 edge never fades.
 
+**R4.10 Launchers.** A library of things you open, install and run (games,
+plugins, models, media) starts from the `launcher` template:
+
+- **Library:** a `MediaHero` for the thing last used (else a featured one),
+  then tabs, search and sort on one row, then covers in a `ThumbnailGrid`
+  of `ProductCard tilt` with `CoverArt`, or a `DataTable` as a list. A
+  `FilterPanel` rail beside it from `xl`. A card's `...` menu runs, opens
+  and manages it in place.
+- **Item page:** `MediaHero variant="page"` with one `LaunchButton` (its
+  label is the state: Install, Installing 42%, Play, Resume), a favourite
+  toggle, a manage menu (deletes behind an `AlertDialog`), and `HeroFact`s
+  (last used, time spent); then `GlidingTabs` (Overview, Controls,
+  Options, Records).
+- **Running:** the thing owns the body; the sidebar and toolbar step aside,
+  the title bar keeps a Pause action. **Its options are never in the shell's
+  toolbar while it runs:** they are pages in its `PauseMenu` and tabs on its
+  page. **Esc pauses** and cannot be rebound; pausing freezes input, time
+  and sound; losing window focus and opening the palette pause too.
+- **Art is the real output** (R9.1): covers rendered by the thing itself
+  where it can (Stipple renders each game), never stock art. Badges on art
+  are `CardBadge`. Hero titles are `text-2xl` until a display size exists.
+
 ---
 
 ## 5. Overlays: which one
@@ -361,6 +383,7 @@ There is one right overlay for each job. Use this table.
 | Run an action from a list | `DropdownMenu` | a select |
 | Adjust something without leaving (a colour, a filter, a gallery) | `Popover`, anchored to its trigger, fits on screen without scrolling the page | a dialog |
 | Confirm something destructive | `AlertDialog` | a popover, or no confirmation |
+| Pause something running (a game, a session) and reach its options | `PauseMenu` over the frozen view (R4.10) | a `Dialog` (it is a page stack, not a form), a dropdown, options in the toolbar |
 | A short task that blocks (save as, rename, export settings) | `Dialog`, one form, ≤ 6 fields | a new window |
 | A side panel in a narrow window | `Sheet` | a dialog |
 | A tool used alongside the main view for a long time (a detached preview, a second document) | a separate window (Tauri `WebviewWindow`) | a sheet or a dialog |
@@ -473,6 +496,7 @@ stylesheets.
 | A number in a range | `Slider` + typed value (R4.4) |
 | A number without a range | `NumberInput` |
 | A colour | `ColorPicker` |
+| A key binding | `KeyCapture` (in a `KeybindTable`): click, press the key | a text input, a `Select` of keys |
 | Edited from default | neutral dot after the label (R6.5); double-click the label to reset |
 | Busy | `Spinner` in place of the icon; the control keeps its width |
 | Long work the user started | `CallChip` in the toolbar |

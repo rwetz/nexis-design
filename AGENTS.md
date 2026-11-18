@@ -52,7 +52,18 @@ the rev is pushed; to work against a local checkout use
 | `explorer` | search + filters toolbar · paginated sortable table · details sheet | CRUD/admin panels, issue trackers, CRMs, database browsers, inventories |
 | `console` | filtered virtual log · follow-tail · level toggles · command prompt · job chip | log viewers, REPLs, job runners, serial monitors, chat transcripts |
 | `wizard` | centred steps · validated pages · progress · done | installers, onboarding, setup and export flows |
-| `minimal` | title bar · one view · status bar · palette | anything else; one-screen utilities |
+| `launcher` | sidebar · library (hero, tabs, search, cover grid) · item page (hero, launch button, tabs) · running view with a pause menu | game launchers, app and plugin stores with installs, media libraries, emulator front ends, model managers |
+| `minimal` | title bar · one view · status bar · palette | one-screen utilities and quick-action palettes |
+
+**No template fits? Ask first.** If the app's shape matches no row above and
+no recipe below covers it in a sentence or two, stop before scaffolding and
+ask the user whether to add a template for that shape to this package first
+(the template, its components, a gallery page, rules), then scaffold from
+it. Recommend it. `minimal` is not a fallback for "none of the above": an app
+that starts there invents its shell alone, and the next app of that shape
+invents it again (Stipple, a game launcher, did; the `launcher` template is
+what it should have started from). `new-app.sh` prints this reminder when
+it is given `minimal`.
 
 See them running first: `pnpm dev` in this repo, then **App templates** in
 the sidebar (or `#/app/<template>`).
@@ -115,7 +126,7 @@ Combine templates; every piece below is in the package.
 - **Terminal / REPL**: `console` for a command log; a real PTY is xterm.js plus
   a Rust PTY command and `globals.ide.css`; theme it from tokens on
   `paletteEpoch`.
-- **Launcher / quick-action / menubar utility**: `minimal` where the
+- **Quick-action palette / menubar utility** (a library of games or apps is the `launcher` template): `minimal` where the
   `CommandPalette` is the main surface (open it by default, `Dialog`-style
   centred, no sidebar). A tray icon needs Tauri's `tray-icon` feature and
   Rust, not covered by the scaffold; keep the window small and hide it on blur.
@@ -311,6 +322,13 @@ export default function App() {
 <ProductCard image={url} eyebrow="Acme" title="Lamp" price={<PriceTag price="$24" was="$30" prefix?="From" />} aside={<Sparkline …/>}
   badges={<CardBadge>-20%</CardBadge>} action={<Button size="icon-sm" variant="secondary" aria-label="Add to cart"><Icon name="cart" /></Button>} dimmed? onClick={open} />
 <Shelf title="On sale" meta={12} action={…} wheel?="page|sideways">{cards with className="w-44 shrink-0"}</Shelf>
+// Launchers (RULES R4.10): a library of things you open, install and run; start from the `launcher` template
+<MediaHero art={<CoverArt src={url} title="Ridge" icon="rocket" />} eyebrow="Continue playing" title="Ridge" badges={<CardBadge>Racing</CardBadge>}
+  actions={<LaunchButton state={{ kind: "play" }} onInstall={install} onPlay={play} />} meta={<HeroFact label="Last played" value="Today" />} variant?="feature|page" />
+<LaunchButton state={{ kind: "installing", stage: "Unpacking", frac: 0.42 }} onInstall={install} onPlay={play} labels?={{ play: "Open" }} />   // checking | install | installing | play | resume
+<PauseMenu title="Ridge" subtitle="Seed 11" onResume={resume} items={[{ id: "resume", label: "Resume", icon: "play", hint: "Esc", run: resume },
+  { id: "keys", label: "Controls", icon: "keyboard", page: <KeybindTable …/> }, { id: "quit", label: "Quit", exit: true, run: quit }]} />   // inside a `relative` view
+<KeybindTable actions={keyActions([{ label: "Move", keys: ["W", "A", "S", "D"] }])} bindings={b} onChange={setB} compact? />   // keyRemap(b) -> { map, blocked } for your key handler
 // Deep settings (R4.2): one registry drives the tree, the search and the palette
 <SettingsTree nodes={settingsTreeNodes(SETTINGS)} chapter={c} section={s} onSelect={(c, s) => …} openAll={searching} />
 findSettings(query, SETTINGS)  locateSetting("Mode", SETTINGS)   // SettingsPage/Group/Row take id and data-*; SettingsPage titleClassName, inset={false}

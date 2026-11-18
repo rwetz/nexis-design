@@ -5,7 +5,7 @@
 #   scripts/new-app.sh <name> [template] [dir] [--with plugin,plugin]
 #
 #   name      package name, e.g. nexis-pulse (family apps are nexis-<thing>)
-#   template  dashboard | workbench | settings | settings-deep | explorer | console | wizard | minimal
+#   template  dashboard | workbench | settings | settings-deep | explorer | console | wizard | launcher | minimal
 #             (default: minimal)
 #   dir       where to create it (default: ../<name>, next to this checkout)
 #   --with    Tauri plugins to wire end to end (npm dep, Cargo dep, lib.rs,
@@ -48,9 +48,15 @@ if [[ ! "$name" =~ ^[a-z][a-z0-9-]*$ ]]; then
 fi
 case "$template" in
   settings-deep) src="$here/templates/settings.tsx" ;;
-  dashboard|workbench|settings|explorer|console|wizard|minimal) src="$here/templates/$template.tsx" ;;
+  dashboard|workbench|settings|explorer|console|wizard|launcher|minimal) src="$here/templates/$template.tsx" ;;
   *) echo "error: unknown template '$template'" >&2; exit 1 ;;
 esac
+if [[ "$template" == "minimal" ]]; then
+  # minimal is for one-screen utilities, not a fallback for "none of the
+  # above": an app that starts there invents its shell alone (Stipple did).
+  echo "note: minimal is for one-screen utilities. If no template fits this app's shape," >&2
+  echo "      ask whether to add a template to nexis-design first (AGENTS.md section 1)." >&2
+fi
 # Plugin table: name | cargo features | the .plugin(...) expression | permissions.
 # Every entry is wired in four places, and the check script (nexis-design-check)
 # fails when any of the four is missing.
@@ -333,7 +339,8 @@ export const appInfo = () => call<AppInfo>("app_info", undefined, { name: "brows
 TS
 
 # The template, with its name, title and logo made this app's.
-title="$(grep -o 'title="[^"]*"' "$src" | head -1 | sed 's/title="//; s/"$//')"
+# A template whose title is an expression (launcher) has no literal: keep going.
+title="$( { grep -o 'title="[^"]*"' "$src" || true; } | head -1 | sed 's/title="//; s/"$//')"
 {
   header "//"
   echo "//"
@@ -353,6 +360,7 @@ if (source.includes("<AppLogo")) {
   source = source.replace(/^import /m, 'import { AppLogo } from "./AppLogo";\nimport ');
 }
 if (template === "settings-deep") source = source.replace("deep = false", "deep = true");
+source = source.replace('const APP_NAME = "My Launcher";', `const APP_NAME = ${JSON.stringify(display)};`);
 writeFileSync(path, source);
 JS
 

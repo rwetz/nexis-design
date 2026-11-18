@@ -121,6 +121,16 @@ shared version yet.
 | `Strip` | Press | a sideways row of cards: no scrollbar, wheel scrolls it, faded edges (R4.6) |
 | `ColorPicker` | Press | swatch + popover: saturation/value square, hue strip, hex field, swatches, eyedropper |
 
+### Launchers
+
+| Component | Origin | Notes |
+|---|---|---|
+| `MediaHero`, `HeroFact` | Stipple | wide art with eyebrow, title, `CardBadge`s, a line, the launch row and facts over its lower left, behind `background`-token scrims; `feature` (inset) or `page` (edge to edge) |
+| `LaunchButton` | Stipple | one brand button whose label is the state (`LaunchState`: checking, install, installing, play, resume); fixed width, progress fills the button, the stage in a caption under it; `launchFace` is the pure part |
+| `PauseMenu` | Stipple | list over a frozen view with pages beside it; arrows glide, Enter picks, Esc closes a page then resumes; exits set apart; `pauseStep` is the pure part |
+| `KeyCapture`, `KeybindTable` | Stipple | rebindable keys: click and press; conflicts flagged on both rows; mouse rows fixed; Reset. `keyActions`, `keyRemap`, `keyConflicts`, `keyCodeLabel`, `keyLabelToCode` |
+| `CoverArt` | Stipple | a picture that falls back to its icon and title on `bg-muted` when missing or broken |
+
 ### Chrome
 
 | Component | Origin | Notes |

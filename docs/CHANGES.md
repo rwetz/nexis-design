@@ -12,6 +12,37 @@ Every **Apps must** starts the same way: bump the pin, `pnpm install`, then
 delete `node_modules/.vite` (or run `pnpm dev --force` once) so Vite does not
 keep serving the old package (PITFALLS §17).
 
+## Unreleased (launcher)
+
+From Stipple, a game launcher that started on `minimal` because no template
+fit, and grew as a tool (a game's options in the toolbar, no library, no
+pause). Its pieces are now the package's.
+
+- **`launcher` template** (`new-app.sh <name> launcher`, gallery
+  `#/app/launcher`): sidebar, library with a hero and a cover grid, an
+  item's page with a launch button and tabs, a running view with a pause
+  menu on Esc.
+- **New components:** `MediaHero` + `HeroFact`, `LaunchButton`
+  (`LaunchState`, `launchFace`), `PauseMenu` (`PauseItem`, `pauseStep`),
+  `KeyCapture` + `KeybindTable` (`keyActions`, `keyRemap`, `keyConflicts`,
+  `keyCodeLabel`, `keyLabelToCode`, `BINDABLE_KEYS`), `CoverArt`. Gallery
+  page **Launcher**.
+- **Rules:** RULES R4.10 (launchers: the running thing owns the body; its
+  options never sit in the toolbar while it runs; Esc pauses), a `PauseMenu`
+  row in the overlay table (R5), a key-binding row in the controls table
+  (R7).
+- **Scaffolding asks first.** When no template fits an app's shape, the agent
+  asks the user whether to add a template to this package before
+  scaffolding (AGENTS.md §1, the `nexis-scaffold` skill); `minimal` is for
+  one-screen utilities, not "none of the above". `new-app.sh` prints the
+  reminder when given `minimal`.
+
+**Apps must:** bump the pin. An app with its own copy of any of these
+(Stipple's `src/launcher/`) deletes it and imports from the package; its
+keybind data becomes `KeyAction[]` (`keyActions(info.keys)`) and its remap
+`keyRemap`. An app on `minimal` that is really a launcher, store or library
+moves its shell onto the `launcher` template's shape (R4.10).
+
 ## Unreleased (detail pass)
 
 - **Concentric corners (RULES R3.6).** Menu, context-menu and menubar
