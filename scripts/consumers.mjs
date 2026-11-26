@@ -48,6 +48,7 @@ const git = (...args) => {
 };
 
 const head = git("rev-parse", "origin/main") ?? git("rev-parse", "HEAD");
+const version = JSON.parse(readFileSync(join(HERE, "package.json"), "utf8")).version;
 const ui = new Set(readdirSync(join(HERE, "src/components/ui")).filter((f) => f.endsWith(".tsx") && !f.includes(".test.")));
 
 const rows = [];
@@ -68,6 +69,14 @@ for (const pkgPath of findPackages(ROOT)) {
   if (spec.startsWith("file:") || spec.startsWith("link:")) {
     pin = "local checkout";
     behind = "0 (reinstall)";
+  } else if (spec.includes("#semver:")) {
+    // A range: the app takes every release inside it on install.
+    const range = spec.split("#semver:")[1];
+    pin = range;
+    const [, rMaj, rMin] = range.match(/^\^(\d+)\.(\d+)/) ?? [];
+    const [vMaj, vMin] = version.split(".");
+    const inRange = rMaj === vMaj && (vMaj !== "0" || rMin === vMin);
+    behind = inRange ? "0 (in range, reinstall)" : `outside ${version}: pnpm family-sync`;
   } else {
     const rev = spec.split("#")[1];
     if (!rev) {
@@ -94,5 +103,5 @@ for (const r of rows) {
   const s = r.shadows.length ? `${r.shadows.length}: ${r.shadows.slice(0, 6).join(", ")}${r.shadows.length > 6 ? ", ..." : ""}` : "none";
   console.log(`| ${r.app} | ${r.pin} | ${r.behind} | ${s} |`);
 }
-const stale = rows.filter((r) => r.pin === "UNPINNED" || (Number(r.behind) > 0));
-console.log(`\n${stale.length} of ${rows.length} need a pin bump (or a pin). See docs/CHANGES.md for what each change asks of an app.`);
+const stale = rows.filter((r) => r.pin === "UNPINNED" || Number(r.behind) > 0 || String(r.behind).startsWith("outside"));
+console.log(`\n${stale.length} of ${rows.length} need a bump (or a pin). \`pnpm family-sync\` opens the PRs; docs/CHANGES.md says what each change asks of an app.`);
