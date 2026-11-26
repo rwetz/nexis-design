@@ -63,6 +63,7 @@ import {
   BezierCurveIcon,
   BookmarkSimpleIcon,
   BookmarksIcon,
+  BooksIcon,
   BracketsCurlyIcon,
   BracketsSquareIcon,
   BrainIcon,
@@ -118,6 +119,7 @@ import {
   GithubLogoIcon,
   GlobeHemisphereWestIcon,
   GlobeIcon,
+  GameControllerIcon,
   GridFourIcon,
   HardDrivesIcon,
   HashIcon,
@@ -336,6 +338,8 @@ const REGISTRY = {
   "git-commit": GitCommitIcon,
   "git-compare": GitDiffIcon,
   "git-pr": GitPullRequestIcon,
+  /** A collection of games or anything played: a launcher's library. */
+  "gamepad": GameControllerIcon,
   "globe": GlobeIcon,
   "grid": GridFourIcon,
   "hash": HashIcon,
@@ -351,6 +355,8 @@ const REGISTRY = {
   "keyboard": KeyboardIcon,
   "layers": StackIcon,
   "layout-left": SidebarSimpleIcon,
+  /** A collection of things to read or open: a library that is not games. */
+  "library": BooksIcon,
   "link": LinkSimpleIcon,
   "link-external": ArrowSquareOutIcon,
   "list-bullet": ListBulletsIcon,

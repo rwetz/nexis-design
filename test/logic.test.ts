@@ -246,3 +246,45 @@ describe("tiltFor", () => {
     expect(tiltFor(0, 0, 100, 100, 0)).toMatchObject({ rx: 0, ry: 0 });
   });
 });
+
+describe("launcher", () => {
+  it("names the launch button by state, clamping progress", async () => {
+    const { launchFace } = await import("../src/components/ui/launch-button");
+    expect(launchFace({ kind: "install", what: "World data", estimate: "about 30 s" })).toMatchObject({ label: "Install", caption: "World data, about 30 s", busy: false });
+    expect(launchFace({ kind: "installing", stage: "Unpacking", frac: 1.4 })).toMatchObject({ label: "Installing 100%", pct: 100, busy: true });
+    expect(launchFace({ kind: "installing", stage: "Starting", frac: null }).label).toBe("Installing");
+    expect(launchFace({ kind: "play" }, { play: "Open", install: "Get", resume: "Resume" }).label).toBe("Open");
+  });
+
+  it("pause menu arrows wrap at both ends", async () => {
+    const { pauseStep } = await import("../src/components/ui/pause-menu");
+    const items = [{ id: "a" }, { id: "b" }, { id: "c" }];
+    expect(pauseStep(items, "c", 1)).toBe("a");
+    expect(pauseStep(items, "a", -1)).toBe("c");
+  });
+
+  it("maps keycap labels and codes both ways", async () => {
+    const { keyLabelToCode, keyCodeLabel } = await import("../src/components/ui/keybind");
+    for (const l of ["W", "7", "Space", "[", "]", "Up"]) expect(keyCodeLabel(keyLabelToCode(l)!)).toBe(l);
+    expect(keyLabelToCode("Shift")).toBe("ShiftLeft");
+    expect(keyLabelToCode("Click")).toBeNull();
+  });
+
+  it("remaps a moved key and blocks its old one, unless another action took it", async () => {
+    const { keyRemap } = await import("../src/components/ui/keybind");
+    const moved = keyRemap({ KeyW: "ArrowUp" });
+    expect(moved.map).toEqual({ ArrowUp: "KeyW" });
+    expect([...moved.blocked]).toEqual(["KeyW"]);
+    // swapped: each default is now another's key, so neither is blocked
+    const swapped = keyRemap({ KeyW: "KeyS", KeyS: "KeyW" });
+    expect(swapped.map).toEqual({ KeyS: "KeyW", KeyW: "KeyS" });
+    expect(swapped.blocked.size).toBe(0);
+  });
+
+  it("flags a key bound to two actions on both", async () => {
+    const { keyActions, keyConflicts } = await import("../src/components/ui/keybind");
+    const actions = keyActions([{ label: "Gas", keys: ["W"] }, { label: "Jump", keys: ["Space"] }, { label: "Aim", keys: ["Mouse"] }]);
+    expect([...keyConflicts(actions, { Space: "KeyW" })].sort()).toEqual(["KeyW", "Space"]);
+    expect(keyConflicts(actions, {}).size).toBe(0);
+  });
+});

@@ -70,7 +70,7 @@ const LINE_RULES = [
     id: "type-raw-size",
     ref: "R1.4",
     re: /(?<![\w-])text-(?:xs|base|xl|[3-9]xl)\b|text-\[[\d.]+(?:px|rem|em)\]/,
-    fix: "sizes are text-micro, text-caption, text-ui, text-body, text-sm, text-lg, text-2xl",
+    fix: "sizes are text-micro, text-caption, text-ui, text-body, text-sm, text-lg, text-2xl, text-display (a hero title)",
   },
   { id: "type-heading-face", ref: "R1.1", re: /\bfont-heading\b|Space Grotesk/, fix: "Inter is the one face; use text-lg font-semibold" },
   {

@@ -43,6 +43,7 @@ import { FoundationsPage } from "./pages/foundations";
 import { IconsPage } from "./pages/icons";
 import { LayoutPage } from "./pages/layout";
 import { CataloguePage } from "./pages/catalogue";
+import { LauncherPage } from "./pages/launcher";
 import { RulesPage } from "./pages/rules";
 import { MotionPage } from "./pages/motion";
 import { NavigationPage } from "./pages/navigation";
@@ -63,6 +64,7 @@ type PageId =
   | "feedback"
   | "layout"
   | "catalogue"
+  | "launcher"
   | "rules"
   | "motion"
   | "chrome"
@@ -83,6 +85,7 @@ const PAGES: Record<Exclude<PageId, `app-${string}`>, { label: string; icon: Ico
   feedback: { label: "Feedback", icon: "notification", render: () => <FeedbackPage /> },
   layout: { label: "Layout", icon: "grid", render: () => <LayoutPage /> },
   catalogue: { label: "Catalogue", icon: "store", render: () => <CataloguePage /> },
+  launcher: { label: "Launcher", icon: "play", render: () => <LauncherPage /> },
   motion: { label: "Motion", icon: "sparkle", render: () => <MotionPage /> },
   chrome: { label: "Window chrome", icon: "computer", render: () => <ChromePage /> },
   icons: { label: "Icons", icon: "star", render: () => <IconsPage /> },
@@ -283,7 +286,7 @@ export function Gallery() {
             },
             {
               title: "Components",
-              items: (["controls", "forms", "overlays", "navigation", "data", "charts", "feedback", "layout", "catalogue"] as const).map((id) => ({
+              items: (["controls", "forms", "overlays", "navigation", "data", "charts", "feedback", "layout", "catalogue", "launcher"] as const).map((id) => ({
                 id,
                 label: PAGES[id].label,
                 icon: PAGES[id].icon,

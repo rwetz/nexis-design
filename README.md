@@ -15,7 +15,7 @@
 The design system for the **Nexis** family of Tauri desktop apps: OKLCH
 tokens, 22 themes and the engine that swaps them at runtime, ~70 React
 components, the motion vocabulary, borderless window chrome, the cursor set,
-seven app templates, and the rules that hold them together. It is the same
+eight app templates, and the rules that hold them together. It is the same
 layer [Nexis](https://github.com/rwetz/Nexis) itself is built on.
 
 ![Nexis Design: the gallery overview, Nexis Default, dark](docs/img/showcase-dark.png)
