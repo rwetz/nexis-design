@@ -21,7 +21,9 @@ Every **Apps must** starts the same way: bump the pin, `pnpm install`, then
 delete `node_modules/.vite` (or run `pnpm dev --force` once) so Vite does not
 keep serving the old package (PITFALLS §17).
 
-## Unreleased (detail pass)
+## 0.3.0 · 2026-11-26
+
+### Detail pass
 
 - **Concentric corners (RULES R3.6).** Menu, context-menu and menubar
   items were 18px inside a 22px menu with 6px padding; they are now
@@ -61,7 +63,7 @@ user action. Move hand-rolled sideways scrollers onto `useEdgeFade`. Any
 app CSS gradient gets `in oklch`. Look at a dark theme: a custom
 `box-shadow` on a `[data-slot]` panel or menu is now overridden there.
 
-## Unreleased (neutral `primary`)
+### Neutral `primary`
 
 - **`primary` is a neutral on every theme.** Every theme but the default
   ships its accent as `primary`, and `--brand` is that same colour, so the
@@ -87,7 +89,7 @@ it neutral. Look at every screen on one non-default theme: default buttons
 and checked controls are now neutral there. Nexis takes the same change in
 its own `applyTheme`.
 
-## Unreleased · Layout, modal feedback, and identity
+### Layout, modal feedback, and identity
 
 - Shared controls align nested corners, rails, peer segment widths and
   avatar stacks. Dialogs keep their titles and actions reachable.
@@ -103,7 +105,7 @@ its own `applyTheme`.
 launcher artwork. Keep the canonical SVG mark and pick a background plus
 mark color with the user.
 
-## Unreleased
+### Changes
 
 - **Components.** `Combobox`, `DateRangePicker`, multi-select tables and
   trees, virtualized table rows, and time axes and legends for line charts.
@@ -119,7 +121,7 @@ mark color with the user.
 Existing apps can copy `scripts/release.yml` into `.github/workflows` and
 adapt the platform matrix to their supported targets.
 
-## Unreleased (`vitrine-findings`)
+### `vitrine-findings`
 
 - **From moving Vitrine onto the package** (APP-FINDINGS, Vitrine 1 to 8):
   `ProductCard media` (your own picture element) and a numeric `aspect`;
