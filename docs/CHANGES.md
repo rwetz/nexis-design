@@ -3,10 +3,19 @@
 Every change that an app would notice gets an entry here, newest first. The
 **Apps must** line is the checklist for bringing an existing app up to it
 (AGENTS.md §6, "A fix lands everywhere"). Future apps get every entry for
-free: `new-app.sh` pins the commit it runs from.
+free: `new-app.sh` depends on the release range of the checkout it runs from.
 
-`pnpm consumers` lists every app, its pin, how far behind it is, and which
-package components it still shadows with its own copy.
+**Versions.** New entries go at the top under `## Unreleased` (a note in
+brackets is fine). `pnpm release patch|minor` folds them into one
+`## X.Y.Z · date` section, tags `vX.Y.Z` and publishes a GitHub release.
+Apps depend on a range, `github:rwetz/nexis-design#semver:^0.3.0`: a patch
+(asks nothing of apps) reaches them on `pnpm install`; a minor (has an
+**Apps must**) reaches them through `pnpm family-sync`, which opens one PR
+per app with the entries it missed and their **Apps must** lines as a
+checklist.
+
+`pnpm consumers` lists every app, its pin or range, how far behind it is,
+and which package components it still shadows with its own copy.
 
 Every **Apps must** starts the same way: bump the pin, `pnpm install`, then
 delete `node_modules/.vite` (or run `pnpm dev --force` once) so Vite does not

@@ -14,8 +14,9 @@
 #             See docs/BACKEND.md. (updater is manual: it panics at startup
 #             without a signing key.)
 #
-# The app depends on @nexis/design from git, pinned to the commit this
-# checkout is on (override with NEXIS_REV=<rev>). NEXIS_PATH=<path> depends on
+# The app depends on @nexis/design from git at the release range of this
+# checkout's version, e.g. github:rwetz/nexis-design#semver:^0.3.0 (pin a
+# commit instead with NEXIS_REV=<rev>). NEXIS_PATH=<path> depends on
 # a local checkout instead, written as a path relative to the new app and
 # installed as a copy: re-run `pnpm install` after changing the checkout (a
 # `link:` brings a second @types/react and fails typechecking).
@@ -82,7 +83,14 @@ if [[ -n "${NEXIS_PATH:-}" ]]; then
   fi
   nexis_abs="$(native "$(cd "$NEXIS_PATH" && pwd)")"
 fi
-rev="${NEXIS_REV:-$(git -C "$here" rev-parse HEAD 2>/dev/null || echo main)}"
+# Default: the release range of this checkout's version (#semver:^0.3.0), so
+# the app takes patch releases on install. NEXIS_REV=<rev> pins a commit.
+version="$(node -p 'require(process.argv[1]).version' "$here/package.json")"
+case "$version" in
+  0.*) range="^0.$(echo "$version" | cut -d. -f2).0" ;;
+  *) range="^$(echo "$version" | cut -d. -f1).0.0" ;;
+esac
+rev="${NEXIS_REV:-semver:$range}"
 
 # Display name: nexis-pulse -> Pulse. Identifier: app.nexis.pulse.
 short="${name#nexis-}"

@@ -502,7 +502,9 @@ pnpm screenshots         # regenerate docs/img (all, or `pnpm screenshots app-` 
 ### A fix lands everywhere
 
 A fix or a change here is not done when it merges: it is done when every
-app has it. Existing apps pin a commit, so nothing reaches them by itself.
+app has it. Apps depend on a release range
+(`github:rwetz/nexis-design#semver:^0.3.0`): patches reach them on install,
+a minor does not reach them by itself.
 
 1. **Fix it here, never only in an app.** An app that finds a bug in a
    component logs it (SCAFFOLD-ISSUES.md or APP-FINDINGS.md) and fixes it in
@@ -514,11 +516,15 @@ app has it. Existing apps pin a commit, so nothing reaches them by itself.
    [docs/CHANGES.md](docs/CHANGES.md) with an **Apps must** line: bump the
    pin, delete this local copy, rename that token. A rule change also gets a
    tripwire where one is possible, and apps run the same tripwires.
-4. **Then carry it to every existing app.** After merging, run
-   `pnpm consumers`: it lists each app, its pin, how far behind `main` it
-   is, and the package components it still shadows with its own copy. Each
-   app gets its own branch and PR that bumps the pin and does its **Apps
-   must** lines. An unpinned app is pinned first. Nexis, the source of most
+4. **Release, then carry it to every existing app.** After merging, cut a
+   release: `pnpm release patch` when the change asks nothing of apps,
+   `pnpm release minor` when it has an **Apps must** (0.x). Then run
+   `pnpm family-sync`: for every app in `scripts/family.json` it opens a PR
+   that moves the app to the new range, with the CHANGES.md entries it
+   missed and their **Apps must** lines as a checklist; do those lines on
+   that PR. `pnpm consumers` shows each app's pin or range, how far behind
+   it is, and the package components it still shadows with its own copy.
+   A new app is added to `scripts/family.json`. An unpinned app is pinned first. Nexis, the source of most
    components, takes the same fix in its own copy until it consumes this
    package.
 5. **Nothing is silently left behind.** An app that cannot take a change yet

@@ -65,6 +65,8 @@
     "screenshots": "node scripts/screenshots.mjs",
     "new-app": "bash scripts/new-app.sh",
     "consumers": "node scripts/consumers.mjs",
+    "release": "node scripts/release.mjs",
+    "family-sync": "node scripts/family-sync.mjs",
     "a11y": "node scripts/a11y.mjs",
     "bundle:check": "node scripts/bundle-size.mjs",
     "visual:check": "node scripts/visual-check.mjs"
