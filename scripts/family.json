@@ -1,12 +1,29 @@
 {
   "$comment": "Apps that depend on @nexis/design. `pnpm family-sync` opens one bump PR per app. dir is the folder holding the app's package.json.",
   "apps": [
-    { "repo": "rwetz/Nexis", "dir": "." },
-    { "repo": "rwetz/biblelm", "dir": "." },
-    { "repo": "rwetz/stipple", "dir": "." },
-    { "repo": "rwetz/vitrine", "dir": "." },
-    { "repo": "rwetz/nexis-lens", "dir": "." },
-    { "repo": "rwetz/nexis-press", "dir": "." },
-    { "repo": "rwetz/nexis-atlas", "dir": "." }
+    {
+      "repo": "rwetz/Nexis",
+      "dir": "."
+    },
+    {
+      "repo": "rwetz/biblelm",
+      "dir": "."
+    },
+    {
+      "repo": "rwetz/stipple",
+      "dir": "."
+    },
+    {
+      "repo": "rwetz/vitrine",
+      "dir": "."
+    },
+    {
+      "repo": "rwetz/nexis-lens",
+      "dir": "."
+    },
+    {
+      "repo": "rwetz/nexis-press",
+      "dir": "."
+    }
   ]
 }
