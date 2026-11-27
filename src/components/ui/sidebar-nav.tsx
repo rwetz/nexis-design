@@ -87,7 +87,7 @@ export function SidebarNav<Id extends string>({
           <React.Fragment key={section.title ?? si}>
             {section.pin === "end" && sections[si - 1]?.pin !== "end" && <div aria-hidden className="min-h-4 flex-1" />}
             {section.title && !collapsed && (
-              <div className="relative z-10 px-2.5 pt-3 pb-1 text-caption font-medium tracking-wide text-muted-foreground/80 uppercase first:pt-1">
+              <div className="relative z-10 px-2.5 pt-3 pb-1 text-caption font-medium tracking-wide text-muted-foreground uppercase first:pt-1">
                 {section.title}
               </div>
             )}

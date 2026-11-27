@@ -1,4 +1,4 @@
-export { applyTheme, clearTheme } from "./applyTheme";
+export { applyTheme, brandOf, clearTheme } from "./applyTheme";
 export {
   ThemeProvider,
   useTheme,

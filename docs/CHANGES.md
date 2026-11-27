@@ -21,6 +21,26 @@ Every **Apps must** starts the same way: bump the pin, `pnpm install`, then
 delete `node_modules/.vite` (or run `pnpm dev --force` once) so Vite does not
 keep serving the old package (PITFALLS §17).
 
+## Unreleased (contrast)
+
+The launcher page put the brand button and `SidebarNav`'s section labels
+in front of the axe check, and both failed WCAG AA.
+
+- **Text on the brand accent is near-black** (`--brand-foreground`, both
+  modes): white on the default coral was 2.6:1, dark text is 7.5:1. Every
+  `variant="brand"` button changes look. `brandOf()` (now exported) names
+  white outright when a theme's accent wants it, so the new default never
+  leaks onto a theme.
+- **`--muted-foreground` is a step darker in light mode** (`oklch(0.53 …)`,
+  was `0.56`): it sat at 4.25–4.4:1 on the muted panels. 4.8:1 now. This
+  cleared 244 of the a11y baseline's findings.
+- **No more faded muted text:** `SidebarNav` section labels and
+  `SettingsTree` meta drop `text-muted-foreground/80`.
+- The Themes page swatches take each theme's accent text from `brandOf()`.
+
+**Apps must** check any hand-rolled `text-white` on `bg-brand` (use
+`text-brand-foreground`), and any `text-muted-foreground/<n>` on small text.
+
 ## Unreleased (launcher)
 
 From Stipple, a game launcher that started on `minimal` because no template

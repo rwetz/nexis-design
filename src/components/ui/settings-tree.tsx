@@ -236,7 +236,7 @@ export function SettingsTree({
                             )}
                           >
                             <span className="min-w-0 flex-1 truncate">{c.label}</span>
-                            {c.meta !== undefined && <span className="shrink-0 text-caption text-muted-foreground/80">{c.meta}</span>}
+                            {c.meta !== undefined && <span className="shrink-0 text-caption text-muted-foreground">{c.meta}</span>}
                           </div>
                         );
                       })}
