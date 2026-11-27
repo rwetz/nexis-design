@@ -9,6 +9,7 @@ import { Button, Icon, IconWeightProvider, SidebarNav, ThemeProvider, TooltipPro
 import Console from "../templates/console";
 import Dashboard from "../templates/dashboard";
 import Explorer from "../templates/explorer";
+import Launcher from "../templates/launcher";
 import Minimal from "../templates/minimal";
 import Settings from "../templates/settings";
 import Wizard from "../templates/wizard";
@@ -33,6 +34,7 @@ describe("templates mount", () => {
     ["explorer", Explorer],
     ["console", Console],
     ["wizard", Wizard],
+    ["launcher", Launcher],
     ["minimal", Minimal],
   ] as const)("%s", (_name, C) => {
     const { container, unmount } = mount(C);

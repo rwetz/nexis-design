@@ -21,6 +21,76 @@ Every **Apps must** starts the same way: bump the pin, `pnpm install`, then
 delete `node_modules/.vite` (or run `pnpm dev --force` once) so Vite does not
 keep serving the old package (PITFALLS §17).
 
+## Unreleased (contrast)
+
+The launcher page put the brand button and `SidebarNav`'s section labels
+in front of the axe check, and both failed WCAG AA.
+
+- **Text on the brand accent is near-black** (`--brand-foreground`, both
+  modes): white on the default coral was 2.6:1, dark text is 7.5:1. Every
+  `variant="brand"` button changes look. `brandOf()` (now exported) names
+  white outright when a theme's accent wants it, so the new default never
+  leaks onto a theme.
+- **`--muted-foreground` is a step darker in light mode** (`oklch(0.53 …)`,
+  was `0.56`): it sat at 4.25–4.4:1 on the muted panels. 4.8:1 now. This
+  cleared 244 of the a11y baseline's findings.
+- **No more faded muted text:** `SidebarNav` section labels and
+  `SettingsTree` meta drop `text-muted-foreground/80`.
+- The Themes page swatches take each theme's accent text from `brandOf()`.
+
+**Apps must** check any hand-rolled `text-white` on `bg-brand` (use
+`text-brand-foreground`), and any `text-muted-foreground/<n>` on small text.
+
+## Unreleased (launcher)
+
+From Stipple, a game launcher that started on `minimal` because no template
+fit, and grew as a tool (a game's options in the toolbar, no library, no
+pause). Its pieces are now the package's.
+
+- **`launcher` template** (`new-app.sh <name> launcher`, gallery
+  `#/app/launcher`): sidebar, library with a hero and a cover grid, an
+  item's page with a launch button and tabs, a running view with a pause
+  menu on Esc.
+- **New components:** `MediaHero` + `HeroFact`, `LaunchButton`
+  (`LaunchState`, `launchFace`), `PauseMenu` (`PauseItem`, `pauseStep`),
+  `KeyCapture` + `KeybindTable` (`keyActions`, `keyRemap`, `keyConflicts`,
+  `keyCodeLabel`, `keyLabelToCode`, `BINDABLE_KEYS`), `CoverArt`. Gallery
+  page **Launcher**.
+- **Rules:** RULES R4.10 (launchers: the running thing owns the body; its
+  options never sit in the toolbar while it runs; Esc pauses), a `PauseMenu`
+  row in the overlay table (R5), a key-binding row in the controls table
+  (R7).
+- **Scaffolding asks first.** When no template fits an app's shape, the agent
+  asks the user whether to add a template to this package before
+  scaffolding (AGENTS.md §1, the `nexis-scaffold` skill); `minimal` is for
+  one-screen utilities, not "none of the above". `new-app.sh` prints the
+  reminder when given `minimal`.
+- **Second pass, from Stipple's review.**
+  - **`text-display`** (32px, 600, tight leading): a hero's title, once per
+    screen (R1.4). `MediaHero` uses it.
+  - **Navigation lists places, not things** (RULES R4.11): Home, the
+    collection, Search, then Settings pinned to the bottom with
+    `SidebarNav`'s new `pin: "end"` section. Never the collection's items.
+  - **`MediaList`**: a launcher library as rows (art, title and a line,
+    short columns that hide by the list's own width, a hover action,
+    sortable headers). A status column is a `StatusDot` and its `toneText`.
+  - **`GlidingTabs size="lg"`** for a page's own tabs; **`KeybindTable
+    layout="grid"`** (a tile per action) for an item page's Controls tab;
+    `KeyCapture size="lg"`.
+  - **Icons** `gamepad` and `library`.
+  - **`Spinner` runs on the compositor.** The heptagram is a CSS mask and the
+    comet a turning conic gradient, so it keeps moving while the main thread
+    is busy; the dash-offset version froze exactly while things loaded. It is
+    a `span` now (was an `svg`); pass `className` as before.
+
+**Apps must:** bump the pin. An app with its own copy of any of these
+(Stipple's `src/launcher/`) deletes it and imports from the package; its
+keybind data becomes `KeyAction[]` (`keyActions(info.keys)`) and its remap
+`keyRemap`. An app on `minimal` that is really a launcher, store or library
+moves its shell onto the `launcher` template's shape (R4.10). A sidebar that
+lists the collection's items moves them to the collection's page and keeps
+places only (R4.11). A `<Spinner>` given SVG-only props drops them.
+
 ## 0.3.0 · 2026-11-26
 
 ### Detail pass

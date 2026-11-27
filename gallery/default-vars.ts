@@ -6,7 +6,7 @@ export const DEFAULT_VARS = {
   "light": {
     "background": "oklch(1 0 0)",
     "brand": "oklch(0.72 0.15 35)",
-    "brand-foreground": "oklch(1 0 0)",
+    "brand-foreground": "oklch(0.148 0.004 228.8)",
     "foreground": "oklch(0.148 0.004 228.8)",
     "card": "oklch(1 0 0)",
     "card-foreground": "oklch(0.148 0.004 228.8)",
@@ -17,7 +17,7 @@ export const DEFAULT_VARS = {
     "secondary": "oklch(0.963 0.002 197.1)",
     "secondary-foreground": "oklch(0.218 0.008 223.9)",
     "muted": "oklch(0.963 0.002 197.1)",
-    "muted-foreground": "oklch(0.56 0.021 213.5)",
+    "muted-foreground": "oklch(0.53 0.021 213.5)",
     "accent": "oklch(0.963 0.002 197.1)",
     "accent-foreground": "oklch(0.218 0.008 223.9)",
     "destructive": "oklch(0.577 0.245 27.325)",
@@ -52,7 +52,7 @@ export const DEFAULT_VARS = {
   "dark": {
     "background": "oklch(0.148 0.004 228.8)",
     "brand": "oklch(0.72 0.15 35)",
-    "brand-foreground": "oklch(1 0 0)",
+    "brand-foreground": "oklch(0.148 0.004 228.8)",
     "foreground": "oklch(0.987 0.002 197.1)",
     "card": "oklch(0.218 0.008 223.9)",
     "card-foreground": "oklch(0.987 0.002 197.1)",

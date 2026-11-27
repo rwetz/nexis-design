@@ -93,6 +93,7 @@ const SHOTS = [
   { name: "components-layout", route: "layout", q: { mode: "dark", theme: "tokyo-night" }, h: 820 },
   { name: "rules", route: "rules", q: { mode: "dark" }, h: 2600 },
   { name: "components-catalogue", route: "catalogue", q: { mode: "light", theme: "aurelian" }, h: 1100 },
+  { name: "components-launcher", route: "launcher", q: { mode: "dark" }, h: 1300 },
   { name: "icons", route: "icons", q: { mode: "dark" }, h: 1100 },
   { name: "chrome", route: "chrome", q: { mode: "dark" }, h: 960 },
   { name: "high-contrast", route: "controls", q: { mode: "dark", contrast: "high" } },
@@ -123,6 +124,7 @@ const SHOTS = [
       await p.waitForTimeout(300);
     },
   },
+  { name: "app-launcher", route: "app/launcher", q: { mode: "dark" } },
   { name: "app-minimal", route: "app/minimal", q: { mode: "dark" } },
 ];
 

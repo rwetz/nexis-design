@@ -8,7 +8,7 @@ description: Scaffold and build a Tauri desktop app with @nexis/design (React 19
 @nexis/design is the design system of the Nexis family of Tauri apps.
 AGENTS.md (repo root) is the contract, docs/RULES.md the numbered rules,
 docs/BACKEND.md the Rust half; this skill is the procedure. The scaffold
-output is verified: all seven templates build, and `nexis-design-check`
+output is verified: all eight templates build, and `nexis-design-check`
 passes on each.
 
 ## 1. Choose a template from the app's shape
@@ -22,13 +22,19 @@ passes on each.
 | records to search, filter, sort, page and inspect | `explorer` |
 | a stream of lines and a command prompt | `console` |
 | a linear sequence of steps | `wizard` |
-| one small screen, or a launcher | `minimal` |
+| a library of things you open, install and run (games, plugins, models, media) | `launcher` |
+| one small screen, or a quick-action palette | `minimal` |
 
-If none fits, pick the closest and use AGENTS.md §1 "Recipes" (chat, file
-manager, media player, API client, editor, mail reader, calendar, creative
-tool, database browser, business forms, installer…) to adapt it. Ask the
-user only if two templates fit equally and the choice changes the layout
-substantially.
+If a recipe in AGENTS.md §1 "Recipes" covers the app in a sentence or two of
+glue (chat, file manager, media player, API client, mail reader…), pick the
+closest template and adapt it. **If no template fits the app's shape, stop
+and ask the user before scaffolding:** "No template fits a <shape> app. Do
+you want me to add a `<shape>` template to nexis-design first (shell,
+components, gallery page, rules), then scaffold from it?" Recommend it.
+`minimal` is for one-screen utilities, never a fallback for "none of the
+above": Stipple started there as a game launcher and grew as a tool, with a
+game's options in the toolbar and no library or pause menu. Also ask if two
+templates fit equally and the choice changes the layout substantially.
 
 Then choose the plugins from what the app *does*, before scaffolding (they
 are four edits each to add later): open/save a file `dialog`, remember

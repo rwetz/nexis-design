@@ -29,7 +29,7 @@ function scaffold(template: string, name: string, extra: string[] = []) {
 const describeUnix = process.platform === "win32" ? describe.skip : describe;
 
 describeUnix("scaffolded apps pass the checker", () => {
-  for (const t of ["dashboard", "workbench", "settings", "explorer", "console", "wizard", "minimal"]) {
+  for (const t of ["dashboard", "workbench", "settings", "explorer", "console", "wizard", "launcher", "minimal"]) {
     it(`${t}`, async () => {
       const dir = scaffold(t, `nexis-t-${t}`);
       expect(ids(await check(dir))).toEqual([]);

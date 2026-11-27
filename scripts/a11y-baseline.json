@@ -26,6 +26,7 @@
   "app/explorer light/standard color-contrast .tracking-tight.grid[aria-label=\"Ada Lovelace\"]": 4,
   "app/explorer light/standard color-contrast .tracking-tight.grid[aria-label=\"Grace Hopper\"]": 4,
   "app/explorer light/standard color-contrast .tracking-tight.grid[aria-label=\"Ryan Wetzstein\"]": 6,
+  "app/launcher light/standard color-contrast .px-1\\.5.focus-visible\\:outline-none.focus-visible\\:ring-primary\\/40": 1,
   "app/minimal dark/high color-contrast .group\\/button": 1,
   "app/minimal dark/standard color-contrast .group\\/button": 1,
   "app/minimal dark/standard color-contrast span": 1,

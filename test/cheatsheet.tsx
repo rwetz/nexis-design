@@ -21,6 +21,7 @@ import {
   ActiveFilters, CardBadge, EMPTY_FILTERS, RangeInput, type Facet, FilterPanel, type FilterState, PriceTag, ProductCard, Shelf,
   SettingRow, SettingsGroup, SettingsPage, SettingsTree, settingsTreeNodes, type SettingsChapter, ThumbnailCard, ThumbnailGrid,
   CardTilt, CollectionCard, DonutChart, NexisMark, ProportionBar, SkeletonCard, SkeletonGroup, SkeletonRow, SkeletonText,
+  CoverArt, HeroFact, MediaList, keyActions, type KeyBindings, KeybindTable, keyRemap, LaunchButton, MediaHero, PauseMenu,
 } from "../src";
 
 type Row = { id: string; name: string; rps: number };
@@ -38,6 +39,7 @@ export function Cheatsheet() {
   const [range, setRange] = React.useState<"1h" | "24h">("24h");
   const [sel, setSel] = React.useState<string | null>(null);
   const [expanded, setExpanded] = React.useState<Set<string>>(() => new Set(["src"]));
+  const [keys, setKeys] = React.useState<KeyBindings>({ KeyW: "ArrowUp" });
   const [n, setN] = React.useState(8);
   const [choice, setChoice] = React.useState<string | null>("atlas");
   const [day, setDay] = React.useState<dates.CalendarDate | null>(dates.date(2026, 10, 7));
@@ -128,6 +130,26 @@ export function Cheatsheet() {
         <ProductCard className="w-44 shrink-0" image={null} eyebrow="Acme" title="Lamp" price={<PriceTag price="$24" was="$30" />}
           badges={<CardBadge>-20%</CardBadge>} action={<Button size="icon-sm" variant="secondary" aria-label="Add to cart"><Icon name="cart" /></Button>} onClick={() => {}} />
       </Shelf>
+
+      {/* Launchers (RULES R4.10) */}
+      <MediaHero art={<CoverArt src={null} title="Ridge" icon="rocket" />} eyebrow="Continue playing" title="Ridge" badges={<CardBadge>Racing</CardBadge>}
+        actions={<LaunchButton state={{ kind: "play" }} onInstall={() => {}} onPlay={() => {}} />} meta={<HeroFact label="Last played" value="Today" />} variant="page" />
+      <LaunchButton state={{ kind: "installing", stage: "Unpacking", frac: 0.42 }} onInstall={() => {}} onPlay={() => {}} labels={{ play: "Open" }} />
+      <div className="relative h-96">
+        <PauseMenu title="Ridge" subtitle="Seed 11" onResume={() => {}} items={[
+          { id: "resume", label: "Resume", icon: "play", hint: "Esc", run: () => {} },
+          { id: "keys", label: "Controls", icon: "keyboard", page: <KeybindTable actions={keyActions([{ label: "Move", keys: ["W", "A", "S", "D"] }])} bindings={keys} onChange={setKeys} compact /> },
+          { id: "quit", label: "Quit", exit: true, run: () => {} },
+        ]} />
+      </div>
+      <span hidden>{keyRemap(keys).map.KeyW}</span>
+      <KeybindTable actions={keyActions([{ label: "Jump", keys: ["Space"] }])} bindings={keys} onChange={setKeys} layout="grid" />
+      <MediaList label="Games" rows={[{ id: "ridge", title: "Ridge" }]} rowKey={(i) => i.id} art={() => <CoverArt src={null} icon="rocket" />} title={(i) => i.title}
+        subtitle={() => "Lap the hill road"} onOpen={() => {}} action={() => <Button size="sm">Play</Button>}
+        columns={[{ key: "status", header: "Status", width: "8rem", hideBelow: "md", cell: () => <StatusDot tone="info" /> }]} />
+      <SidebarNav value="home" onChange={() => {}} sections={[{ items: [{ id: "home", label: "Home", icon: "home" }, { id: "library", label: "Library", icon: "gamepad" }] }, { pin: "end", items: [{ id: "settings", label: "Settings", icon: "settings" }] }]} />
+      <GlidingTabs size="lg" label="Sections" value="a" onChange={() => {}} tabs={[{ id: "a", label: "Overview", icon: "info" }]} />
+      <h1 className="text-display">Ridge</h1>
 
       {/* Deep settings (RULES R4.2) */}
       <SettingsTree nodes={settingsTreeNodes(SETTINGS)} chapter={chapter[0]} section={chapter[1]} onSelect={(c, s) => setChapter([c, s])} />

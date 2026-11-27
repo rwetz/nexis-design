@@ -205,8 +205,8 @@ describe("theme registry", () => {
 });
 
 describe("the accent's own text", () => {
-  // Text on the brand button. The stylesheet's white only suits the default
-  // theme's coral: on a dark theme the accent is a light colour. Nexis themes
+  // Text on the brand button. The default theme's coral takes the
+  // stylesheet's near-black; a theme's own accent gets its own text. Nexis themes
   // hold 4.5:1. Community palettes are kept as authored, and three light
   // ones (Nord, Gruvbox, Rose Pine) have a mid-tone accent that nothing
   // reaches 4.5 on, so they hold the 3:1 floor for bold UI text.
@@ -220,8 +220,8 @@ describe("the accent's own text", () => {
       if (!c) return;
       const { brand, brandForeground } = brandOf(c);
       expect(brand).toBeDefined();
-      // No brandForeground means the stylesheet's white stays.
-      const text = brandForeground ?? "#ffffff";
+      expect(brandForeground).toBeDefined();
+      const text = brandForeground as string;
       expect(contrast(text, brand as string)).toBeGreaterThanOrEqual(community.has(theme.id) ? 3 : 4.5);
     },
   );

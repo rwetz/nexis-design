@@ -1,5 +1,6 @@
 import type * as React from "react";
 import {
+  brandOf,
   cn,
   DEFAULT_THEME_ID,
   Icon,
@@ -28,7 +29,10 @@ function scopedVars(theme: Theme, mode: "light" | "dark"): React.CSSProperties {
     const v = theme.variants[mode] ?? theme.variants.dark ?? theme.variants.light;
     const colors: ThemeColors = v?.colors ?? {};
     for (const [k, val] of Object.entries(colors)) if (val && k !== "radius") out[`--${KEBAB(k)}`] = val;
-    out["--brand"] = colors.ring ?? colors.primary ?? out["--primary"];
+    // The same accent and accent text applyTheme() would set.
+    const { brand, brandForeground } = brandOf(colors);
+    out["--brand"] = brand ?? out["--primary"];
+    if (brandForeground) out["--brand-foreground"] = brandForeground;
     v?.terminal?.ansi?.forEach((c, i) => {
       out[`--terminal-ansi-${i >= 8 ? "bright-" : ""}${ANSI[i % 8]}`] = c;
     });
