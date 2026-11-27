@@ -21,7 +21,9 @@ Every **Apps must** starts the same way: bump the pin, `pnpm install`, then
 delete `node_modules/.vite` (or run `pnpm dev --force` once) so Vite does not
 keep serving the old package (PITFALLS §17).
 
-## Unreleased (contrast)
+## 0.4.0 · 2026-11-27
+
+### Contrast
 
 The launcher page put the brand button and `SidebarNav`'s section labels
 in front of the axe check, and both failed WCAG AA.
@@ -41,7 +43,7 @@ in front of the axe check, and both failed WCAG AA.
 **Apps must** check any hand-rolled `text-white` on `bg-brand` (use
 `text-brand-foreground`), and any `text-muted-foreground/<n>` on small text.
 
-## Unreleased (launcher)
+### Launcher
 
 From Stipple, a game launcher that started on `minimal` because no template
 fit, and grew as a tool (a game's options in the toolbar, no library, no
