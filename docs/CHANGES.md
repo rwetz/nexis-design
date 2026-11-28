@@ -21,7 +21,9 @@ Every **Apps must** starts the same way: bump the pin, `pnpm install`, then
 delete `node_modules/.vite` (or run `pnpm dev --force` once) so Vite does not
 keep serving the old package (PITFALLS §17).
 
-## Unreleased
+## 0.5.0 · 2026-11-28
+
+### Changes
 
 ### Interface size is continuous
 
