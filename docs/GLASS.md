@@ -42,7 +42,7 @@ any tone, and any prop overrides it.
 | `hammered` | Round dimples | a decorative pane, a card back |
 | `seeded` | Bubbles caught in the pane | a warm, hand-made surface |
 | `cathedral` | Rippled and coloured | a coloured accent pane; give it a hue |
-| `block` | Architectural glass block, mortar and bevels | a wall: a launcher's backdrop panel, a hero, a lock screen |
+| `block` | Architectural glass block: stepped frames, wavy recessed faces with lit folds, mortar; each face scrambles what's behind (Chromium) | a wall: a launcher's backdrop panel, a hero, a lock screen |
 | `dither` | What's behind, ordered through a Bayer screen | a retro or Nexis-art pane over imagery |
 
 ## Props
@@ -61,7 +61,9 @@ any tone, and any prop overrides it.
 | `refraction` | 0 … 1 | The edge bends what's behind toward the centre, like a convex rim. Chromium only |
 | `dispersion` | 0 … 1 | The bend splits red, green and blue apart: a rainbow at the edge. Chromium only |
 | `texture` | | `reeded`, `ripple`, `frost`, `hammered`, `seeded`, `block`, `dither`. Bent through on Chromium, drawn as light elsewhere; block's mortar and seeded's bubbles draw everywhere |
-| `blockSize` | px | One glass block (`texture="block"`), 40 to 72 reads as architecture |
+| `blockSize` | px | One glass block (`texture="block"`); 56 to 120 reads as architecture |
+| `blockPattern` | | The block's face: `cloud` (soft folds, the classic), `wave` (vertical ripples), `clear` (a magnifying pillow), `diamond` (four facets) |
+| `grout` | px | Mortar between blocks, a cement grey from the theme; 0 for none |
 | `ditherLevels` | 2 … 8 | Colours per channel for `dither`: 2 is eight colours, 3 is 27 |
 | `specular` | | A highlight that follows the pointer |
 | `animate` | | The film, fringe and coloured rim drift through their hues (held still under reduced motion) |
@@ -161,6 +163,19 @@ Where `<Glass>`'s layers can't go (a Radix popover's content, a toast), the
 with `.glass-clear`, `.glass-regular`, `.glass-frosted`, `.glass-tinted`
 or `.glass-solid` for the strength, and `--glass-color` for the tone. It
 has no edge blur, fringe or refraction.
+
+## Glass block
+
+Built like the real thing, in layers. One SVG tile of 2 × 2 blocks (each
+with its own seed, so the wall doesn't repeat every block) draws, per
+block: a stepped frame (outer lip, a flat band, two ridges, each lit
+top-left and shaded bottom-right, tinted green where the glass is thick),
+a recessed face with wavy edges, and the face's relief, lit by an SVG
+lighting filter (specular for the bright folds, diffuse for the valleys)
+over smooth noise. The mortar is a CSS layer above it. On Chromium each
+face also bends what's behind through its own pillow lens plus folds in the
+face's pattern, at the block's scale, so a garden behind breaks into
+wavering streaks the way it does through real block.
 
 ## How it's built
 

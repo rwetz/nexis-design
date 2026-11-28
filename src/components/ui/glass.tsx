@@ -50,6 +50,7 @@ export type GlassTone =
  * colours through a Bayer matrix (Chromium; a dot screen elsewhere).
  */
 export type GlassTexture = "none" | "reeded" | "ripple" | "frost" | "hammered" | "seeded" | "block" | "dither";
+export type GlassBlockPattern = "cloud" | "wave" | "clear" | "diamond";
 /** The film's colours: the rainbow, the theme's six hues, or the tint's own. */
 export type GlassFilm = "rainbow" | "theme" | "tone";
 /** The edge: lit white, the rainbow film, or the theme's six hues. */
@@ -89,6 +90,14 @@ export type GlassMaterial = {
   texture: GlassTexture;
   /** Size of one glass block (`texture="block"`), CSS px. */
   blockSize: number;
+  /**
+   * The face of a glass block: `cloud` (soft folds, the classic "wave"
+   * block), `wave` (vertical ripples), `clear` (a pillow that magnifies),
+   * `diamond` (four facets).
+   */
+  blockPattern: GlassBlockPattern;
+  /** Mortar between glass blocks, CSS px (0 for none). */
+  grout: number;
   /** Colours per channel for `texture="dither"`: 2 is eight colours, 4 is 64. */
   ditherLevels: number;
   /** A highlight that follows the pointer. */
@@ -119,6 +128,8 @@ const BASE: GlassMaterial = {
   dispersion: 0,
   texture: "none",
   blockSize: 56,
+  blockPattern: "cloud",
+  grout: 6,
   ditherLevels: 2,
   specular: false,
   animate: false,
@@ -165,7 +176,7 @@ export const GLASS_PRESETS = {
   /** Cathedral glass: rippled and coloured, like a church window. Give it a tone. */
   cathedral: { tint: 0.45, tone: "magenta", blur: 2, saturate: 1.6, rim: 0.7, texture: "ripple", refraction: 0.9, dispersion: 0.3, sheen: 0.25, film: "tone" },
   /** Architectural glass block: a grid of blocks, each its own wavy lens, with mortar between. */
-  block: { tint: 0.14, blur: 1.5, saturate: 1.2, rim: 0.6, texture: "block", refraction: 1, dispersion: 0.15, blockSize: 56 },
+  block: { tint: 0.1, blur: 2, saturate: 1.15, rim: 0.35, texture: "block", refraction: 1, dispersion: 0.12, blockSize: 72, blockPattern: "cloud", grout: 6, shadow: false },
   /** Ordered dither: what's behind in a few colours through a Bayer screen. */
   dither: { tint: 0.08, blur: 6, saturate: 1.3, rim: 0.6, texture: "dither", ditherLevels: 2 },
 } satisfies Record<string, Partial<GlassMaterial>>;
@@ -209,6 +220,7 @@ export function resolveGlass(preset: GlassPreset = "regular", overrides: Partial
     sheen: clamp01(m.sheen),
     iris: clamp01(m.iris),
     blockSize: Math.max(16, Number.isFinite(m.blockSize) ? m.blockSize : 56),
+    grout: Math.max(0, Number.isFinite(m.grout) ? m.grout : 6),
     ditherLevels: Math.max(2, Math.min(8, Math.round(Number.isFinite(m.ditherLevels) ? m.ditherLevels : 2))),
     rim: clamp01(m.rim),
     refraction: clamp01(m.refraction),
@@ -260,6 +272,7 @@ export function glassVars(m: GlassMaterial): Record<string, string> {
     "--glass-sheen": String(m.sheen),
     "--glass-iris": String(m.iris),
     "--glass-block": `${Math.max(16, Math.round(m.blockSize))}px`,
+    "--glass-grout": `${Math.max(0, m.grout)}px`,
     "--glass-rim": String(m.rim),
   };
 }
@@ -341,6 +354,122 @@ export function blockTileAxis(channel: "r" | "g", size: number): string {
   return edgeMapAxis(channel, size, size, size * 0.48);
 }
 
+/** One axis of a diamond block's facets: a triangle wave, one period per block. */
+export function diamondTileAxis(channel: "r" | "g", size: number): string {
+  const color = (v: number) => (channel === "r" ? `rgb(${byte(v)},0,0)` : `rgb(0,${byte(v)},0)`);
+  const stops = [
+    [0, 0.5],
+    [0.25, 0.9],
+    [0.5, 0.5],
+    [0.75, 0.1],
+    [1, 0.5],
+  ]
+    .map(([t, v]) => `<stop offset="${t}" stop-color="${color(v)}"/>`)
+    .join("");
+  const [x2, y2] = channel === "r" ? [size, 0] : [0, size];
+  return svgUri(
+    `<defs><linearGradient id="d" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${x2}" y2="${y2}">${stops}</linearGradient></defs><rect width="${size}" height="${size}" fill="url(#d)"/>`,
+    size,
+    size,
+  );
+}
+
+/** A deterministic wobble for a block's face edge: two sines, phase from the seed. */
+function wobble(t: number, seed: number, amp: number): number {
+  return amp * (0.6 * Math.sin(t * 0.21 + seed * 1.7) + 0.4 * Math.sin(t * 0.53 + seed * 3.1));
+}
+
+/** The face outline of one block (viewBox units 0 … 100), its edges a little wavy. */
+export function blockFacePath(seed: number, inset = 16, amp = 1.1): string {
+  const a = inset;
+  const b = 100 - inset;
+  const pts: string[] = [];
+  const step = 4;
+  for (let x = a; x <= b; x += step) pts.push(`${x.toFixed(1)},${(a + wobble(x, seed, amp)).toFixed(2)}`);
+  for (let y = a; y <= b; y += step) pts.push(`${(b + wobble(y, seed + 1, amp)).toFixed(2)},${y.toFixed(1)}`);
+  for (let x = b; x >= a; x -= step) pts.push(`${x.toFixed(1)},${(b + wobble(x, seed + 2, amp)).toFixed(2)}`);
+  for (let y = b; y >= a; y -= step) pts.push(`${(a + wobble(y, seed + 3, amp)).toFixed(2)},${y.toFixed(1)}`);
+  return `M${pts.join("L")}Z`;
+}
+
+/** The turbulence behind each pattern's relief, in block units (100 per block). */
+const BLOCK_RELIEF: Record<GlassBlockPattern, { freq: string; octaves: number; scale: number }> = {
+  cloud: { freq: "0.02 0.015", octaves: 2, scale: 9 },
+  wave: { freq: "0.055 0.01", octaves: 1, scale: 8 },
+  clear: { freq: "0.012 0.012", octaves: 1, scale: 3 },
+  diamond: { freq: "0.012 0.012", octaves: 1, scale: 1 },
+};
+
+/**
+ * One tile of a glass-block wall, 2 × 2 blocks, as an SVG (viewBox 200 ×
+ * 200, stretched to two blocks a side). Each block is layered like the
+ * real thing: a stepped frame (outer lip, flat band, two ridges, each lit
+ * top-left and shaded bottom-right, tinted green where the glass is
+ * thick), a recessed face with wavy edges, and the face's relief, lit by
+ * an SVG lighting filter over smooth noise: bright folds and soft valleys.
+ * Each of the four blocks has its own seed. White and black at alpha only,
+ * so any tint shows through.
+ */
+export function blockWallTile(pattern: GlassBlockPattern = "cloud"): string {
+  const r = BLOCK_RELIEF[pattern];
+  const defs = `
+<linearGradient id="lit" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="white" stop-opacity=".85"/><stop offset=".45" stop-color="white" stop-opacity=".18"/><stop offset="1" stop-color="white" stop-opacity=".05"/></linearGradient>
+<linearGradient id="shd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="black" stop-opacity=".04"/><stop offset=".55" stop-color="black" stop-opacity=".12"/><stop offset="1" stop-color="black" stop-opacity=".38"/></linearGradient>
+<linearGradient id="band" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="white" stop-opacity=".34"/><stop offset=".5" stop-color="white" stop-opacity=".1"/><stop offset="1" stop-color="black" stop-opacity=".1"/></linearGradient>
+<linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="white" stop-opacity=".16"/><stop offset=".5" stop-color="white" stop-opacity=".04"/><stop offset="1" stop-color="black" stop-opacity=".06"/></linearGradient>
+<radialGradient id="pillow" cx=".42" cy=".38" r=".7"><stop offset="0" stop-color="white" stop-opacity=".3"/><stop offset=".6" stop-color="white" stop-opacity=".04"/><stop offset="1" stop-color="black" stop-opacity=".12"/></radialGradient>`;
+  const blocks: string[] = [];
+  const filters: string[] = [];
+  for (let k = 0; k < 4; k++) {
+    const x = (k % 2) * 100;
+    const y = Math.floor(k / 2) * 100;
+    const seed = 3 + k * 7;
+    const face = blockFacePath(seed, 17, pattern === "clear" || pattern === "diamond" ? 0.3 : 1.2);
+    filters.push(`<clipPath id="f${k}"><path d="${face}"/></clipPath>
+<filter id="r${k}" x="0" y="0" width="100" height="100" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feTurbulence type="fractalNoise" baseFrequency="${r.freq}" numOctaves="${r.octaves}" seed="${seed}" result="n"/>
+<feGaussianBlur in="n" stdDeviation="2.2" result="nb"/>
+<feSpecularLighting in="nb" surfaceScale="${r.scale}" specularConstant="1" specularExponent="28" lighting-color="white" result="sp"><feDistantLight azimuth="235" elevation="40"/></feSpecularLighting>
+<feColorMatrix in="sp" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 2.1 -0.14" result="hi"/>
+<feDiffuseLighting in="nb" surfaceScale="${r.scale}" diffuseConstant="1" lighting-color="white" result="df"><feDistantLight azimuth="235" elevation="44"/></feDiffuseLighting>
+<feColorMatrix in="df" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1.1 0 0 0 0.78" result="lo"/>
+<feMerge><feMergeNode in="lo"/><feMergeNode in="hi"/></feMerge>
+</filter>`);
+    const relief =
+      pattern === "diamond"
+        ? `<g clip-path="url(#f${k})"><path d="M17 17L50 50L83 17Z" fill="white" fill-opacity=".22"/><path d="M83 17L50 50L83 83Z" fill="black" fill-opacity=".1"/><path d="M83 83L50 50L17 83Z" fill="black" fill-opacity=".2"/><path d="M17 83L50 50L17 17Z" fill="white" fill-opacity=".1"/><path d="M17 17L83 83M83 17L17 83" stroke="white" stroke-opacity=".45" stroke-width=".5"/></g>`
+        : pattern === "clear"
+          ? `<path d="${face}" fill="url(#pillow)"/>`
+          : `<rect x="0" y="0" width="100" height="100" fill="black" filter="url(#r${k})" clip-path="url(#f${k})"/>`;
+    blocks.push(`<g transform="translate(${x} ${y})">
+<rect x="0" y="0" width="100" height="100" rx="3" fill="rgb(160,205,195)" fill-opacity=".14"/>
+<rect x=".8" y=".8" width="98.4" height="98.4" rx="2.6" fill="url(#band)" stroke="url(#lit)" stroke-width="1.2"/>
+<rect x="1.8" y="1.8" width="96.4" height="96.4" rx="2.2" fill="none" stroke="url(#shd)" stroke-width=".7"/>
+<rect x="7.5" y="7.5" width="85" height="85" rx="2" fill="rgb(150,195,185)" fill-opacity=".08" stroke="url(#shd)" stroke-width=".9"/>
+<rect x="8.4" y="8.4" width="83.2" height="83.2" rx="1.8" fill="none" stroke="url(#lit)" stroke-width=".6"/>
+<rect x="12.5" y="12.5" width="75" height="75" rx="1.6" fill="none" stroke="url(#lit)" stroke-width=".9"/>
+<rect x="13.5" y="13.5" width="73" height="73" rx="1.5" fill="none" stroke="url(#shd)" stroke-width=".8"/>
+<path d="${face}" fill="url(#face)"/>
+${relief}
+<path d="${face}" fill="none" stroke="black" stroke-opacity=".22" stroke-width=".9" transform="translate(.5 .5)"/>
+<path d="${face}" fill="none" stroke="white" stroke-opacity=".55" stroke-width=".6"/>
+</g>`);
+  }
+  const body = `<defs>${defs}${filters.join("")}</defs>${blocks.join("")}`;
+  return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" preserveAspectRatio="none">${body}</svg>`)}`;
+}
+
+const BLOCK_TILES = new Map<GlassBlockPattern, string>();
+/** The block layer's tile as a CSS url(), built once per pattern. */
+function blockLayerImage(pattern: GlassBlockPattern): string {
+  let tile = BLOCK_TILES.get(pattern);
+  if (!tile) {
+    tile = `url("${blockWallTile(pattern)}")`;
+    BLOCK_TILES.set(pattern, tile);
+  }
+  return tile;
+}
+
 /** The 4×4 Bayer matrix, each cell `cell` px, as a grey ramp (0 … 15)/16. */
 export const BAYER_4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5] as const;
 export function bayerTile(cell: number): string {
@@ -365,7 +494,10 @@ export function glassNeedsFilter(m: GlassMaterial): boolean {
 
 function RefractionFilter({ id, w, h, m }: { id: string; w: number; h: number; m: GlassMaterial }) {
   const bezel = Math.min(28, Math.max(10, Math.min(w, h) * 0.22));
-  const scale = refractionScale(m.refraction, w, h);
+  const scale =
+    m.texture === "block"
+      ? Math.round(clamp01(m.refraction) * Math.max(16, Math.round(m.blockSize)) * 0.8 * 10) / 10
+      : refractionScale(m.refraction, w, h);
   const d = m.dispersion;
   const full = { x: "0", y: "0", width: w, height: h, preserveAspectRatio: "none" } as const;
   // Keep only channel i (R, G or B) of a displaced copy, alpha whole.
@@ -387,6 +519,43 @@ function RefractionFilter({ id, w, h, m }: { id: string; w: number; h: number; m
       <filter id={id} x="0" y="0" width={w} height={h} filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
         {bend && (
           <>
+            {m.texture === "block" ? (
+              <>
+                {/* Each block's pillow lens, tiled, and the face's folds in the
+                    block's own pattern, at the block's scale. No pane rim:
+                    a wall's edge is mortar, not a lens. */}
+                <feImage href={blockTileAxis("r", bs)} x="0" y="0" width={bs} height={bs} preserveAspectRatio="none" result="bx1" />
+                <feTile in="bx1" result="bx" />
+                <feImage href={blockTileAxis("g", bs)} x="0" y="0" width={bs} height={bs} preserveAspectRatio="none" result="by1" />
+                <feTile in="by1" result="by" />
+                <feComposite in="bx" in2="by" operator="arithmetic" k2="1" k3="1" result="blocks" />
+                {m.blockPattern === "diamond" ? (
+                  <>
+                    <feImage href={diamondTileAxis("r", bs)} x="0" y="0" width={bs} height={bs} preserveAspectRatio="none" result="dx1" />
+                    <feTile in="dx1" result="dx" />
+                    <feImage href={diamondTileAxis("g", bs)} x="0" y="0" width={bs} height={bs} preserveAspectRatio="none" result="dy1" />
+                    <feTile in="dy1" result="dy" />
+                    <feComposite in="dx" in2="dy" operator="arithmetic" k2="1" k3="1" result="folds" />
+                    <feComposite in="blocks" in2="folds" operator="arithmetic" k2="0.5" k3="1" k4="-0.25" result="edge" />
+                  </>
+                ) : m.blockPattern === "clear" ? (
+                  <feComposite in="blocks" in2="blocks" operator="arithmetic" k2="1" result="edge" />
+                ) : (
+                  <>
+                    <feTurbulence
+                      type="fractalNoise"
+                      baseFrequency={m.blockPattern === "wave" ? `${(5.5 / bs).toFixed(4)} ${(1 / bs).toFixed(4)}` : `${(2.2 / bs).toFixed(4)} ${(1.6 / bs).toFixed(4)}`}
+                      numOctaves={2}
+                      seed="5"
+                      result="fn"
+                    />
+                    <feColorMatrix in="fn" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1" result="folds" />
+                    <feComposite in="blocks" in2="folds" operator="arithmetic" k2="0.5" k3="2.2" k4="-0.85" result="edge" />
+                  </>
+                )}
+              </>
+            ) : (
+              <>
             {/* The pane's own edge: a convex rim. */}
             <feImage href={edgeMapAxis("r", w, h, bezel)} {...full} result="mx" />
             <feImage href={edgeMapAxis("g", h, w, bezel)} {...full} result="my" />
@@ -396,21 +565,11 @@ function RefractionFilter({ id, w, h, m }: { id: string; w: number; h: number; m
             {m.texture === "frost" && noise("fractalNoise", "0.9", 1)}
             {m.texture === "hammered" && noise("fractalNoise", "0.06", 1)}
             {m.texture === "seeded" && noise("fractalNoise", "0.02", 1)}
-            {m.texture === "block" && (
-              <>
-                {/* One block's pillow lens, tiled; a slow wave through it. */}
-                <feImage href={blockTileAxis("r", bs)} x="0" y="0" width={bs} height={bs} preserveAspectRatio="none" result="bx1" />
-                <feTile in="bx1" result="bx" />
-                <feImage href={blockTileAxis("g", bs)} x="0" y="0" width={bs} height={bs} preserveAspectRatio="none" result="by1" />
-                <feTile in="by1" result="by" />
-                <feComposite in="bx" in2="by" operator="arithmetic" k2="1" k3="1" result="blocks" />
-                <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" result="wn" />
-                <feColorMatrix in="wn" type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 1" result="wave" />
-                <feComposite in="blocks" in2="wave" operator="arithmetic" k2="1" k3="0.6" k4="-0.3" result="tex" />
-              </>
-            )}
+
             {m.texture !== "none" && m.texture !== "dither" && (
               <feComposite in="edge" in2="tex" operator="arithmetic" k1="0" k2="1" k3="1" k4="-0.5" result="edge" />
+            )}
+              </>
             )}
             {d > 0 ? (
               <>
@@ -554,6 +713,7 @@ export function Glass({ preset = "regular", as = "div", className, style, childr
       <span aria-hidden className="nexis-glass-layer nexis-glass-pane" />
       {m.edge > 0 && <span aria-hidden className="nexis-glass-layer nexis-glass-edge" />}
       {m.fringe > 0 && <span aria-hidden className="nexis-glass-layer nexis-glass-fringe" />}
+      {m.texture === "block" && <span aria-hidden data-block={m.blockPattern} className="nexis-glass-layer nexis-glass-block" style={{ backgroundImage: blockLayerImage(m.blockPattern) }} />}
       {m.iris > 0 &&
         [0, 1, 2].map((k) => <span key={k} aria-hidden data-k={k} className="nexis-glass-layer nexis-glass-iris" />)}
       {m.sheen > 0 && <span aria-hidden className="nexis-glass-layer nexis-glass-sheen" />}

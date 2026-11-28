@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it } from "vitest";
 import { ThemeProvider } from "../../theme/ThemeProvider";
 import {
   bayerTile,
+  blockFacePath,
+  blockWallTile,
   ditherTable,
   edgeMapAxis,
   Glass,
@@ -164,7 +166,27 @@ describe("new materials", () => {
     cleanup();
     render(<Glass preset="block" data-testid="b">x</Glass>);
     expect(screen.getByTestId("b").getAttribute("data-texture")).toBe("block");
-    expect(screen.getByTestId("b").style.getPropertyValue("--glass-block")).toBe("56px");
+    expect(screen.getByTestId("b").style.getPropertyValue("--glass-block")).toBe("72px");
+  });
+
+  it("builds a 2x2 glass-block tile: four framed blocks, each its own relief", () => {
+    for (const p of ["cloud", "wave", "clear", "diamond"] as const) {
+      const svg = decodeURIComponent(blockWallTile(p));
+      expect(svg, p).toContain('preserveAspectRatio="none"');
+      expect(svg.match(/<g transform="translate\(/g), p).toHaveLength(4);
+    }
+    expect(decodeURIComponent(blockWallTile("cloud")).match(/<feSpecularLighting/g)).toHaveLength(4);
+    // A face's edge wobbles but stays inside the frame.
+    const nums = blockFacePath(3).match(/-?\d+(\.\d+)?/g)!.map(Number);
+    expect(Math.min(...nums)).toBeGreaterThan(10);
+    expect(Math.max(...nums)).toBeLessThan(90);
+  });
+
+  it("draws the block layer with its pattern and mortar width", () => {
+    render(<Glass preset="block" blockPattern="wave" grout={9} data-testid="w">x</Glass>);
+    const w = screen.getByTestId("w");
+    expect(w.querySelector(".nexis-glass-block")?.getAttribute("data-block")).toBe("wave");
+    expect(w.style.getPropertyValue("--glass-grout")).toBe("9px");
   });
 
   it("clear glass has no tint, and every guide range sits inside its knob", () => {

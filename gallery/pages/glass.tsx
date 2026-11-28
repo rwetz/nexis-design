@@ -20,6 +20,7 @@ import {
   Slider,
   Switch,
   useTheme,
+  type GlassBlockPattern,
   type GlassFilm,
   type GlassMaterial,
   type GlassPreset,
@@ -33,7 +34,7 @@ import { Demo, Grid, Page } from "../kit";
 
 /* ── Backdrops: something worth seeing through ────────────────────────── */
 
-type BackdropKind = "bloom" | "type" | "icons" | "stripes" | "mesh";
+type BackdropKind = "bloom" | "type" | "icons" | "stripes" | "mesh" | "garden";
 
 const ICONS: IconName[] = ["rocket", "sparkle", "heart", "star", "brain", "globe", "cpu", "magic", "gamepad", "chart-line", "terminal", "image", "map", "theme", "flash", "layers"];
 
@@ -56,6 +57,15 @@ function Backdrop({ kind = "bloom", className, children }: { kind?: BackdropKind
             style={{
               background:
                 "radial-gradient(at 15% 20%, var(--terminal-ansi-magenta) 0, transparent 45%), radial-gradient(at 80% 10%, var(--terminal-ansi-cyan) 0, transparent 40%), radial-gradient(at 70% 85%, var(--terminal-ansi-green) 0, transparent 45%), radial-gradient(at 20% 90%, var(--terminal-ansi-blue) 0, transparent 40%), var(--muted)",
+            }}
+          />
+        )}
+        {kind === "garden" && (
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse 30% 45% at 18% 30%, var(--terminal-ansi-bright-green) 0, transparent 70%), radial-gradient(ellipse 25% 35% at 62% 22%, var(--terminal-ansi-yellow) 0, transparent 70%), radial-gradient(ellipse 35% 40% at 80% 70%, var(--terminal-ansi-green) 0, transparent 70%), radial-gradient(ellipse 30% 30% at 35% 78%, var(--terminal-ansi-bright-yellow) 0, transparent 70%), repeating-linear-gradient(95deg, transparent 0 46px, var(--terminal-ansi-black) 46px 54px, transparent 54px 130px), linear-gradient(180deg, var(--terminal-ansi-cyan), var(--terminal-ansi-green))",
             }}
           />
         )}
@@ -465,17 +475,8 @@ function Effects() {
           <Tile kind="type" preset="cathedral" tone="cyan" label="Cathedral" sub="cyan, rippled" />
           <Tile kind="type" preset="reeded" tone="yellow" tint={0.35} label="Amber reeded" sub="a tone on any texture" />
         </Grid>
-        <Backdrop kind="type" className="h-72">
-          <Glass preset="block" className="absolute inset-6 flex items-end rounded-xl p-4" blockSize={64}>
-            <span className="text-sm font-medium">Glass block · 64px</span>
-          </Glass>
-        </Backdrop>
-        <Grid cols={3}>
-          <Tile kind="icons" preset="block" blockSize={40} label="Block 40" />
-          <Tile kind="type" preset="block" tone="yellow" tint={0.4} label="Amber block" />
-          <Tile kind="bloom" preset="block" tone="cyan" tint={0.25} blockSize={72} label="Cyan block 72" />
-        </Grid>
       </Demo>
+      <BlockWall />
       <Demo title="Dither" meta="what's behind, ordered through a Bayer screen · Chromium; a halftone elsewhere">
         <Grid cols={4}>
           <Tile kind="bloom" preset="dither" label="2 levels" sub="eight colours" />
@@ -493,6 +494,55 @@ function Effects() {
         </Grid>
       </Demo>
     </>
+  );
+}
+
+const BLOCK_PATTERNS: { id: GlassBlockPattern; label: string }[] = [
+  { id: "cloud", label: "Cloud" },
+  { id: "wave", label: "Wave" },
+  { id: "clear", label: "Clear" },
+  { id: "diamond", label: "Diamond" },
+];
+
+function BlockWall() {
+  const [pattern, setPattern] = React.useState<GlassBlockPattern>("cloud");
+  const [size, setSize] = React.useState(88);
+  const [grout, setGrout] = React.useState(6);
+  const [tone, setTone] = React.useState<GlassTone>("neutral");
+  const [tint, setTint] = React.useState(0.1);
+  const [kind, setKind] = React.useState<BackdropKind>("garden");
+  return (
+    <Demo title="Glass block" meta="stepped frames, wavy faces, lit relief and mortar · each face bends what's behind on Chromium" bodyClassName="gap-4 lg:flex-row">
+      <Backdrop kind={kind} className="h-[30rem] min-w-0 flex-1">
+        <Glass preset="block" blockPattern={pattern} blockSize={size} grout={grout} tone={tone} tint={tint} className="absolute inset-0 rounded-xl" />
+      </Backdrop>
+      <div className="flex w-full shrink-0 flex-col gap-3 lg:w-64">
+        <Segmented label="Pattern" size="sm" value={pattern} onChange={setPattern} segments={BLOCK_PATTERNS} />
+        <Knob label="Block" value={size} min={32} max={160} step={4} unit="px" onChange={setSize} />
+        <Knob label="Mortar" value={grout} min={0} max={16} step={1} unit="px" onChange={setGrout} />
+        <Knob label="Tint" value={tint} unit="%" onChange={setTint} />
+        <ToneSwatches value={tone} onChange={setTone} />
+        <Segmented
+          label="Behind"
+          size="sm"
+          value={kind}
+          onChange={setKind}
+          segments={[
+            { id: "garden", label: "Garden" },
+            { id: "type", label: "Type" },
+            { id: "icons", label: "Icons" },
+            { id: "bloom", label: "Bloom" },
+          ]}
+        />
+        <div className="grid grid-cols-2 gap-2">
+          {BLOCK_PATTERNS.map((p) => (
+            <Backdrop key={p.id} kind="garden" className="h-24">
+              <Glass preset="block" blockPattern={p.id} blockSize={44} grout={3} className="absolute inset-0 rounded-xl" />
+            </Backdrop>
+          ))}
+        </div>
+      </div>
+    </Demo>
   );
 }
 

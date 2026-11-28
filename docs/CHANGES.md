@@ -69,7 +69,9 @@ RULES R6.9, gallery page **Glass**).
   `specular`, `animate`, `legible`, `shadow`, `as`). Eighteen presets:
   `clear`, `regular`, `frosted`, `fog`, `tinted`, `solid`, `iridescent`,
   `oil`, `bubble`, `prism`, `reeded`, `ripple`, `frost`, `hammered`,
-  `seeded`, `cathedral`, `block` (architectural glass block) and `dither`
+  `seeded`, `cathedral`, `block` (architectural glass block: stepped
+  frames, wavy faces with lit folds, mortar; `blockPattern` cloud, wave,
+  clear or diamond; `grout`) and `dither`
   (an ordered Bayer dither of what's behind).
 - At 0% tint glass is clear: the pane's wash of light and its saturation
   and brightness lift scale with the tint, and the pointer highlight shows

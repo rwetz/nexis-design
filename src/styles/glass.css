@@ -360,22 +360,52 @@
 
   /* ── Glass block, seeded, hammered, dither: what every engine draws ───── */
 
-  /* Glass block: mortar between the blocks, and each block's bevel, lit
-   * top-left and shaded bottom-right. Drawn on every engine; Chromium also
-   * bends each block's view through its own pillow lens. */
-  .nexis-glass[data-texture="block"] > .nexis-glass-pane {
+  /* Glass block. The block layer carries the wall's 2 × 2 tile (an SVG
+   * <Glass> builds: stepped frames, wavy faces, lit relief) at two blocks a
+   * side, and its ::after the mortar between blocks: a cement grey from
+   * the theme, opaque, lit along its top edge and shaded below, so the
+   * blocks read as set into it. Every engine; Chromium also bends what's
+   * behind each face. */
+  .nexis-glass > .nexis-glass-block {
+    --_grout: color-mix(in oklab, var(--foreground) 16%, var(--background));
+    background-size: calc(var(--glass-block) * 2) calc(var(--glass-block) * 2);
+    background-repeat: repeat;
+    overflow: hidden;
+  }
+  .dark .nexis-glass > .nexis-glass-block {
+    --_grout: color-mix(in oklab, var(--foreground) 22%, var(--background));
+  }
+  .nexis-glass > .nexis-glass-block::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    --_g: calc(var(--glass-grout) / 2);
     background-image:
-      linear-gradient(to right in oklch, oklch(1 0 0 / 0.38) 0 1px, oklch(1 0 0 / 0.06) 2px, transparent 30%, transparent 70%, oklch(0 0 0 / 0.12) calc(100% - 3px), oklch(0 0 0 / 0.32) calc(100% - 1px)),
-      linear-gradient(to bottom in oklch, oklch(1 0 0 / 0.38) 0 1px, oklch(1 0 0 / 0.06) 2px, transparent 30%, transparent 70%, oklch(0 0 0 / 0.12) calc(100% - 3px), oklch(0 0 0 / 0.32) calc(100% - 1px)),
-      radial-gradient(circle at 38% 32% in oklch, oklch(1 0 0 / 0.14), transparent 62%);
+      linear-gradient(
+        to right in oklch,
+        var(--_grout) 0 var(--_g),
+        oklch(0 0 0 / 0.18) var(--_g),
+        transparent calc(var(--_g) + 1.5px),
+        transparent calc(100% - var(--_g) - 1.5px),
+        oklch(1 0 0 / 0.25) calc(100% - var(--_g)),
+        var(--_grout) calc(100% - var(--_g))
+      ),
+      linear-gradient(
+        to bottom in oklch,
+        var(--_grout) 0 var(--_g),
+        oklch(0 0 0 / 0.18) var(--_g),
+        transparent calc(var(--_g) + 1.5px),
+        transparent calc(100% - var(--_g) - 1.5px),
+        oklch(1 0 0 / 0.25) calc(100% - var(--_g)),
+        var(--_grout) calc(100% - var(--_g))
+      );
     background-size: var(--glass-block) var(--glass-block);
   }
-  .dark .nexis-glass[data-texture="block"] > .nexis-glass-pane {
-    background-image:
-      linear-gradient(to right in oklch, oklch(1 0 0 / 0.22) 0 1px, oklch(1 0 0 / 0.04) 2px, transparent 30%, transparent 70%, oklch(0 0 0 / 0.25) calc(100% - 3px), oklch(0 0 0 / 0.5) calc(100% - 1px)),
-      linear-gradient(to bottom in oklch, oklch(1 0 0 / 0.22) 0 1px, oklch(1 0 0 / 0.04) 2px, transparent 30%, transparent 70%, oklch(0 0 0 / 0.25) calc(100% - 3px), oklch(0 0 0 / 0.5) calc(100% - 1px)),
-      radial-gradient(circle at 38% 32% in oklch, oklch(1 0 0 / 0.1), transparent 62%);
+  /* A wall wants its pane plain: the light is in the blocks. */
+  .nexis-glass[data-texture="block"] > .nexis-glass-pane {
+    background-image: none;
   }
+
   /* Seeded glass: bubbles caught in the pane, each a ring lit on one side. */
   .nexis-glass[data-texture="seeded"] > .nexis-glass-pane {
     background-image:
