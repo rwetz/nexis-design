@@ -363,11 +363,14 @@ export function ThemeProvider({
   // Auto would pick.
   useEffect(() => {
     let frame = 0;
+    const measure = () => setAutoScale((prev) => autoInterfaceScale(window.innerWidth, window.innerHeight, prev));
+    // At once on mount (nothing is left pending if the tree goes away);
+    // once a frame while the window is being resized.
     const update = () => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => setAutoScale((prev) => autoInterfaceScale(window.innerWidth, window.innerHeight, prev)));
+      frame = requestAnimationFrame(measure);
     };
-    update();
+    measure();
     window.addEventListener("resize", update);
     return () => {
       cancelAnimationFrame(frame);
