@@ -17,6 +17,7 @@
 
 import * as React from "react";
 import {
+  GlassBackdrop,
   Button,
   CardBadge,
   CardTilt,
@@ -172,7 +173,8 @@ export default function App() {
   const current = route.page === "item" || route.page === "running" ? find(route.id) : null;
 
   return (
-    <div className="flex h-full flex-col bg-background text-foreground">
+    <div data-app-shell className="flex h-full flex-col bg-background text-foreground">
+      <GlassBackdrop />
       <WindowResizeEdges />
       <CardTilt />
       <TitleBar

@@ -206,10 +206,10 @@ export function ControlsPage() {
             </Toggle>
           </Row>
           <Row label={`Slider: ${vol[0]}%`}>
-            <Slider value={vol} onValueChange={setVol} max={100} step={1} className="w-72" />
+            <Slider thumbLabel="Volume" value={vol} onValueChange={setVol} max={100} step={1} className="w-72" />
           </Row>
           <Row label="Range slider">
-            <Slider defaultValue={[20, 70]} max={100} className="w-72" />
+            <Slider thumbLabel="Range" defaultValue={[20, 70]} max={100} className="w-72" />
           </Row>
         </Demo>
       </Grid>

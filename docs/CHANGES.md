@@ -21,6 +21,90 @@ Every **Apps must** starts the same way: bump the pin, `pnpm install`, then
 delete `node_modules/.vite` (or run `pnpm dev --force` once) so Vite does not
 keep serving the old package (PITFALLS §17).
 
+## Unreleased
+
+### Interface size is continuous
+
+Auto used to jump between four steps (100, 112, 125, 150%) at window widths
+of 1600, 2200 and 3000 px, which suited two screens and few others. It now
+fits the window's width *and* height continuously: 100% at 1440×900, the
+tighter of the two ratios raised to 0.6, between 90% and 200%, in 2.5%
+steps (RULES R2.2). The setting is one slider instead of five segments,
+and in Auto it sets a multiplier on Auto (`interfaceAdjust`) so the user's
+"a bit bigger" follows them from a laptop to a 4K monitor.
+
+- **`InterfaceSizeControl`**: Auto / Fixed, a 75 to 250% slider that always
+  reads the scale on screen, a tick at Auto's own pick, a reset. The
+  settings template uses it.
+- **`useTheme()`** gains `interfaceAutoScale`, `interfaceAdjust` and
+  `setInterfaceAdjust`. `InterfaceScale` is any number now; `INTERFACE_SCALES`
+  are quick picks, not the only values. New helpers: `resolveInterfaceScale`,
+  `clampInterfaceScale`, `clampInterfaceAdjust`, `stepInterfaceAdjust`,
+  `parseInterfaceAdjust`, `INTERFACE_SCALE_RANGE`, `INTERFACE_ADJUST_RANGE`,
+  `INTERFACE_STEP`, `AUTO_RANGE`, `REFERENCE_WINDOW`.
+- `autoInterfaceScale(width, height?, previous?)` takes the height second
+  (it was `(width, previous?)`). `HYSTERESIS` is gone.
+- `Ctrl+=` / `Ctrl+-` move 5% (the adjustment in Auto, the size in Fixed);
+  `Ctrl+0` resets both.
+- `Slider` takes `thumbLabel` and `valueText`, so its thumb has a name.
+- Stored fixed sizes (1.125, 1.25, 1.5) still read as they were.
+
+**Apps must** replace a hand-built Interface size row (a `Segmented` over
+`INTERFACE_SCALES`) with `<InterfaceSizeControl />` in a `SettingRow` with
+`align="stretch"`; an app with no Interface size row adds one under
+Appearance. A call to `autoInterfaceScale(w, prev)` passes the height:
+`autoInterfaceScale(w, h, prev)`. Anything that picked a font size from the
+window's size leaves type to the scale (RULES R2.5).
+
+### Liquid glass
+
+A glass material for surfaces that float over content: `<Glass>`, twelve
+presets from almost nothing to fully tinted, any theme token or the
+theme's six hues as the tint, and every effect as a prop (docs/GLASS.md,
+RULES R6.9, gallery page **Glass**).
+
+- **`Glass`** (`preset`, `tint`, `tone`, `blur`, `saturate`, `edge`,
+  `edgeWidth`, `fringe`, `sheen`, `iris`, `film`, `rim`, `rimStyle`,
+  `refraction`, `dispersion`, `texture`, `blockSize`, `ditherLevels`,
+  `specular`, `animate`, `legible`, `shadow`, `as`). Eighteen presets:
+  `clear`, `regular`, `frosted`, `fog`, `tinted`, `solid`, `iridescent`,
+  `oil`, `bubble`, `prism`, `reeded`, `ripple`, `frost`, `hammered`,
+  `seeded`, `cathedral`, `block` (architectural glass block) and `dither`
+  (an ordered Bayer dither of what's behind).
+- At 0% tint glass is clear: the pane's wash of light and its saturation
+  and brightness lift scale with the tint, and the pointer highlight shows
+  only on hover.
+- `GLASS_GUIDE`: the good range of every knob, with a line on the rest.
+- Edge blur, a hue-shifting fringe on whatever is behind the edge, thin-film
+  colour in the rainbow, the theme's hues or the tint's own, a lit, film or
+  theme rim, a pointer highlight. Refraction and dispersion (the edge bends
+  what's behind and splits it into a rainbow) and the bent textures are
+  Chromium only, so WebView2 on Windows; WebKit keeps every other effect.
+- **Glass setting**: `useTheme().glassTint` / `setGlassTint` (0 clear as
+  designed, 1 fully tinted, `<storageKey>:glass-tint`) and
+  `<GlassTintControl />`, in the settings template beside Interface size.
+  Reduced transparency, high contrast and Linux take glass to opaque.
+- **Window glass:** `useTheme().glassChrome` / `setGlassChrome` (`off`,
+  `clear`, `regular`, `frosted`, `tinted`; `<storageKey>:glass-chrome`;
+  `defaultGlassChrome` on `ThemeProvider`). The shell becomes a translucent
+  sheet over `<GlassBackdrop>` (`mesh`, `bloom`, `image`), its chrome joins
+  the sheet, and overlays become blurred glass. `GlassTintControl` shows it
+  as a switch above the tint. Every template's root carries
+  `data-app-shell` and a `<GlassBackdrop />`; `SidebarNav` has
+  `data-slot="sidebar-nav"`.
+- `new-app.sh --glass clear|regular|frosted|tinted` scaffolds with window
+  glass on. RULES R6.10 and the scaffold skill say which apps want it.
+- `.glass-surface` (+ `.glass-clear`, `.glass-regular`, `.glass-frosted`,
+  `.glass-tinted`, `.glass-solid`) for one-element glass where `<Glass>`'s
+  layers can't go, e.g. on a Radix popover's content.
+- `src/styles/glass.css` is imported by `globals.css` (and exported as
+  `@nexis/design/styles/glass.css`).
+
+**Apps must** add the **Glass** row (`<GlassTintControl />`) under
+Appearance, next to Interface size, and mark the shell's root element
+`data-app-shell` with a `<GlassBackdrop />` as its first child, so window
+glass works (it draws nothing while off).
+
 ## 0.4.0 · 2026-11-27
 
 ### Contrast

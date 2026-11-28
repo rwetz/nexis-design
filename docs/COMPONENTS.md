@@ -21,7 +21,10 @@ shared version yet.
 | `Toggle`, `ToggleGroup` | Nexis | pressed state, single/multiple |
 | `Segmented` | new | a mode switch whose pill *travels* (gliding rail). For toolbars. |
 | `Checkbox` (+ indeterminate), `RadioGroup`, `Switch` | Nexis | the switch thumb squishes while held |
-| `Slider` | Nexis | single or range |
+| `Slider` | Nexis | single or range; `thumbLabel` names the thumb, `valueText` speaks the value |
+| `InterfaceSizeControl` | new | Settings' Interface size: Auto / Fixed, one slider that reads the scale on screen, Auto's tick, reset (RULES R2.3) |
+| `GlassTintControl` | new | Settings' Glass: clear to fully tinted, with a live swatch (RULES R6.9) |
+| `Glass` | new | liquid glass: twelve presets, any theme tone, edge blur, fringe, film, refraction (docs/GLASS.md) |
 | `Badge` | Nexis + tones | adds `brand success warning info` tones that follow the theme |
 | `StatusDot` | new | `tone`, `live` (caret blink) |
 | `Kbd`, `KbdGroup`, `KbdHint` | Nexis | key chips; hint fades in where relevant |

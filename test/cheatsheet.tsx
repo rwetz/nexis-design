@@ -21,6 +21,7 @@ import {
   ActiveFilters, CardBadge, EMPTY_FILTERS, RangeInput, type Facet, FilterPanel, type FilterState, PriceTag, ProductCard, Shelf,
   SettingRow, SettingsGroup, SettingsPage, SettingsTree, settingsTreeNodes, type SettingsChapter, ThumbnailCard, ThumbnailGrid,
   CardTilt, CollectionCard, DonutChart, NexisMark, ProportionBar, SkeletonCard, SkeletonGroup, SkeletonRow, SkeletonText,
+  Glass, GlassTintControl, InterfaceSizeControl,
   CoverArt, HeroFact, MediaList, keyActions, type KeyBindings, KeybindTable, keyRemap, LaunchButton, MediaHero, PauseMenu,
 } from "../src";
 
@@ -75,6 +76,13 @@ export function Cheatsheet() {
         </Button>
       </Toolbar>
       <StatusBar left={<StatusItem icon="git-branch">main</StatusItem>} right={<StatusItem live>{n} rows</StatusItem>} />
+
+      {/* Glass and the two settings every app has */}
+      <SettingRow label="Interface size" align="stretch"><InterfaceSizeControl /></SettingRow>
+      <SettingRow label="Glass" align="stretch"><GlassTintControl /></SettingRow>
+      <Glass preset="regular" className="flex items-center gap-2 rounded-full px-3 py-2">Toolbar</Glass>
+      <Glass as="button" preset="tinted" tone="primary" aria-label="Play" className="size-10 rounded-full"><Icon name="play" /></Glass>
+      <Glass preset="clear" refraction={1} dispersion={0.8} edge={16} fringe={0.4} className="rounded-3xl p-4">Hero</Glass>
 
       {/* Controls */}
       <Button variant="brand" size="sm" onClick={() => toast.success("Saved", { description: "2 changes" })}>Run</Button>

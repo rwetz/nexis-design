@@ -29,7 +29,17 @@ import {
 import { flushSync } from "react-dom";
 import { IS_LINUX } from "../lib/platform";
 import { applyTheme, clearTheme } from "./applyTheme";
-import { autoInterfaceScale, type InterfaceScale, type InterfaceSize, parseInterfaceSize, stepInterfaceScale } from "./interfaceScale";
+import {
+  autoInterfaceScale,
+  clampInterfaceAdjust,
+  type InterfaceScale,
+  type InterfaceSize,
+  parseInterfaceAdjust,
+  parseInterfaceSize,
+  resolveInterfaceScale,
+  stepInterfaceAdjust,
+  stepInterfaceScale,
+} from "./interfaceScale";
 import { getBuiltinTheme, getDefaultTheme, migrateThemeId } from "./themes";
 import { DEFAULT_THEME_ID, type Theme } from "./types";
 
@@ -121,11 +131,39 @@ function write(key: string, value: string): void {
   }
 }
 
+/**
+ * Glass chrome (docs/GLASS.md): the whole window as glass. Off is the
+ * ordinary opaque shell; the rest make the shell a translucent sheet over
+ * a backdrop and the overlays real blurred glass, from clear to tinted.
+ */
+export const GLASS_CHROMES = ["off", "clear", "regular", "frosted", "tinted"] as const;
+export type GlassChrome = (typeof GLASS_CHROMES)[number];
+export function isGlassChrome(v: unknown): v is GlassChrome {
+  return (GLASS_CHROMES as readonly unknown[]).includes(v);
+}
+
+/** Glass tint, 0 … 1, rounded to a percent. */
+export function clampGlassTint(v: number): number {
+  return Math.round(Math.min(1, Math.max(0, Number.isFinite(v) ? v : 0)) * 100) / 100;
+}
+
+/** Parses a stored glass tint; anything unreadable is 0 (clear, as designed). */
+export function parseGlassTint(v: string | null): number {
+  if (v === null || v.trim() === "") return 0;
+  return clampGlassTint(Number(v));
+}
+
 export type ThemePrefs = {
   mode: ThemeModePref;
   themeId: string;
   contrast: ContrastPref;
   interfaceSize: InterfaceSize;
+  /** The multiplier on Auto (1 when absent, for prefs written before 0.5). */
+  interfaceAdjust?: number;
+  /** Glass, 0 clear (as designed) … 1 fully tinted (0 when absent). */
+  glassTint?: number;
+  /** Glass chrome ("off" when absent). */
+  glassChrome?: GlassChrome;
 };
 
 type ThemeProviderProps = {
@@ -149,6 +187,11 @@ type ThemeProviderProps = {
    * that must win, and offer the setting anyway.
    */
   interfaceShortcuts?: boolean;
+  /**
+   * Glass chrome before the user picks one: "off" (the default), or a
+   * material for an app scaffolded with `--glass` (docs/GLASS.md).
+   */
+  defaultGlassChrome?: GlassChrome;
 };
 
 export type ThemeProviderState = {
@@ -174,11 +217,25 @@ export type ThemeProviderState = {
   setMode: (mode: ThemeModePref) => void;
   setThemeId: (id: string) => void;
   setContrast: (contrast: ContrastPref) => void;
-  /** The user's interface size: Auto (follows the window) or a fixed step. */
+  /** The user's interface size: Auto (fits the window) or a fixed scale. */
   interfaceSize: InterfaceSize;
-  /** The scale in effect now, Auto resolved against the window's width. */
+  /** The scale in effect now: Auto times the adjustment, or the fixed size. */
   interfaceScale: InterfaceScale;
+  /** What Auto would pick for this window, before the adjustment. */
+  interfaceAutoScale: InterfaceScale;
+  /** The user's multiplier on Auto (1 is none, 0.75 to 1.5). */
+  interfaceAdjust: number;
   setInterfaceSize: (size: InterfaceSize) => void;
+  setInterfaceAdjust: (adjust: number) => void;
+  /**
+   * Glass (docs/GLASS.md): 0 shows every glass surface as designed (clear),
+   * 1 tints them all fully. Like the OS's own Clear / Tinted choice.
+   */
+  glassTint: number;
+  setGlassTint: (tint: number) => void;
+  /** The whole window as glass, or off (docs/GLASS.md). */
+  glassChrome: GlassChrome;
+  setGlassChrome: (chrome: GlassChrome) => void;
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState | null>(null);
@@ -198,12 +255,16 @@ export function ThemeProvider({
   customThemes = [],
   onChange,
   interfaceShortcuts = true,
+  defaultGlassChrome = "off",
 }: ThemeProviderProps) {
   const K = {
     mode: `${storageKey}:mode`,
     theme: `${storageKey}:theme`,
     contrast: `${storageKey}:contrast`,
     size: `${storageKey}:ui-size`,
+    adjust: `${storageKey}:ui-adjust`,
+    glass: `${storageKey}:glass-tint`,
+    chrome: `${storageKey}:glass-chrome`,
   };
 
   const [mode, setModeState] = useState<ThemeModePref>(() => {
@@ -225,8 +286,14 @@ export function ThemeProvider({
   );
   const [paletteEpoch, setPaletteEpoch] = useState(0);
   const [interfaceSize, setInterfaceSizeState] = useState<InterfaceSize>(() => parseInterfaceSize(read(K.size)));
+  const [glassChrome, setGlassChromeState] = useState<GlassChrome>(() => {
+    const v = read(K.chrome);
+    return isGlassChrome(v) ? v : defaultGlassChrome;
+  });
+  const [glassTint, setGlassTintState] = useState<number>(() => parseGlassTint(read(K.glass)));
+  const [interfaceAdjust, setInterfaceAdjustState] = useState<number>(() => parseInterfaceAdjust(read(K.adjust)));
   const [autoScale, setAutoScale] = useState<InterfaceScale>(() =>
-    typeof window === "undefined" ? 1 : autoInterfaceScale(window.innerWidth),
+    typeof window === "undefined" ? 1 : autoInterfaceScale(window.innerWidth, window.innerHeight),
   );
 
   useEffect(() => {
@@ -290,27 +357,45 @@ export function ThemeProvider({
     return () => root.removeAttribute("data-contrast");
   }, [highContrast]);
 
-  // Auto follows the window's CSS width. The scale is the root font size, so
-  // applying it never changes innerWidth and can't feed back on itself.
+  // Auto fits the window's CSS size (width and height). The scale is the root
+  // font size, so applying it never changes the window's CSS size and can't
+  // feed back on itself. Tracked in fixed mode too, so Settings can show what
+  // Auto would pick.
   useEffect(() => {
-    if (interfaceSize !== "auto") return undefined;
-    const update = () => setAutoScale((prev) => autoInterfaceScale(window.innerWidth, prev));
+    let frame = 0;
+    const update = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setAutoScale((prev) => autoInterfaceScale(window.innerWidth, window.innerHeight, prev)));
+    };
     update();
     window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, [interfaceSize]);
-  const interfaceScale: InterfaceScale = interfaceSize === "auto" ? autoScale : interfaceSize;
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+  const interfaceScale: InterfaceScale = resolveInterfaceScale(interfaceSize, autoScale, interfaceAdjust);
   // Before paint, so a large window never shows one frame at 100%.
   useLayoutEffect(() => {
     document.documentElement.style.setProperty("--ui-scale", String(interfaceScale));
   }, [interfaceScale]);
 
+  useLayoutEffect(() => {
+    document.documentElement.style.setProperty("--glass-user-tint", String(glassTint));
+  }, [glassTint]);
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    if (glassChrome === "off") root.removeAttribute("data-glass-chrome");
+    else root.setAttribute("data-glass-chrome", glassChrome);
+    return () => root.removeAttribute("data-glass-chrome");
+  }, [glassChrome]);
+
   useEffect(() => {
-    onChange?.({ mode, themeId, contrast, interfaceSize });
+    onChange?.({ mode, themeId, contrast, interfaceSize, interfaceAdjust, glassTint, glassChrome });
     // onChange is deliberately not a dependency: an inline arrow would fire
     // this on every render of the parent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, themeId, contrast, interfaceSize]);
+  }, [mode, themeId, contrast, interfaceSize, interfaceAdjust, glassTint, glassChrome]);
 
   const setMode = useCallback(
     (next: ThemeModePref) => {
@@ -344,23 +429,55 @@ export function ThemeProvider({
     [K.size],
   );
 
-  // Ctrl/Cmd += and - step from the scale in effect (so the first press from
-  // Auto lands one step from what's on screen); Ctrl/Cmd 0 goes back to Auto.
-  const scaleRef = useRef(interfaceScale);
-  scaleRef.current = interfaceScale;
+  const setGlassChrome = useCallback(
+    (next: GlassChrome) => {
+      withViewTransition(() => setGlassChromeState(next));
+      write(K.chrome, next);
+    },
+    [K.chrome],
+  );
+
+  const setGlassTint = useCallback(
+    (next: number) => {
+      const v = clampGlassTint(next);
+      setGlassTintState(v);
+      write(K.glass, String(v));
+    },
+    [K.glass],
+  );
+
+  const setInterfaceAdjust = useCallback(
+    (next: number) => {
+      const v = clampInterfaceAdjust(next);
+      setInterfaceAdjustState(v);
+      write(K.adjust, String(v));
+    },
+    [K.adjust],
+  );
+
+  // Ctrl/Cmd += and - step by 5%: the adjustment in Auto (so it stays fitted
+  // to the window), the size itself when fixed. Ctrl/Cmd 0 goes back to Auto
+  // with no adjustment.
+  const scaleRef = useRef({ interfaceSize, interfaceAdjust });
+  scaleRef.current = { interfaceSize, interfaceAdjust };
   useEffect(() => {
     if (!interfaceShortcuts) return undefined;
     const onKey = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
-      if (e.key === "=" || e.key === "+") setInterfaceSize(stepInterfaceScale(scaleRef.current, 1));
-      else if (e.key === "-" || e.key === "_") setInterfaceSize(stepInterfaceScale(scaleRef.current, -1));
-      else if (e.key === "0") setInterfaceSize("auto");
-      else return;
+      const dir = e.key === "=" || e.key === "+" ? 1 : e.key === "-" || e.key === "_" ? -1 : 0;
+      const { interfaceSize: size, interfaceAdjust: adjust } = scaleRef.current;
+      if (dir !== 0) {
+        if (size === "auto") setInterfaceAdjust(stepInterfaceAdjust(adjust, dir));
+        else setInterfaceSize(stepInterfaceScale(size, dir));
+      } else if (e.key === "0") {
+        setInterfaceSize("auto");
+        setInterfaceAdjust(1);
+      } else return;
       e.preventDefault();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [interfaceShortcuts, setInterfaceSize]);
+  }, [interfaceShortcuts, setInterfaceSize, setInterfaceAdjust]);
 
   const value = useMemo<ThemeProviderState>(
     () => ({
@@ -377,7 +494,14 @@ export function ThemeProvider({
       setContrast,
       interfaceSize,
       interfaceScale,
+      interfaceAutoScale: autoScale,
+      interfaceAdjust,
       setInterfaceSize,
+      setInterfaceAdjust,
+      glassTint,
+      setGlassTint,
+      glassChrome,
+      setGlassChrome,
     }),
     [
       mode,
@@ -393,7 +517,14 @@ export function ThemeProvider({
       setContrast,
       interfaceSize,
       interfaceScale,
+      autoScale,
+      interfaceAdjust,
       setInterfaceSize,
+      setInterfaceAdjust,
+      glassTint,
+      setGlassTint,
+      glassChrome,
+      setGlassChrome,
     ],
   );
 

@@ -3,6 +3,7 @@
 // right, that is a gap in the package, not a gallery problem.
 import * as React from "react";
 import {
+  GlassBackdrop,
   Button,
   CommandPalette,
   fmtShortcut,
@@ -39,6 +40,7 @@ import { ControlsPage } from "./pages/controls";
 import { DataPage } from "./pages/data";
 import { FeedbackPage } from "./pages/feedback";
 import { FormsPage } from "./pages/forms";
+import { GlassPage } from "./pages/glass";
 import { FoundationsPage } from "./pages/foundations";
 import { IconsPage } from "./pages/icons";
 import { LayoutPage } from "./pages/layout";
@@ -67,6 +69,7 @@ type PageId =
   | "launcher"
   | "rules"
   | "motion"
+  | "glass"
   | "chrome"
   | "icons"
   | `app-${AppId}`;
@@ -87,6 +90,7 @@ const PAGES: Record<Exclude<PageId, `app-${string}`>, { label: string; icon: Ico
   catalogue: { label: "Catalogue", icon: "store", render: () => <CataloguePage /> },
   launcher: { label: "Launcher", icon: "play", render: () => <LauncherPage /> },
   motion: { label: "Motion", icon: "sparkle", render: () => <MotionPage /> },
+  glass: { label: "Glass", icon: "layers", render: () => <GlassPage /> },
   chrome: { label: "Window chrome", icon: "computer", render: () => <ChromePage /> },
   icons: { label: "Icons", icon: "star", render: () => <IconsPage /> },
 };
@@ -241,8 +245,9 @@ export function Gallery() {
   const themeName = listBuiltinThemes().find((t) => t.id === theme.themeId)?.name ?? "Nexis Default";
 
   return (
-    <div className="flex h-full flex-col bg-background text-foreground"
+    <div data-app-shell className="flex h-full flex-col bg-background text-foreground"
       data-gallery-routes={[...Object.keys(PAGES), ...Object.keys(APPS).map((id) => `app/${id}`)].join(" ")}>
+      <GlassBackdrop />
       <CardTilt />
       <TitleBar
         controls="preview"

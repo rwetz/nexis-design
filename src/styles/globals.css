@@ -12,6 +12,7 @@
 @import "./shadcn-tailwind.css";
 @import "./fonts.css";
 @import "./code-highlight.css";
+@import "./glass.css";
 
 
 /* Tailwind v4 does not scan node_modules. This line makes it scan the

@@ -9,6 +9,7 @@
 
 import * as React from "react";
 import {
+  GlassBackdrop,
   Button,
   CommandPalette,
   Empty,
@@ -38,7 +39,8 @@ export default function App() {
   useCommandPaletteShortcut(() => setPaletteOpen((o) => !o));
 
   return (
-    <div className="flex h-full flex-col bg-background text-foreground">
+    <div data-app-shell className="flex h-full flex-col bg-background text-foreground">
+      <GlassBackdrop />
       <WindowResizeEdges />
       <TitleBar brand={<NexisMark className="size-[18px]" />} title="My App" />
       <main className="grid min-h-0 flex-1 place-items-center">

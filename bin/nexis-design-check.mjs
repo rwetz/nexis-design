@@ -215,6 +215,14 @@ export async function check(root = process.cwd()) {
   if (missingStates.length)
     add("warn", srcDir, 0, "states-missing", "R7.3", `no ${missingStates.join(", ")} state anywhere in src/`, "give every data view Skeleton, Empty and an error Alert with Retry (DataBoundary does all four)");
   if (!/<CommandPalette\b/.test(all)) add("warn", srcDir, 0, "shell-palette", "AGENTS 10", "no <CommandPalette>", "every app exposes its actions on Mod+Shift+P");
+  if (!/data-app-shell/.test(all))
+    add("warn", srcDir, 0, "shell-glass", "R6.10", "the shell's root has no data-app-shell", "mark the app's root element data-app-shell and render <GlassBackdrop /> inside it, so window glass works");
+  if (/<(?:SettingRow|SettingsPage)\b/.test(all)) {
+    if (!/<InterfaceSizeControl\b/.test(all))
+      add("warn", srcDir, 0, "settings-interface-size", "R2.3", "Settings has no Interface size", "add <SettingRow label=\"Interface size\" align=\"stretch\"><InterfaceSizeControl /></SettingRow> under Appearance");
+    if (!/<GlassTintControl\b/.test(all))
+      add("warn", srcDir, 0, "settings-glass", "R6.9", "Settings has no Glass setting", "add <SettingRow label=\"Glass\" align=\"stretch\"><GlassTintControl /></SettingRow> beside Interface size");
+  }
   if (!/globals(\.ide)?\.css/.test(all) && ![...text].some(([f, s]) => f.endsWith(".css") && /@nexis\/design\/styles\/globals/.test(s)))
     add("error", srcDir, 0, "shell-styles", "AGENTS 1", "the design stylesheet is not imported", '@import "@nexis/design/styles/globals.css" in src/styles.css');
 

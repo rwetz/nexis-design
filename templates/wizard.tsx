@@ -19,6 +19,7 @@
 
 import * as React from "react";
 import {
+  GlassBackdrop,
   Button,
   cn,
   Field,
@@ -90,7 +91,8 @@ export default function App() {
   const canNext = phase.kind === "form" ? pageValid[phase.page] : phase.kind === "installing" && phase.progress >= 100;
 
   return (
-    <div className="flex h-full flex-col bg-background text-foreground">
+    <div data-app-shell className="flex h-full flex-col bg-background text-foreground">
+      <GlassBackdrop />
       <TitleBar title="Set up Nexis" brand={<NexisMark className="size-[18px]" />} />
       <div className="grid min-h-0 flex-1 place-items-center overflow-y-auto p-8">
         <div className="flex w-full max-w-xl flex-col gap-8">
