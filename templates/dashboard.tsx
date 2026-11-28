@@ -13,6 +13,7 @@
 
 import * as React from "react";
 import {
+  GlassBackdrop,
   Alert,
   AlertAction,
   AlertDescription,
@@ -89,7 +90,8 @@ export default function App({ live = true }: { live?: boolean } = {}) {
   const svc = services.find((s) => s.id === selected) ?? null;
 
   return (
-    <div className="flex h-full flex-col bg-background text-foreground">
+    <div data-app-shell className="flex h-full flex-col bg-background text-foreground">
+      <GlassBackdrop />
       <WindowResizeEdges />
       <TitleBar brand={<NexisMark className="size-[18px]" />} title="Pulse" />
       <div className="flex min-h-0 flex-1">

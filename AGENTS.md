@@ -18,7 +18,7 @@ so copy from it rather than guessing prop names.
 
 ```bash
 # from a checkout of nexis-design
-scripts/new-app.sh nexis-<thing> <template> [dir] [--with store,dialog]
+scripts/new-app.sh nexis-<thing> <template> [dir] [--with store,dialog] [--glass regular]
 cd ../nexis-<thing> && pnpm install && pnpm tauri icon src-tauri/icons/icon.png && pnpm tauri dev
 ```
 
@@ -30,6 +30,13 @@ Decide them up front from what the app does: it needs `dialog` to open or
 save a file, `store` to remember settings, `fs` or a Rust command to read what
 it opened, `notification` for alerts, `clipboard-manager` for copy actions.
 Anything else: [docs/BACKEND.md](docs/BACKEND.md) §3.
+
+`--glass clear|regular|frosted|tinted` starts the app with window glass on:
+the shell a translucent sheet over the theme's backdrop, overlays real
+glass. Media, launchers, galleries and showcase apps may want it (ask);
+dashboards don't unless asked; editors, consoles and dense tables never.
+Which glass goes where, and the good range of every knob:
+[docs/GLASS.md](docs/GLASS.md), RULES R6.9 and R6.10.
 
 `new-app.sh` writes a complete Tauri v2 project: `package.json` (the package
 pinned by git rev + exactly its peers), the no-flash `index.html`, `main.tsx`
@@ -314,7 +321,12 @@ export default function App() {
 // Layout patterns (docs/RULES.md §4)
 <SettingsLayout nav={<SidebarNav …/>}><SettingsPage title="Appearance" description="…"><SettingsGroup title="Theme">
   <SettingRow label="Mode" description="…"><Segmented …/></SettingRow>   // align="stretch" for inputs and selects
+  <SettingRow label="Interface size" align="stretch"><InterfaceSizeControl /></SettingRow>   // every app (RULES R2.3)
+  <SettingRow label="Glass" align="stretch"><GlassTintControl /></SettingRow>               // every app (RULES R6.9)
 </SettingsGroup></SettingsPage></SettingsLayout>
+<Glass preset="regular" className="flex items-center gap-2 rounded-full px-3 py-2">…</Glass>   // docs/GLASS.md
+<Glass as="button" preset="tinted" tone="primary" aria-label="Play" className="size-10 rounded-full">…</Glass>
+<Glass preset="clear" refraction={1} dispersion={0.8} edge={16} fringe={0.4} className="rounded-3xl p-4">…</Glass>
 <PanelSection title="Layers" actions={<Button variant="ghost" size="icon-sm" …/>}>…</PanelSection>
 <ControlRow label="Line weight" edited={v !== def} onReset={reset} value={v}><Slider …/></ControlRow>
 <ThumbnailGrid min="9rem" maxColumns={6}><ThumbnailCard image={url} title="Stencil" meta="Print" selected /></ThumbnailGrid>

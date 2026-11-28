@@ -22,6 +22,7 @@
 
 import * as React from "react";
 import {
+  GlassBackdrop,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -37,14 +38,13 @@ import {
   cn,
   Input,
   NexisMark,
-  INTERFACE_SCALES,
-  interfaceScaleLabel,
+  GlassTintControl,
+  InterfaceSizeControl,
   Kbd,
   KbdGroup,
   listBuiltinThemes,
   MOD_KEY,
   NumberInput,
-  parseInterfaceSize,
   Segmented,
   Select,
   SelectContent,
@@ -125,7 +125,7 @@ const SETTINGS: (SettingsChapter & { id: Section })[] = [
   {
     id: "appearance",
     label: "Appearance",
-    groups: [{ id: "look", label: "Look", settings: [{ label: "Mode", keywords: ["dark", "light"] }, { label: "Theme", keywords: ["colours", "palette"] }, { label: "Interface size", keywords: ["zoom", "scale", "bigger"] }, { label: "High contrast", keywords: ["accessibility"] }] }],
+    groups: [{ id: "look", label: "Look", settings: [{ label: "Mode", keywords: ["dark", "light"] }, { label: "Theme", keywords: ["colours", "palette"] }, { label: "Interface size", keywords: ["zoom", "scale", "bigger", "smaller", "text size"] }, { label: "Glass", keywords: ["transparency", "blur", "tinted", "clear", "liquid"] }, { label: "High contrast", keywords: ["accessibility"] }] }],
   },
   {
     id: "editor",
@@ -205,7 +205,8 @@ export default function App({ deep = false }: { deep?: boolean } = {}) {
   const set = <K extends keyof Prefs>(k: K, v: Prefs[K]) => setDraft((d) => ({ ...d, [k]: v }));
 
   return (
-    <div className="flex h-full flex-col bg-background text-foreground">
+    <div data-app-shell className="flex h-full flex-col bg-background text-foreground">
+      <GlassBackdrop />
       <WindowResizeEdges />
       <TitleBar title="Settings" brand={<NexisMark className="size-[18px]" />} />
       <SettingsLayout
@@ -387,14 +388,13 @@ export default function App({ deep = false }: { deep?: boolean } = {}) {
               <SettingRow
                 data-setting="Interface size"
                 label="Interface size"
-                description={`Auto follows the window's width (now ${interfaceScaleLabel(theme.interfaceScale)}). ${MOD_KEY}+= and ${MOD_KEY}+- step it, ${MOD_KEY}+0 resets.`}
+                description={`Scales type, spacing and icons together. ${MOD_KEY}+= and ${MOD_KEY}+- adjust it, ${MOD_KEY}+0 resets.`}
+                align="stretch"
               >
-                <Segmented
-                  label="Interface size"
-                  value={String(theme.interfaceSize)}
-                  onChange={(v) => theme.setInterfaceSize(parseInterfaceSize(v))}
-                  segments={[{ id: "auto", label: "Auto" }, ...INTERFACE_SCALES.map((s) => ({ id: String(s), label: interfaceScaleLabel(s) }))]}
-                />
+                <InterfaceSizeControl />
+              </SettingRow>
+              <SettingRow data-setting="Glass" label="Glass" description="From clear, as designed, to fully tinted, for every glass surface." align="stretch">
+                <GlassTintControl />
               </SettingRow>
               <SettingRow data-setting="High contrast" label="High contrast" description="On top of any theme. Follows the OS under System." htmlFor="contrast" align="stretch">
                 <Select value={theme.contrast} onValueChange={(v) => theme.setContrast(v as typeof theme.contrast)}>

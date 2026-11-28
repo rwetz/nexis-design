@@ -149,27 +149,40 @@ the window's CSS width, which Auto follows. Sizes that must not scale (1px
 hairlines, a canvas) are in px. Nothing reads the window size to pick font
 sizes by itself. Read the scale with `useTheme().interfaceScale`.
 
-**R2.2 Auto steps.** In Auto (the default), the scale follows the window's
-width in CSS pixels, in fixed steps so it never drifts:
+**R2.2 Auto fits the window.** In Auto (the default) the scale is
+continuous: it follows the window's CSS size, width and height both, with
+no hand-picked screens. A 1440×900 window is 100%; the scale is the
+tighter of `width / 1440` and `height / 900`, raised to 0.6, so a bigger
+window shows bigger type *and* more of it. It lands between 90% and 200%,
+moves in 2.5% steps (so dragging an edge
+doesn't reflow every pixel), and holds its value until the raw value is a
+step away. CSS pixels already include the OS's scale factor.
 
-| Window width (CSS px) | Scale |
+| Window (CSS px) | Auto |
 |---|---|
-| below 1600 | 100% |
-| 1600 to 2199 | 112.5% |
-| 2200 to 2999 | 125% |
-| 3000 and up | 150% |
+| 1280×800 | 92.5% |
+| 1440×900, or a 13" MacBook's 1470×956 | 100% |
+| 1920×1080, or a 16" MacBook's 1728×1117 | 112.5% |
+| 2560×1440, or 4K at 150% | 132.5% |
+| 3840×2160, 4K at 100% | 170% |
 
-The step is chosen when the window opens and when it's resized past a
-boundary, with 64px of hysteresis so dragging the edge near a boundary
-doesn't flicker between steps. The OS's own scale factor is already in CSS
-pixels, so a 4K screen at 150% OS scale (2560 CSS px) gets 125%.
+A maximised window is a little shorter than its screen (title bar, menu
+bar, dock), so it lands a step or so lower.
 
 **R2.3 The setting.** Every app's Settings has **Interface size** under
-Appearance: `Auto`, `100%`, `112%`, `125%`, `150%` as a `Segmented` bound to
-`useTheme().interfaceSize` / `setInterfaceSize` (the settings template has
-it). `Ctrl+=` / `Ctrl+-` / `Ctrl+0` step it and reset to Auto; the provider
-binds them unless `interfaceShortcuts={false}`. It's stored under
-`<storageKey>:ui-size` and reported through `onChange`.
+Appearance: the package's `<InterfaceSizeControl />` in a `SettingRow`
+with `align="stretch"` (the settings template has it). It is Auto or
+Fixed and one slider that always reads the scale on screen, from 75% to
+250%, with a tick where Auto alone would sit. In Auto the slider sets the
+user's **adjustment** (`interfaceAdjust`, 0.75 to 1.5), which multiplies
+whatever Auto picks, so "a bit bigger" carries from a laptop to a 4K
+monitor instead of being one number tuned for one screen. In Fixed it sets
+the scale itself. `Ctrl+=` / `Ctrl+-` move it 5% (the adjustment in Auto,
+the size in Fixed) and `Ctrl+0` resets to Auto with no adjustment; the
+provider binds them unless `interfaceShortcuts={false}`. Stored under
+`<storageKey>:ui-size` and `<storageKey>:ui-adjust`, reported through
+`onChange`. Read the scale in effect with `useTheme().interfaceScale` and
+Auto's own pick with `interfaceAutoScale`.
 
 **R2.4 Content with its own zoom.** A canvas, an image stage, a code editor
 or a terminal sizes its content in px (or from its own zoom setting), so the
@@ -177,9 +190,12 @@ interface scale leaves it alone; the chrome around it scales. `.zoom-content`
 / `--app-zoom` remain for an app's own Ctrl± content zoom where it has one,
 and are separate from this.
 
-**R2.5 Design at 100%, check at all four.** Lay out at 100% and 1280×800.
-Then look at every screen at the sizes in §12. A layout that only works at
-one scale is a bug.
+**R2.5 Design at 100%, check across the range.** Lay out at 100% and
+1280×800. Then look at every screen at 75%, 100%, 150% and 250%, and at the
+window sizes in §12. A layout that only works at one scale, or on one
+screen, is a bug. Nothing reads the window size to pick a font size of its
+own: if a page needs to fit a short window, it changes layout (fold a
+sidebar, shrink a hero band), and the scale handles type.
 
 ---
 
@@ -462,7 +478,8 @@ coloured bar.
 **R6.4 No rainbow, no gradients on UI.** Text and icons are one flat token
 colour. No per-category colours, no hover gradients, no aurora borders in
 chrome. `rainbowAccent`, `RainbowDefs` and `AuroraBorder` are gone from the
-package (Nexis keeps its own copy). Tripwired.
+package (Nexis keeps its own copy). Tripwired. Glass film is a material on a
+showpiece surface, not a colour on text: R6.9.
 
 **R6.5 Status is a tone.** `success` / `warning` / `destructive` / `info`
 mean status and nothing else. An "edited" marker is a neutral dot
@@ -492,6 +509,32 @@ colour on the way. An `oklab` line kept only as a fallback says so in a
 comment. The `ColorPicker`'s fields are the exception: they draw sRGB's own
 HSV space. Masks are alpha only and need no method. Tripwired for the
 stylesheets.
+
+**R6.9 Glass is a material, not a colour.** A surface that floats over
+content (a toolbar over scrolling content, a sidebar over a wallpaper, a
+player bar, a palette) may be `<Glass>` (docs/GLASS.md). Everyday chrome
+uses `clear`, `regular` or `frosted`, tinted with a theme token or one of
+the theme's six hues, never a raw colour. The film, iris, the film or theme
+rim, the fringe and the showpiece materials (`iridescent`, `oil`, `prism`,
+`cathedral`, `block`) are for one surface on a screen (a hero, a launcher
+card, a now-playing bar), not for every panel: R6.4 still holds for text
+and icons on glass, which stay one flat token. Text sits on glass with 15%
+tint or more, or `legible`; never on `prism`, `ripple`, `hammered`,
+`block` or `dither` directly. Knobs stay in `GLASS_GUIDE`'s good ranges
+unless the surface is a showpiece. The user's **Glass** setting
+(`<GlassTintControl />`, beside Interface size) holds window glass and the
+tint of every glass surface; reduced transparency, high contrast and Linux
+take it to opaque on their own. Glass layers never use `mix-blend-mode`: a
+blending sibling switches off every backdrop filter on the surface in
+Chromium. Design for WebKit (macOS): refraction, dispersion and bent
+textures are Chromium extras, and the surface must read without them.
+
+**R6.10 Window glass.** The whole window as glass is `glassChrome`
+(docs/GLASS.md): the shell's root carries `data-app-shell` and renders
+`<GlassBackdrop />`; nothing else changes in the app. Media, launchers,
+galleries and showcase apps may scaffold with `--glass regular` or
+`frosted`; dashboards stay `off` unless asked; editors, consoles and dense
+tables stay `off`. The shell never takes a `backdrop-filter`.
 
 ---
 

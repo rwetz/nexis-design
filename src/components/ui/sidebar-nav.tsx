@@ -67,6 +67,7 @@ export function SidebarNav<Id extends string>({
 
   return (
     <nav
+      data-slot="sidebar-nav"
       aria-label={label}
       data-collapsed={collapsed || undefined}
       className={cn(

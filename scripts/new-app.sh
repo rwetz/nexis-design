@@ -2,7 +2,7 @@
 # Scaffold a new Nexis-family app (Tauri v2 + React 19 + Tailwind v4) from
 # one of the templates.
 #
-#   scripts/new-app.sh <name> [template] [dir] [--with plugin,plugin]
+#   scripts/new-app.sh <name> [template] [dir] [--with plugin,plugin] [--glass material]
 #
 #   name      package name, e.g. nexis-pulse (family apps are nexis-<thing>)
 #   template  dashboard | workbench | settings | settings-deep | explorer | console | wizard | launcher | minimal
@@ -13,6 +13,10 @@
 #             clipboard-manager process http sql global-shortcut.
 #             See docs/BACKEND.md. (updater is manual: it panics at startup
 #             without a signing key.)
+#   --glass   start the app with window glass on (docs/GLASS.md): clear,
+#             regular, frosted or tinted. The shell becomes a translucent
+#             sheet over the theme's backdrop and overlays become glass;
+#             users can still turn it off in Settings, Glass.
 #
 # The app depends on @nexis/design from git at the release range of this
 # checkout's version, e.g. github:rwetz/nexis-design#semver:^0.3.0 (pin a
@@ -29,24 +33,31 @@ set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 with=""
+glass="off"
 args=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --with) with="${2:-}"; shift 2 ;;
     --with=*) with="${1#--with=}"; shift ;;
+    --glass) glass="${2:-}"; shift 2 ;;
+    --glass=*) glass="${1#--glass=}"; shift ;;
     *) args+=("$1"); shift ;;
   esac
 done
 name="${args[0]:-}"
 template="${args[1]:-minimal}"
 if [[ -z "$name" ]]; then
-  sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
   exit 1
 fi
 if [[ ! "$name" =~ ^[a-z][a-z0-9-]*$ ]]; then
   echo "error: '$name' is not a valid package name (lowercase letters, digits and -)" >&2
   exit 1
 fi
+case "$glass" in
+  off|clear|regular|frosted|tinted) ;;
+  *) echo "error: --glass takes clear, regular, frosted or tinted (not '$glass')" >&2; exit 1 ;;
+esac
 case "$template" in
   settings-deep) src="$here/templates/settings.tsx" ;;
   dashboard|workbench|settings|explorer|console|wizard|launcher|minimal) src="$here/templates/$template.tsx" ;;
@@ -267,6 +278,8 @@ HTML
 CSS
 } > "$dir/src/styles.css"
 
+glass_prop=""
+if [[ "$glass" != "off" ]]; then glass_prop=" defaultGlassChrome=\"$glass\""; fi
 { header "//"; cat <<TSX
 
 import "./styles.css";
@@ -284,7 +297,7 @@ if (USE_CUSTOM_WINDOW_CONTROLS) document.documentElement.dataset.chrome = "borde
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <LazyMotion features={domAnimation} strict>
-      <ThemeProvider storageKey="$name">
+      <ThemeProvider storageKey="$name"$glass_prop>
         <TooltipProvider delayDuration={300}>
           <ErrorBoundary label="The app" className="h-full">
             <App />

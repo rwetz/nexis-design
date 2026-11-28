@@ -47,7 +47,7 @@ database `sql`, system-wide keys `global-shortcut`. `updater` is manual
 ## 2. Create it
 
 ```bash
-scripts/new-app.sh nexis-<thing> <template> [dir] [--with store,dialog]
+scripts/new-app.sh nexis-<thing> <template> [dir] [--with store,dialog] [--glass regular]
 cd <dir> && pnpm install
 pnpm verify        # must be clean before you change anything
 ```
@@ -62,6 +62,25 @@ pnpm verify        # must be clean before you change anything
 - `pnpm dev` here and open `#/app/<template>` to see what you are starting
   from.
 - `pnpm tauri icon src-tauri/icons/icon.png` before the first `cargo check`.
+
+### Glass
+
+Decide window glass up front (docs/GLASS.md, RULES R6.9 and R6.10), the
+way you decide plugins:
+
+- **Media, launchers, players, galleries, showcase or onboarding apps:**
+  ask the user whether they want window glass, recommending `--glass
+  regular` (or `frosted` over a busy wallpaper, `clear` for a player).
+- **Dashboards:** off unless the user asks; then `--glass tinted`.
+- **Editors, IDEs, consoles, dense tables:** off. Don't ask.
+
+Then place surfaces by job, not taste: toolbars over scrolling content
+`regular`, a sidebar over a wallpaper `frosted`, floating controls over
+media `clear`, partitions `reeded` or `frost`, and at most one showpiece
+per screen (`iridescent`, `oil`, `prism`, `cathedral`, `block`, `dither`
+over art). Text goes on 15%+ tint or `legible`, never on a textured or
+prism pane. Keep knobs in `GLASS_GUIDE`'s good ranges, and check the app
+on macOS: refraction and bent textures are Windows (Chromium) extras.
 
 ## Branding
 

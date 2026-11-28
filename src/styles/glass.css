@@ -1,0 +1,678 @@
+/* ══════════════════════════════════════════════════════════════════════════
+ * Liquid glass (docs/GLASS.md).
+ *
+ * A glass surface is one element (`.nexis-glass`) with its decoration in
+ * absolutely placed layers *beside* its content, never around it, so the
+ * element lays out its children exactly as it would without the glass:
+ *
+ *   .nexis-glass-pane      the backdrop: blur, saturation, tint, light
+ *   .nexis-glass-edge      more blur in a band round the edge (edge blur)
+ *   .nexis-glass-fringe    a band where what's behind shifts hue (iridescence
+ *                          on the icons and text behind; every engine)
+ *   .nexis-glass-sheen     a thin-film colour wash over the pane
+ *   .nexis-glass-specular  a highlight that follows the pointer
+ *   .nexis-glass-rim       the lit edge
+ *
+ * The layers are siblings, not nested, because an element with a
+ * backdrop-filter is a backdrop root: a blurred child of a blurred parent
+ * would blur the parent's (empty) content rather than the page.
+ *
+ * Every knob is a custom property, so `<Glass>` sets them from props and
+ * `.glass-*` utility classes set them from presets:
+ *
+ *   --glass-tint        0 clear … 1 fully tinted
+ *   --glass-color       the tint (a theme token by default)
+ *   --glass-blur        backdrop blur
+ *   --glass-saturate    backdrop saturation
+ *   --glass-brightness  backdrop brightness
+ *   --glass-edge        extra blur at the edge (0 = none)
+ *   --glass-edge-width  how far in the edge blur reaches
+ *   --glass-fringe      0 … 1, the hue-shifted band
+ *   --glass-sheen       0 … 1, the thin-film wash
+ *   --glass-rim         0 … 1, the lit edge
+ *
+ * The user's Glass opacity (ThemeProvider, `--glass-user-tint`, 0 … 1)
+ * moves every surface toward fully tinted, the way the OS's own
+ * "Clear / Tinted" choice does.
+ * ════════════════════════════════════════════════════════════════════════ */
+
+@property --glass-spin {
+  syntax: "<angle>";
+  inherits: true;
+  initial-value: 0deg;
+}
+
+/* In the components layer, so Tailwind utilities on a glass element
+ * (absolute, inset-*, rounded-*) win over these defaults. */
+@layer components {
+  :root {
+    --glass-user-tint: 0;
+    /* The two untinted glasses, for `tone="light"` and `tone="dark"`. */
+    --glass-light: oklch(0.99 0.004 250);
+    --glass-dark: oklch(0.17 0.006 260);
+    /* Thin film: the hues soap bubbles and oil on water go through. */
+    --glass-film-1: oklch(0.86 0.13 350);
+    --glass-film-2: oklch(0.88 0.12 60);
+    --glass-film-3: oklch(0.9 0.13 130);
+    --glass-film-4: oklch(0.86 0.12 200);
+    --glass-film-5: oklch(0.8 0.15 285);
+  }
+
+  .nexis-glass {
+    --glass-tint: 0.2;
+    --glass-color: var(--background);
+    --glass-blur: 16px;
+    --glass-saturate: 1.6;
+    --glass-brightness: 1.04;
+    --glass-edge: 0px;
+    --glass-edge-width: 2rem;
+    --glass-fringe: 0;
+    --glass-fringe-width: 0.75rem;
+    --glass-sheen: 0;
+    --glass-rim: 0.7;
+    --glass-x: 30%;
+    --glass-y: 0%;
+    /* What's drawn: the designed tint pulled toward 1 by the user's setting. */
+    --glass-tint-on: calc(var(--glass-tint) + (1 - var(--glass-tint)) * var(--glass-user-tint));
+    /* The pane's body: its wash of light, the lift in saturation and
+     * brightness. None at 0% tint, so clear glass passes what's behind
+     * through as it is (only the rim says it's there); full by 20%. */
+    --glass-body: min(1, calc(var(--glass-tint-on) * 5));
+    --_sat: calc(1 + (var(--glass-saturate) - 1) * var(--glass-body));
+    --_bri: calc(1 + (var(--glass-brightness) - 1) * var(--glass-body));
+
+    position: relative;
+    isolation: isolate;
+    border-radius: var(--radius-xl);
+  }
+
+  .nexis-glass[data-shadow] {
+    box-shadow:
+      0 0.75rem 2rem -0.75rem oklch(0 0 0 / 0.28),
+      0 0.125rem 0.375rem -0.125rem oklch(0 0 0 / 0.12);
+  }
+  .dark .nexis-glass[data-shadow] {
+    box-shadow:
+      0 0.75rem 2.5rem -0.75rem oklch(0 0 0 / 0.6),
+      0 0.125rem 0.375rem -0.125rem oklch(0 0 0 / 0.35);
+  }
+
+  .nexis-glass > .nexis-glass-layer {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  /* ── The pane ─────────────────────────────────────────────────────────── */
+
+  .nexis-glass > .nexis-glass-pane {
+    background-color: color-mix(in oklab, var(--glass-color) calc(var(--glass-tint-on) * 100%), transparent);
+    /* Light from above: brighter at the top, the way a curved pane catches it. */
+    background-image: linear-gradient(
+      180deg in oklch,
+      oklch(1 0 0 / calc(0.16 * var(--glass-rim) * var(--glass-body))) 0%,
+      oklch(1 0 0 / 0) 42%,
+      oklch(0 0 0 / calc(0.04 * var(--glass-rim) * var(--glass-body))) 100%
+    );
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--_sat)) brightness(var(--_bri));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--_sat)) brightness(var(--_bri));
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / calc(0.45 * var(--glass-rim))),
+      inset 0 -1px 1px oklch(0 0 0 / calc(0.08 * var(--glass-rim))),
+      inset 0 0 0 1px oklch(1 0 0 / calc(0.06 * var(--glass-rim)));
+  }
+  .dark .nexis-glass > .nexis-glass-pane {
+    background-image: linear-gradient(
+      180deg in oklch,
+      oklch(1 0 0 / calc(0.09 * var(--glass-rim) * var(--glass-body))) 0%,
+      oklch(1 0 0 / 0) 40%,
+      oklch(0 0 0 / calc(0.1 * var(--glass-rim) * var(--glass-body))) 100%
+    );
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / calc(0.22 * var(--glass-rim))),
+      inset 0 -1px 1px oklch(0 0 0 / calc(0.3 * var(--glass-rim))),
+      inset 0 0 0 1px oklch(1 0 0 / calc(0.05 * var(--glass-rim)));
+  }
+
+  /* Refraction (Chromium only: WebView2 on Windows, Chrome). <Glass> writes a
+   * per-instance SVG filter and names it in --glass-refract; WebKit can't take
+   * url() in backdrop-filter, and a declaration it can't parse would drop the
+   * blur too, so this only applies where <Glass> has said it's supported. */
+  .nexis-glass[data-refract] > .nexis-glass-pane {
+    -webkit-backdrop-filter: blur(var(--glass-blur)) var(--glass-refract) saturate(var(--_sat)) brightness(var(--_bri));
+    backdrop-filter: blur(var(--glass-blur)) var(--glass-refract) saturate(var(--_sat)) brightness(var(--_bri));
+  }
+
+  /* ── Edge blur ────────────────────────────────────────────────────────── */
+
+  .nexis-glass > .nexis-glass-edge {
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + var(--glass-edge))) saturate(var(--_sat));
+    backdrop-filter: blur(calc(var(--glass-blur) + var(--glass-edge))) saturate(var(--_sat));
+    --_w: var(--glass-edge-width);
+    -webkit-mask:
+      linear-gradient(to right in oklch, #000 0, #000 calc(var(--_w) * 0.35), transparent var(--_w), transparent calc(100% - var(--_w)), #000 calc(100% - var(--_w) * 0.35), #000 100%),
+      linear-gradient(to bottom in oklch, #000 0, #000 calc(var(--_w) * 0.35), transparent var(--_w), transparent calc(100% - var(--_w)), #000 calc(100% - var(--_w) * 0.35), #000 100%);
+    -webkit-mask-composite: source-over;
+    mask:
+      linear-gradient(to right in oklch, #000 0, #000 calc(var(--_w) * 0.35), transparent var(--_w), transparent calc(100% - var(--_w)), #000 calc(100% - var(--_w) * 0.35), #000 100%),
+      linear-gradient(to bottom in oklch, #000 0, #000 calc(var(--_w) * 0.35), transparent var(--_w), transparent calc(100% - var(--_w)), #000 calc(100% - var(--_w) * 0.35), #000 100%);
+    mask-composite: add;
+  }
+
+  /* ── Fringe: iridescence on what's behind ─────────────────────────────── */
+
+  .nexis-glass > .nexis-glass-fringe {
+    opacity: var(--glass-fringe);
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.35)) saturate(2.6) hue-rotate(var(--glass-spin)) brightness(1.08);
+    backdrop-filter: blur(calc(var(--glass-blur) * 0.35)) saturate(2.6) hue-rotate(var(--glass-spin)) brightness(1.08);
+    --_w: var(--glass-fringe-width);
+    -webkit-mask:
+      linear-gradient(to right in oklch, #000, transparent var(--_w), transparent calc(100% - var(--_w)), #000),
+      linear-gradient(to bottom in oklch, #000, transparent var(--_w), transparent calc(100% - var(--_w)), #000);
+    -webkit-mask-composite: source-over;
+    mask:
+      linear-gradient(to right in oklch, #000, transparent var(--_w), transparent calc(100% - var(--_w)), #000),
+      linear-gradient(to bottom in oklch, #000, transparent var(--_w), transparent calc(100% - var(--_w)), #000);
+    mask-composite: add;
+  }
+
+  /* ── Sheen: thin-film colour ──────────────────────────────────────────── */
+
+  .nexis-glass > .nexis-glass-sheen {
+    /* Plain alpha, never mix-blend-mode: a blending layer puts the whole
+     * surface in its own render pass, and Chromium's backdrop filters then
+     * see nothing behind it (every blur and bend on the surface goes). */
+    opacity: calc(var(--glass-sheen) * 0.5);
+    background: conic-gradient(
+      from var(--glass-spin) at 30% 20% in oklch,
+      var(--glass-film-1),
+      var(--glass-film-2),
+      var(--glass-film-3),
+      var(--glass-film-4),
+      var(--glass-film-5),
+      var(--glass-film-1)
+    );
+    -webkit-mask: radial-gradient(130% 130% at 50% 50% in oklch, transparent 30%, #000 75%);
+    mask: radial-gradient(130% 130% at 50% 50% in oklch, transparent 30%, #000 75%);
+  }
+  .dark .nexis-glass > .nexis-glass-sheen {
+    opacity: calc(var(--glass-sheen) * 0.38);
+  }
+  /* The theme's own film: its six ANSI hues, which every theme tunes (its
+   * chart colours are deliberately neutral). */
+  .nexis-glass[data-sheen="theme"] > .nexis-glass-sheen {
+    background: conic-gradient(
+      from var(--glass-spin) at 30% 20% in oklch,
+      var(--terminal-ansi-magenta),
+      var(--terminal-ansi-red),
+      var(--terminal-ansi-yellow),
+      var(--terminal-ansi-green),
+      var(--terminal-ansi-cyan),
+      var(--terminal-ansi-blue),
+      var(--terminal-ansi-magenta)
+    );
+  }
+  /* One colour, the tint's, lit and shaded. */
+  .nexis-glass[data-sheen="tone"] > .nexis-glass-sheen {
+    background: conic-gradient(
+      from var(--glass-spin) at 30% 20% in oklch,
+      color-mix(in oklab, var(--glass-color) 60%, white),
+      var(--glass-color),
+      color-mix(in oklab, var(--glass-color) 70%, black),
+      var(--glass-color),
+      color-mix(in oklab, var(--glass-color) 60%, white)
+    );
+  }
+  /* A whole-pane film, for the iridescent presets. */
+  .nexis-glass[data-sheen-fill] > .nexis-glass-sheen {
+    -webkit-mask: none;
+    mask: none;
+  }
+
+  /* ── Specular ─────────────────────────────────────────────────────────── */
+
+  .nexis-glass > .nexis-glass-specular {
+    background: radial-gradient(
+      circle at var(--glass-x) var(--glass-y) in oklch,
+      oklch(1 0 0 / calc(0.3 * var(--glass-rim))),
+      oklch(1 0 0 / 0) 55%
+    );
+    /* Only while the pointer is over it: at rest it would be a haze. */
+    opacity: 0;
+    transition: opacity var(--dur-panel, 180ms) var(--ease-exit, ease-out);
+  }
+  .nexis-glass:hover > .nexis-glass-specular {
+    opacity: 1;
+  }
+  .dark .nexis-glass:hover > .nexis-glass-specular {
+    opacity: 0.6;
+  }
+
+  /* ── Rim ──────────────────────────────────────────────────────────────── */
+
+  .nexis-glass > .nexis-glass-rim {
+    padding: 1px;
+    background: linear-gradient(
+      var(--glass-light-angle, 140deg) in oklch,
+      oklch(1 0 0 / calc(0.8 * var(--glass-rim))) 0%,
+      oklch(1 0 0 / calc(0.1 * var(--glass-rim))) 30%,
+      oklch(1 0 0 / 0) 50%,
+      oklch(1 0 0 / calc(0.08 * var(--glass-rim))) 70%,
+      oklch(1 0 0 / calc(0.5 * var(--glass-rim))) 100%
+    );
+    -webkit-mask: linear-gradient(in oklch, #000 0 0) content-box, linear-gradient(in oklch, #000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(in oklch, #000 0 0) content-box exclude, linear-gradient(in oklch, #000 0 0);
+  }
+  .dark .nexis-glass > .nexis-glass-rim {
+    background: linear-gradient(
+      var(--glass-light-angle, 140deg) in oklch,
+      oklch(1 0 0 / calc(0.45 * var(--glass-rim))) 0%,
+      oklch(1 0 0 / calc(0.06 * var(--glass-rim))) 30%,
+      oklch(1 0 0 / 0) 50%,
+      oklch(1 0 0 / calc(0.04 * var(--glass-rim))) 70%,
+      oklch(1 0 0 / calc(0.25 * var(--glass-rim))) 100%
+    );
+  }
+  /* Iridescent rim: the film's colours round the edge. */
+  .nexis-glass[data-rim="film"] > .nexis-glass-rim {
+    padding: 1.5px;
+    opacity: calc(0.4 + 0.6 * var(--glass-rim));
+    background: conic-gradient(
+      from var(--glass-spin) in oklch,
+      var(--glass-film-1),
+      var(--glass-film-2),
+      var(--glass-film-3),
+      var(--glass-film-4),
+      var(--glass-film-5),
+      var(--glass-film-1)
+    );
+  }
+  .nexis-glass[data-rim="theme"] > .nexis-glass-rim {
+    padding: 1.5px;
+    opacity: calc(0.4 + 0.6 * var(--glass-rim));
+    background: conic-gradient(
+      from var(--glass-spin) in oklch,
+      var(--terminal-ansi-magenta),
+      var(--terminal-ansi-red),
+      var(--terminal-ansi-yellow),
+      var(--terminal-ansi-green),
+      var(--terminal-ansi-cyan),
+      var(--terminal-ansi-blue),
+      var(--terminal-ansi-magenta)
+    );
+  }
+
+  /* ── Texture without refraction: drawn light, every engine ────────────── */
+
+  /* Reeded (fluted) glass: vertical ribs of light and shade. */
+  .nexis-glass[data-texture="reeded"]:not([data-refract]) > .nexis-glass-pane {
+    background-image:
+      repeating-linear-gradient(
+        90deg in oklch,
+        oklch(1 0 0 / 0.14) 0,
+        oklch(1 0 0 / 0) 0.3rem,
+        oklch(0 0 0 / 0.08) 0.55rem,
+        oklch(1 0 0 / 0.14) 0.75rem
+      ),
+      linear-gradient(180deg in oklch, oklch(1 0 0 / calc(0.16 * var(--glass-rim))), oklch(1 0 0 / 0) 42%);
+  }
+  /* Frost and ripple: fine grain over the pane. */
+  .nexis-glass[data-texture="frost"]:not([data-refract]) > .nexis-glass-pane,
+  .nexis-glass[data-texture="ripple"]:not([data-refract]) > .nexis-glass-pane {
+    background-image:
+      radial-gradient(in oklch, oklch(1 0 0 / 0.08) 0.5px, transparent 0.75px),
+      linear-gradient(180deg in oklch, oklch(1 0 0 / calc(0.16 * var(--glass-rim))), oklch(1 0 0 / 0) 42%);
+    background-size: 3px 3px, auto;
+  }
+
+  /* ── Iris: oil-slick film ──────────────────────────────────────────────
+   * Three layers, each shifting the hue of what's behind a little further
+   * round the wheel, each showing through every third contour of one
+   * field of smooth noise, so the pane carries soft, organic bands of
+   * colour, the way a film of oil or soap splits light. The field drifts
+   * with --glass-spin. Every engine (a backdrop hue-rotate and a mask; no
+   * blend modes). */
+  .nexis-glass > .nexis-glass-iris {
+    --_k: 0;
+    opacity: calc(var(--glass-iris) * 0.8);
+    -webkit-backdrop-filter: hue-rotate(calc(var(--glass-spin) + 40deg + var(--_k) * 80deg)) saturate(1.8) brightness(1.06);
+    backdrop-filter: hue-rotate(calc(var(--glass-spin) + 40deg + var(--_k) * 80deg)) saturate(1.8) brightness(1.06);
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0045' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1.6 0 0 0 -0.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='1 0 0 1 0 0 1 0 0 1 0 0'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23f)'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0045' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1.6 0 0 0 -0.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='1 0 0 1 0 0 1 0 0 1 0 0'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23f)'/%3E%3C/svg%3E");
+    -webkit-mask-size: 420px 420px;
+    mask-size: 420px 420px;
+    -webkit-mask-position: calc(cos(var(--glass-spin)) * 70px) calc(sin(var(--glass-spin)) * 50px);
+    mask-position: calc(cos(var(--glass-spin)) * 70px) calc(sin(var(--glass-spin)) * 50px);
+  }
+  .nexis-glass > .nexis-glass-iris[data-k="1"] {
+    --_k: 1;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0045' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1.6 0 0 0 -0.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 1 0 0 1 0 0 1 0 0 1 0'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23f)'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0045' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1.6 0 0 0 -0.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 1 0 0 1 0 0 1 0 0 1 0'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23f)'/%3E%3C/svg%3E");
+  }
+  .nexis-glass > .nexis-glass-iris[data-k="2"] {
+    --_k: 2;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0045' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1.6 0 0 0 -0.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0 1 0 0 1 0 0 1 0 0 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23f)'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f' x='0' y='0' width='100%' height='100%'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0045' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1.6 0 0 0 -0.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0 1 0 0 1 0 0 1 0 0 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23f)'/%3E%3C/svg%3E");
+  }
+
+  /* ── Glass block, seeded, hammered, dither: what every engine draws ───── */
+
+  /* Glass block. The block layer carries the wall's 2 × 2 tile (an SVG
+   * <Glass> builds: stepped frames, wavy faces, lit relief) at two blocks a
+   * side, and its ::after the mortar between blocks: a cement grey from
+   * the theme, opaque, lit along its top edge and shaded below, so the
+   * blocks read as set into it. Every engine; Chromium also bends what's
+   * behind each face. */
+  .nexis-glass > .nexis-glass-block {
+    --_grout: color-mix(in oklab, var(--foreground) 16%, var(--background));
+    background-size: calc(var(--glass-block) * 2) calc(var(--glass-block) * 2);
+    background-repeat: repeat;
+    overflow: hidden;
+  }
+  .dark .nexis-glass > .nexis-glass-block {
+    --_grout: color-mix(in oklab, var(--foreground) 22%, var(--background));
+  }
+  .nexis-glass > .nexis-glass-block::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    --_g: calc(var(--glass-grout) / 2);
+    background-image:
+      linear-gradient(
+        to right in oklch,
+        var(--_grout) 0 var(--_g),
+        oklch(0 0 0 / 0.18) var(--_g),
+        transparent calc(var(--_g) + 1.5px),
+        transparent calc(100% - var(--_g) - 1.5px),
+        oklch(1 0 0 / 0.25) calc(100% - var(--_g)),
+        var(--_grout) calc(100% - var(--_g))
+      ),
+      linear-gradient(
+        to bottom in oklch,
+        var(--_grout) 0 var(--_g),
+        oklch(0 0 0 / 0.18) var(--_g),
+        transparent calc(var(--_g) + 1.5px),
+        transparent calc(100% - var(--_g) - 1.5px),
+        oklch(1 0 0 / 0.25) calc(100% - var(--_g)),
+        var(--_grout) calc(100% - var(--_g))
+      );
+    background-size: var(--glass-block) var(--glass-block);
+  }
+  /* A wall wants its pane plain: the light is in the blocks. */
+  .nexis-glass[data-texture="block"] > .nexis-glass-pane {
+    background-image: none;
+  }
+
+  /* Seeded glass: bubbles caught in the pane, each a ring lit on one side. */
+  .nexis-glass[data-texture="seeded"] > .nexis-glass-pane {
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='120'%3E%3Cg fill='none' stroke='white' stroke-opacity='.5'%3E%3Ccircle cx='18' cy='22' r='3'/%3E%3Ccircle cx='71' cy='12' r='1.6'/%3E%3Ccircle cx='120' cy='31' r='4.2'/%3E%3Ccircle cx='44' cy='64' r='2.2'/%3E%3Ccircle cx='98' cy='78' r='2.8'/%3E%3Ccircle cx='138' cy='96' r='1.4'/%3E%3Ccircle cx='12' cy='101' r='1.9'/%3E%3Ccircle cx='63' cy='108' r='3.4'/%3E%3C/g%3E%3Cg fill='white' fill-opacity='.55'%3E%3Ccircle cx='17' cy='21' r='.9'/%3E%3Ccircle cx='119' cy='29.6' r='1.2'/%3E%3Ccircle cx='97.2' cy='77' r='.8'/%3E%3Ccircle cx='62' cy='107' r='1'/%3E%3C/g%3E%3C/svg%3E"),
+      linear-gradient(180deg in oklch, oklch(1 0 0 / calc(0.16 * var(--glass-rim) * var(--glass-body))), oklch(1 0 0 / 0) 42%);
+    background-size: 150px 120px, auto;
+  }
+  /* Hammered, drawn: soft dimples, lit and shaded. */
+  .nexis-glass[data-texture="hammered"]:not([data-refract]) > .nexis-glass-pane {
+    background-image:
+      radial-gradient(circle at 35% 30% in oklch, oklch(1 0 0 / 0.16), transparent 55%),
+      radial-gradient(circle at 70% 75% in oklch, oklch(0 0 0 / 0.1), transparent 50%);
+    background-size: 1.375rem 1.375rem, 1.375rem 1.375rem;
+    background-position: 0 0, 0.6875rem 0.6875rem;
+  }
+  /* Dither, drawn: a halftone screen of the tint over the blur. */
+  .nexis-glass[data-texture="dither"]:not([data-refract]) > .nexis-glass-pane {
+    background-image: radial-gradient(in oklch, color-mix(in oklab, var(--glass-color) 55%, transparent) 0.6px, transparent 1px);
+    background-size: 3px 3px;
+  }
+
+  /* ── Legibility on clear glass ────────────────────────────────────────── */
+
+  /* Clear glass shows what's behind almost as it is, so text on it gets a
+   * soft halo of the glass's own colour. */
+  .nexis-glass[data-legible] {
+    text-shadow:
+      0 0 0.6em color-mix(in oklab, var(--glass-color) 70%, transparent),
+      0 0 0.15em color-mix(in oklab, var(--glass-color) 55%, transparent);
+  }
+
+  /* ── Motion ───────────────────────────────────────────────────────────── */
+
+  @keyframes nexis-glass-spin {
+    to {
+      --glass-spin: 360deg;
+    }
+  }
+  .nexis-glass[data-animate] {
+    animation: nexis-glass-spin 16s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nexis-glass[data-animate] {
+      animation: none;
+    }
+    .nexis-glass > .nexis-glass-specular {
+      transition: none;
+    }
+  }
+
+  /* ── Where glass gives way ────────────────────────────────────────────────
+   * Reduced transparency, high contrast and Linux (WebKitGTK repaints every
+   * backdrop-filter on scroll) get the same surface nearly opaque: no blur,
+   * no film, no hue shift, the tint at 92% or more, and the rim kept as a
+   * plain edge. */
+  @media (prefers-reduced-transparency: reduce) {
+    :root {
+      --glass-user-tint: 0.92 !important;
+    }
+    .nexis-glass > .nexis-glass-layer {
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+    .nexis-glass > .nexis-glass-fringe,
+    .nexis-glass > .nexis-glass-iris,
+    .nexis-glass > .nexis-glass-edge,
+    .nexis-glass > .nexis-glass-sheen,
+    .nexis-glass > .nexis-glass-specular {
+      display: none;
+    }
+  }
+  html[data-os="linux"] .nexis-glass > .nexis-glass-layer,
+  html[data-contrast="high"] .nexis-glass > .nexis-glass-layer {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  html[data-os="linux"] .nexis-glass,
+  html[data-contrast="high"] .nexis-glass {
+    --glass-tint-on: max(0.92, var(--glass-tint)) !important;
+    text-shadow: none;
+  }
+  html[data-os="linux"] .nexis-glass > :is(.nexis-glass-fringe, .nexis-glass-edge, .nexis-glass-sheen, .nexis-glass-specular, .nexis-glass-iris),
+  html[data-contrast="high"] .nexis-glass > :is(.nexis-glass-fringe, .nexis-glass-edge, .nexis-glass-sheen, .nexis-glass-specular, .nexis-glass-iris) {
+    display: none;
+  }
+  html[data-contrast="high"] .nexis-glass > .nexis-glass-rim {
+    background: var(--border);
+    opacity: 1;
+  }
+
+  /* ── One-class glass ──────────────────────────────────────────────────────
+   * For a surface that can't take <Glass>'s layers (a Radix popover's content,
+   * a toast): pane and rim on the element itself. No edge blur, fringe or
+   * refraction; for those use <Glass>. */
+  .glass-surface {
+    --glass-tint: 0.55;
+    --glass-color: var(--popover);
+    --glass-blur: 24px;
+    --glass-saturate: 1.7;
+    --glass-rim: 0.7;
+    --glass-tint-on: calc(var(--glass-tint) + (1 - var(--glass-tint)) * var(--glass-user-tint));
+    background-color: color-mix(in oklab, var(--glass-color) calc(var(--glass-tint-on) * 100%), transparent);
+    background-image: linear-gradient(180deg in oklch, oklch(1 0 0 / calc(0.14 * var(--glass-rim))), oklch(1 0 0 / 0) 40%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / calc(0.4 * var(--glass-rim))),
+      inset 0 0 0 1px oklch(1 0 0 / calc(0.08 * var(--glass-rim))),
+      0 0.75rem 2rem -0.75rem oklch(0 0 0 / 0.3);
+  }
+  .dark .glass-surface {
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / calc(0.18 * var(--glass-rim))),
+      inset 0 0 0 1px oklch(1 0 0 / calc(0.06 * var(--glass-rim))),
+      0 0.75rem 2.5rem -0.75rem oklch(0 0 0 / 0.6);
+  }
+  .glass-surface.glass-clear { --glass-tint: 0.06; --glass-blur: 6px; }
+  .glass-surface.glass-regular { --glass-tint: 0.3; --glass-blur: 18px; }
+  .glass-surface.glass-frosted { --glass-tint: 0.5; --glass-blur: 32px; }
+  .glass-surface.glass-tinted { --glass-tint: 0.78; --glass-blur: 24px; }
+  .glass-surface.glass-solid { --glass-tint: 1; }
+  @media (prefers-reduced-transparency: reduce) {
+    .glass-surface {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+  html[data-os="linux"] .glass-surface,
+  html[data-contrast="high"] .glass-surface {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    --glass-tint-on: max(0.92, var(--glass-tint)) !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * Glass chrome: the whole window as glass (html[data-glass-chrome], set by
+ * ThemeProvider's glassChrome). The shell (the template's root, marked
+ * [data-app-shell]) turns into one translucent sheet over <GlassBackdrop>;
+ * its chrome (title bar, sidebar, status bar) joins that sheet with lit
+ * hairlines; and every overlay (menus, popovers, selects, dialogs, sheets,
+ * the palette) becomes real blurred glass over the content. Unlayered, so
+ * it beats the shell's own `bg-background` / `bg-sidebar` utilities.
+ *
+ * The shell itself never takes a backdrop-filter: it would be a backdrop
+ * root, and every glass surface inside it would then see nothing behind.
+ * The backdrop is soft already (GlassBackdrop blurs what it draws).
+ * ════════════════════════════════════════════════════════════════════════ */
+
+html[data-glass-chrome] {
+  --gc-shell: 0.62;
+  --gc-chrome: 0.12;
+  --gc-over: 0.55;
+  --gc-blur: 22px;
+  --gc-sat: 1.6;
+}
+html[data-glass-chrome="clear"] {
+  --gc-shell: 0.38;
+  --gc-chrome: 0;
+  --gc-over: 0.3;
+  --gc-blur: 10px;
+  --gc-sat: 1.3;
+}
+html[data-glass-chrome="frosted"] {
+  --gc-shell: 0.74;
+  --gc-chrome: 0.18;
+  --gc-over: 0.66;
+  --gc-blur: 34px;
+  --gc-sat: 1.5;
+}
+html[data-glass-chrome="tinted"] {
+  --gc-shell: 0.86;
+  --gc-chrome: 0.3;
+  --gc-over: 0.8;
+  --gc-blur: 26px;
+  --gc-sat: 1.4;
+}
+html[data-glass-chrome] {
+  /* The user's Glass setting pulls all of it toward opaque. */
+  --_gc-shell: calc(var(--gc-shell) + (1 - var(--gc-shell)) * var(--glass-user-tint));
+  --_gc-chrome: calc(var(--gc-chrome) + (1 - var(--gc-chrome)) * var(--glass-user-tint));
+  --_gc-over: calc(var(--gc-over) + (1 - var(--gc-over)) * var(--glass-user-tint));
+}
+
+html[data-glass-chrome] [data-app-shell] {
+  background-color: color-mix(in oklab, var(--background) calc(var(--_gc-shell) * 100%), transparent) !important;
+}
+html[data-glass-chrome] [data-app-shell] :is([data-slot="title-bar"], [data-slot="status-bar"], [data-slot="sidebar-nav"], .bg-sidebar) {
+  background-color: color-mix(in oklab, var(--sidebar) calc(var(--_gc-chrome) * 100%), transparent) !important;
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.06);
+}
+html[data-glass-chrome] :is(
+    [data-slot="popover-content"],
+    [data-slot="dropdown-menu-content"],
+    [data-slot="dropdown-menu-sub-content"],
+    [data-slot="context-menu-content"],
+    [data-slot="context-menu-sub-content"],
+    [data-slot="menubar-content"],
+    [data-slot="select-content"],
+    [data-slot="hover-card-content"],
+    [data-slot="dialog-content"],
+    [data-slot="alert-dialog-content"],
+    [data-slot="sheet-content"]
+  ) {
+  background-color: color-mix(in oklab, var(--popover) calc(var(--_gc-over) * 100%), transparent) !important;
+  background-image: linear-gradient(180deg in oklch, oklch(1 0 0 / 0.08), oklch(1 0 0 / 0) 40%);
+  -webkit-backdrop-filter: blur(var(--gc-blur)) saturate(var(--gc-sat));
+  backdrop-filter: blur(var(--gc-blur)) saturate(var(--gc-sat));
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.3),
+    inset 0 0 0 1px oklch(1 0 0 / 0.08),
+    0 1rem 2.5rem -1rem oklch(0 0 0 / 0.45);
+}
+.dark:is(html[data-glass-chrome]) :is([data-slot="popover-content"], [data-slot="dropdown-menu-content"], [data-slot="context-menu-content"], [data-slot="select-content"], [data-slot="dialog-content"], [data-slot="sheet-content"]) {
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.14),
+    inset 0 0 0 1px oklch(1 0 0 / 0.06),
+    0 1rem 2.5rem -1rem oklch(0 0 0 / 0.7);
+}
+
+/* The backdrop under a glass shell. */
+.nexis-glass-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.nexis-glass-backdrop[data-kind="mesh"] {
+  background:
+    radial-gradient(at 12% 18% in oklch, var(--terminal-ansi-magenta) 0, transparent 50%),
+    radial-gradient(at 85% 8% in oklch, var(--terminal-ansi-cyan) 0, transparent 45%),
+    radial-gradient(at 78% 88% in oklch, var(--terminal-ansi-yellow) 0, transparent 50%),
+    radial-gradient(at 18% 92% in oklch, var(--terminal-ansi-blue) 0, transparent 45%),
+    radial-gradient(at 50% 50% in oklch, var(--terminal-ansi-green) 0, transparent 60%),
+    var(--background);
+}
+.nexis-glass-backdrop[data-kind="bloom"] {
+  background: var(--background);
+}
+.nexis-glass-backdrop[data-kind="bloom"] > span {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(4rem);
+  opacity: 0.85;
+}
+.nexis-glass-backdrop[data-kind="image"] > img {
+  position: absolute;
+  inset: -2rem;
+  width: calc(100% + 4rem);
+  height: calc(100% + 4rem);
+  object-fit: cover;
+  filter: blur(var(--glass-backdrop-blur, 24px)) saturate(1.3);
+}
+/* Where glass gives way, the shell is opaque again. */
+@media (prefers-reduced-transparency: reduce) {
+  html[data-glass-chrome] [data-app-shell] {
+    background-color: var(--background) !important;
+  }
+}
+html[data-os="linux"][data-glass-chrome] [data-app-shell],
+html[data-contrast="high"][data-glass-chrome] [data-app-shell] {
+  background-color: var(--background) !important;
+}
+html[data-os="linux"][data-glass-chrome] :is([data-slot="popover-content"], [data-slot="dropdown-menu-content"], [data-slot="context-menu-content"], [data-slot="select-content"], [data-slot="dialog-content"], [data-slot="sheet-content"]),
+html[data-contrast="high"][data-glass-chrome] :is([data-slot="popover-content"], [data-slot="dropdown-menu-content"], [data-slot="context-menu-content"], [data-slot="select-content"], [data-slot="dialog-content"], [data-slot="sheet-content"]) {
+  background-color: var(--popover) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}

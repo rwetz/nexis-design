@@ -9,7 +9,7 @@
 // Read-only: it changes nothing. Run after merging a fix (AGENTS.md §6,
 // "A fix lands everywhere") to see which apps still need it.
 //
-//   pnpm consumers                # scans the Dev workspace this checkout sits in
+//   pnpm consumers                # scans the folder this checkout sits in
 //   pnpm consumers <dir>          # or another root
 
 import { execFileSync } from "node:child_process";
@@ -18,13 +18,19 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const ROOT = resolve(process.argv[2] ?? join(HERE, "..", ".."));
+const ROOT = resolve(process.argv[2] ?? join(HERE, ".."));
 const SKIP = new Set(["node_modules", ".git", "dist", "target", "_archive", "worktrees", ".worktrees", ".venv"]);
 
 /** package.json files up to four levels down, skipping build output and archives. */
 function findPackages(dir, depth = 0, out = []) {
   if (depth > 4) return out;
-  for (const name of readdirSync(dir)) {
+  let names;
+  try {
+    names = readdirSync(dir);
+  } catch {
+    return out; // unreadable (macOS privacy folders, permissions): skip it
+  }
+  for (const name of names) {
     if (SKIP.has(name) || name.startsWith(".")) continue;
     const p = join(dir, name);
     let st;

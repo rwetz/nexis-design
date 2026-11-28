@@ -45,6 +45,11 @@ with the theme, mode and command palette in the title bar:
 
 ![Motion, caught mid-frame: a stagger arriving, a result landing, a live run](docs/img/motion-midframe.png)
 
+Liquid glass, from clear to fully tinted, in the theme's own colours, with edge blur, iridescence and (on Chromium) real refraction ([docs/GLASS.md](docs/GLASS.md)):
+
+| ![Glass: Synthwave, dark](docs/img/glass-dark.png) | ![Glass: Glacier, light](docs/img/glass-light.png) |
+|---|---|
+
 **Twenty-two themes**: seventeen Nexis palettes generated from one OKLCH
 ramp, five credited community ones, each light and dark, every one held to
 the same contrast floors by the tests

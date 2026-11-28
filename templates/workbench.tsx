@@ -10,6 +10,7 @@
 
 import * as React from "react";
 import {
+  GlassBackdrop,
   useEdgeFade,
   CommandPalette,
   SkeletonRows,
@@ -94,7 +95,8 @@ export default function App() {
   const lines = doc.status === "ready" ? doc.data : NO_LINES;
 
   return (
-    <div className="flex h-full flex-col bg-background text-foreground">
+    <div data-app-shell className="flex h-full flex-col bg-background text-foreground">
+      <GlassBackdrop />
       <WindowResizeEdges />
       <TitleBar
         brand={<NexisMark className="size-[18px]" />}

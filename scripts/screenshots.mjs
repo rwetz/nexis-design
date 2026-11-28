@@ -28,6 +28,8 @@ const SHOTS = [
   { name: "themes-dark", route: "themes", q: { mode: "dark" }, h: 1180 },
   { name: "themes-light", route: "themes", q: { mode: "light", theme: "aurelian" }, h: 1180 },
   { name: "foundations", route: "foundations", q: { mode: "dark" }, h: 1250 },
+  { name: "glass-dark", route: "glass", q: { mode: "dark", theme: "synthwave" }, h: 1900 },
+  { name: "glass-light", route: "glass", q: { mode: "light", theme: "glacier" }, h: 1900 },
   { name: "components-controls", route: "controls", q: { mode: "dark" }, h: 1180 },
   { name: "components-controls-light", route: "controls", q: { mode: "light", theme: "meridian" }, h: 1180 },
   { name: "components-forms", route: "forms", q: { mode: "dark", theme: "thicket" }, h: 980 },
